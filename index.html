@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyClassroom Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans text-gray-900">
+
+    <div id="login-overlay" class="fixed inset-0 bg-indigo-900 z-[100] flex flex-col items-center justify-center text-white px-6">
+        <i class="fas fa-graduation-cap text-6xl mb-6"></i>
+        <h1 class="text-3xl font-bold mb-2 text-center">MyClassroom</h1>
+        <p class="text-indigo-200 mb-8 text-center max-w-sm">Silakan login menggunakan akun Google untuk masuk ke kelas.</p>
+        <button onclick="loginGoogle()" class="bg-white text-gray-800 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 shadow-2xl hover:bg-gray-100 transition">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google Logo">
+            Masuk dengan Google
+        </button>
+    </div>
+
+    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showDashboard()">
+                <i class="fas fa-graduation-cap text-indigo-600 text-2xl"></i>
+                <span class="font-bold text-xl">MyClassroom</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-gray-100 p-1 rounded-lg flex text-xs font-bold">
+                    <button id="btn-role-guru" onclick="setRole('guru')" class="px-3 py-1.5 rounded-md text-gray-500">GURU</button>
+                    <button id="btn-role-siswa" onclick="setRole('siswa')" class="px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600">SISWA</button>
+                </div>
+                <button id="btn-buat-kelas" onclick="tambahKelas()" class="hidden bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition">+ Buat Kelas</button>
+                <img id="user-photo" src="" class="w-8 h-8 rounded-full border hidden">
+                <button onclick="logout()" class="text-red-500 text-sm font-bold hover:underline"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="dashboard" class="max-w-7xl mx-auto px-4 py-8">
+        <h1 id="dashboard-title" class="text-2xl font-bold mb-6">Daftar Kelas (Mode Siswa)</h1>
+        <div id="classroom-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div onclick="openClass('Matematika Dasar')" class="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer">
+                <div class="h-24 bg-gradient-to-r from-blue-500 to-indigo-600 p-4 text-white">
+                    <h2 class="text-xl font-bold truncate">Matematika Dasar</h2>
+                    <p class="text-blue-100 text-sm">Tahun Ajaran 2026</p>
+                </div>
+                <div class="p-4 flex justify-between items-center text-sm text-gray-500 font-semibold">
+                    <span>Buka Kelas &rarr;</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section id="class-detail" class="hidden max-w-5xl mx-auto px-4 py-8">
+        <button onclick="showDashboard()" class="mb-6 text-indigo-600 font-medium hover:underline">&larr; Kembali ke Dashboard</button>
+        
+        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h1 id="active-class-title" class="text-3xl font-bold text-gray-800">Nama Kelas</h1>
+            </div>
+
+            <div class="flex bg-gray-50">
+                <button onclick="switchTab('materi')" id="tab-materi" class="flex-1 px-6 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold">Materi & Chat</button>
+                <button onclick="switchTab('laporan')" id="tab-laporan" class="flex-1 px-6 py-4 border-b-2 border-transparent text-gray-500 font-bold">Tugas & Nilai</button>
+            </div>
+
+            <div id="content-materi" class="p-6 space-y-8">
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Materi Tersedia</h3>
+                    <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex justify-between items-center">
+                        <div class="flex items-center gap-3"><i class="fas fa-file-pdf text-red-500 text-2xl"></i><span class="font-medium">Modul_Aljabar_v2.pdf</span></div>
+                        <a href="#" class="text-indigo-600 font-bold text-sm hover:underline">Download</a>
+                    </div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <h3 class="font-bold text-lg mb-4"><i class="fas fa-comments mr-2"></i>Ruang Diskusi</h3>
+                    <div id="chat-box" class="h-64 overflow-y-auto bg-gray-50 rounded-xl p-4 space-y-4 mb-4 border flex flex-col">
+                        </div>
+                    <div class="flex gap-2">
+                        <input id="chat-input" type="text" placeholder="Ketik pesan..." class="flex-1 border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-indigo-500">
+                        <button onclick="kirimChat()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-laporan" class="hidden p-6 text-center">
+                <div id="view-siswa-tugas" class="py-10">
+                    <button onclick="siswaSelesai()" class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-2xl font-bold text-xl shadow-lg transition">
+                        Tandai Selesai & Lapor Guru
+                    </button>
+                    <p class="mt-4 text-gray-500">Klik jika Anda sudah menyelesaikan materi hari ini.</p>
+                </div>
+
+                <div id="view-guru-laporan" class="hidden">
+                    <h3 class="text-lg font-bold text-left mb-4">Laporan Penyelesaian Siswa</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border rounded-lg">
+                            <thead class="bg-gray-100 text-xs uppercase font-bold text-gray-600">
+                                <tr>
+                                    <th class="p-4">Siswa</th>
+                                    <th class="p-4">Waktu Lapor</th>
+                                    <th class="p-4">Nilai</th>
+                                    <th id="col-aksi" class="p-4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabel-laporan" class="text-sm divide-y">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // 1. MASUKKAN CONFIG FIREBASE ANDA DI SINI
+       const firebaseConfig = {
+  apiKey: "AIzaSyBkLiqHrvTuFFpaVsmWT2H1wF5NzwgmuBQ",
+  authDomain: "diklatppsdm-e7788.firebaseapp.com",
+  databaseURL: "https://diklatppsdm-e7788-default-rtdb.firebaseio.com",
+  projectId: "diklatppsdm-e7788",
+  storageBucket: "diklatppsdm-e7788.firebasestorage.app",
+  messagingSenderId: "573889493408",
+  appId: "1:573889493408:web:fd7704a7d40e72e72c4cc5"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentUser = null;
+        let currentRole = 'siswa'; // Default role
+
+        // 2. DAFTARKAN SEMUA FUNGSI KE WINDOW AGAR BISA DIKLIK OLEH HTML
+
+        window.loginGoogle = () => {
+            signInWithPopup(auth, provider).catch(err => alert("Gagal Login: " + err.message));
+        };
+
+        window.logout = () => {
+            signOut(auth).then(() => location.reload());
+        };
+
+        window.showDashboard = () => {
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('class-detail').classList.add('hidden');
+        };
+
+        window.openClass = (name) => {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('class-detail').classList.remove('hidden');
+            document.getElementById('active-class-title').innerText = name;
+        };
+
+        window.switchTab = (tab) => {
+            document.getElementById('content-materi').classList.toggle('hidden', tab !== 'materi');
+            document.getElementById('content-laporan').classList.toggle('hidden', tab !== 'laporan');
+            document.getElementById('tab-materi').className = tab === 'materi' ? "flex-1 px-6 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold" : "flex-1 px-6 py-4 border-b-2 border-transparent text-gray-500 font-bold";
+            document.getElementById('tab-laporan').className = tab === 'laporan' ? "flex-1 px-6 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold" : "flex-1 px-6 py-4 border-b-2 border-transparent text-gray-500 font-bold";
+        };
+
+        window.setRole = (role) => {
+            currentRole = role;
+            const isGuru = role === 'guru';
+            
+            // Ubah Warna Tombol Role
+            document.getElementById('btn-role-guru').className = isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
+            document.getElementById('btn-role-siswa').className = !isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
+            
+            // Atur Tampilan
+            document.getElementById('dashboard-title').innerText = isGuru ? "Daftar Kelas (Mode Guru)" : "Daftar Kelas (Mode Siswa)";
+            document.getElementById('btn-buat-kelas').style.display = isGuru ? 'block' : 'none';
+            
+            document.getElementById('view-guru-laporan').classList.toggle('hidden', !isGuru);
+            document.getElementById('view-siswa-tugas').classList.toggle('hidden', isGuru);
+            
+            window.showDashboard();
+        };
+
+        window.tambahKelas = () => {
+            alert("Fitur tambah kelas berhasil diklik!");
+        };
+
+        window.kirimChat = () => {
+            const input = document.getElementById('chat-input');
+            if (!input.value || !currentUser) return;
+            push(ref(db, 'chat/'), {
+                pengirim: currentUser.displayName,
+                pesan: input.value,
+                foto: currentUser.photoURL,
+                timestamp: serverTimestamp(),
+                uid: currentUser.uid
+            });
+            input.value = "";
+        };
+
+        window.siswaSelesai = () => {
+            if (!currentUser) return;
+            push(ref(db, 'laporan/'), {
+                nama: currentUser.displayName,
+                status: "Selesai",
+                nilai: "-",
+                waktu: new Date().toLocaleTimeString()
+            });
+            alert("Laporan berhasil dikirim ke Guru!");
+        };
+
+        window.beriNilai = (id) => {
+            const n = prompt("Input Nilai (0-100):");
+            if (n) update(ref(db, `laporan/${id}`), { nilai: n });
+        };
+
+        // 3. PANTAU LOGIN STATUS
+        onAuthStateChanged(auth, (user) => {
+            const overlay = document.getElementById('login-overlay');
+            if (user) {
+                currentUser = user;
+                overlay.classList.add('hidden'); // Tutup layar login
+                
+                // Tampilkan foto profil
+                const img = document.getElementById('user-photo');
+                img.src = user.photoURL;
+                img.classList.remove('hidden');
+
+                muatDataFirebase(); // Panggil data setelah login
+            } else {
+                overlay.classList.remove('hidden'); // Tampilkan layar login
+            }
+        });
+
+        // 4. BACA DATA DARI FIREBASE
+        function muatDataFirebase() {
+            // Muat Chat
+            onValue(ref(db, 'chat/'), (snap) => {
+                const box = document.getElementById('chat-box');
+                box.innerHTML = "";
+                snap.forEach(child => {
+                    const c = child.val();
+                    const isMe = currentUser && c.uid === currentUser.uid;
+                    box.innerHTML += `
+                        <div class="flex ${isMe ? 'justify-end' : 'justify-start'} mb-3">
+                            <div class="flex gap-2 max-w-[80%] ${isMe ? 'flex-row-reverse' : ''}">
+                                <img src="${c.foto}" class="w-8 h-8 rounded-full shadow-sm">
+                                <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-white border text-gray-800'} p-3 rounded-2xl shadow-sm">
+                                    <p class="text-[10px] opacity-70 font-bold mb-1">${c.pengirim}</p>
+                                    <p class="text-sm">${c.pesan}</p>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                box.scrollTop = box.scrollHeight; // Auto scroll ke bawah
+            });
+
+            // Muat Laporan
+            onValue(ref(db, 'laporan/'), (snap) => {
+                const tabel = document.getElementById('tabel-laporan');
+                tabel.innerHTML = "";
+                snap.forEach(child => {
+                    const s = child.val();
+                    const key = child.key;
+                    // Tombol nilai hanya muncul jika role = guru
+                    const aksi = `<button onclick="beriNilai('${key}')" class="text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-lg hover:bg-indigo-100">Beri Nilai</button>`;
+                    
+                    tabel.innerHTML += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-bold text-gray-800">${s.nama}</td>
+                            <td class="p-4 text-xs text-gray-500">${s.waktu}</td>
+                            <td class="p-4 font-bold text-green-600">${s.nilai}</td>
+                            <td class="p-4 aksi-guru">${aksi}</td>
+                        </tr>`;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
