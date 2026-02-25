@@ -28,15 +28,23 @@
     <main id="dashboard" class="max-w-7xl mx-auto px-4 py-8">
         <h1 id="dashboard-title" class="text-2xl font-bold mb-6 text-indigo-900 text-center uppercase">Mode Siswa</h1>
         
-        <div id="absensi-section" class="max-w-4xl mx-auto mb-8 bg-white border-2 border-orange-100 rounded-2xl p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="font-bold text-orange-800 text-lg"><i class="fas fa-user-check mr-2"></i>Absensi Hari Ini</h3>
-                    <p class="text-sm text-gray-500">Pastikan Anda sudah absen sebelum mulai belajar.</p>
-                </div>
-                <button onclick="kirimAbsen()" class="bg-orange-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition shadow-md">Absen Masuk</button>
-            </div>
+       <div id="absensi-section" class="max-w-4xl mx-auto mb-8 bg-white border-2 border-orange-100 rounded-3xl p-8 shadow-sm">
+    <div id="form-absen-input">
+        <h3 class="font-bold text-orange-800 text-xl mb-4"><i class="fas fa-user-check mr-2"></i>Absensi Wajib Pelatihan</h3>
+        <p class="text-sm text-gray-500 mb-6 italic">*Anda harus mengisi absen untuk membuka akses materi pelatihan.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+            <input id="abs-nup" type="number" placeholder="NUP / NIK" class="border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+            <input id="abs-unit" type="text" placeholder="Unit Kerja" class="border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
         </div>
+        <button onclick="kirimAbsen()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg">Kirim Absen & Buka Materi</button>
+    </div>
+    <div id="absen-sukses" class="hidden text-center py-4">
+        <div class="bg-green-100 text-green-700 p-4 rounded-2xl font-bold">
+            <i class="fas fa-check-circle mr-2"></i> Absen Berhasil! Akses Materi Telah Terbuka.
+        </div>
+    </div>
+</div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div onclick="openClass('Matematika Dasar')" class="bg-white border-2 border-indigo-100 rounded-2xl p-8 cursor-pointer hover:border-indigo-500 hover:shadow-xl transition-all group">
@@ -90,7 +98,16 @@
 
                 <div id="view-guru-laporan" class="hidden">
                     <table class="w-full text-left bg-white border rounded-xl overflow-hidden">
-                        <thead class="bg-gray-100 text-xs font-bold uppercase"><tr class="border-b"><th class="p-4">Siswa</th><th class="p-4">Jam</th><th class="p-4">Nilai</th><th class="p-4">Aksi</th></tr></thead>
+<thead class="bg-orange-50 text-[10px] font-bold uppercase text-orange-900">
+    <tr class="border-b">
+        <th class="p-4">Nama Siswa</th>
+        <th class="p-4">NUP</th>
+        <th class="p-4">Unit Kerja</th>
+        <th class="p-4">Waktu</th>
+         <th class="p-4 text-right">Aksi</th>
+    </tr>
+</thead>
+<tbody id="tabel-absensi"></tbody>
                         <tbody id="tabel-laporan"></tbody>
                     </table>
                 </div>
@@ -175,46 +192,88 @@
         };
 
         // --- FITUR ABSENSI ---
-        window.kirimAbsen = () => {
-            const nama = prompt("Masukkan Nama Lengkap Anda untuk Absen:");
-            if (nama) {
-                push(ref(db, 'absensi/'), { nama, waktu: new Date().toLocaleTimeString() });
-                alert("Absen Berhasil! Selamat Belajar.");
-            }
-        };
+      // Cek status absen saat load
+window.onload = () => {
+    if (localStorage.getItem('isAbsen') === 'true') {
+        document.getElementById('form-absen-input').classList.add('hidden');
+        document.getElementById('absen-sukses').classList.remove('hidden');
+    }
+};
 
-        // --- REALTIME SYNC ---
-        onValue(ref(db, 'materi/'), (snap) => {
-            const list = document.getElementById('list-materi');
-            list.innerHTML = "";
-            snap.forEach(child => {
-                const m = child.val();
-                const id = child.key;
-                const isGuru = document.getElementById('btn-role-guru').classList.contains('bg-white');
-                const hapusBtn = isGuru ? `<button onclick="hapusMateri('${id}')" class="text-red-500 text-[10px] ml-4 font-bold uppercase"><i class="fas fa-trash"></i> Hapus</button>` : "";
-                
-                list.innerHTML += `
-                    <div class="flex justify-between items-center p-4 bg-white border rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <i class="fas ${m.link.includes('youtube') ? 'fa-video text-red-500' : 'fa-file-lines text-indigo-500'}"></i>
-                            <div><p class="font-bold text-sm">${m.judul}</p><p class="text-[10px] text-gray-400 uppercase">${m.waktu}</p></div>
-                        </div>
-                        <div class="flex items-center">
-                            <a href="${m.link}" target="_blank" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-[10px] font-bold">BUKA</a>
-                            ${hapusBtn}
-                        </div>
-                    </div>`;
-            });
-        });
+window.kirimAbsen = () => {
+    const nama = document.getElementById('abs-nama').value;
+    const nup = document.getElementById('abs-nup').value;
+    const unit = document.getElementById('abs-unit').value;
 
-        onValue(ref(db, 'absensi/'), (snap) => {
-            const tabel = document.getElementById('tabel-absensi');
-            tabel.innerHTML = "";
-            snap.forEach(child => {
-                const a = child.val();
-                tabel.innerHTML += `<tr class="border-b text-sm"><td class="p-4 font-bold">${a.nama}</td><td class="p-4 text-gray-500">${a.waktu}</td></tr>`;
-            });
+    if (nama && nup && unit) {
+        push(ref(db, 'absensi/'), {
+            nama: nama,
+            nup: nup,
+            unit: unit,
+            waktu: new Date().toLocaleString()
+        }).then(() => {
+            localStorage.setItem('isAbsen', 'true'); // Simpan status di browser
+            document.getElementById('form-absen-input').classList.add('hidden');
+            document.getElementById('absen-sukses').classList.remove('hidden');
+            alert("Absen Berhasil! Materi sekarang bisa diakses.");
+            location.reload(); // Refresh untuk membuka kunci materi
         });
+    } else {
+        alert("Mohon lengkapi Nama, NUP, dan Unit Kerja!");
+    }
+};
+
+// Update tampilan materi dengan sistem KUNCI
+onValue(ref(db, 'materi/'), (snap) => {
+    const list = document.getElementById('list-materi');
+    list.innerHTML = "";
+    
+    // Cek apakah sudah absen atau sedang mode guru
+    const sudahAbsen = localStorage.getItem('isAbsen') === 'true';
+    const isGuru = document.getElementById('btn-role-guru').classList.contains('bg-white');
+
+    snap.forEach(child => {
+        const m = child.val();
+        const id = child.key;
+
+        // Jika belum absen dan bukan guru, tombol BUKA akan diganti pesan KUNCI
+        let aksiMateri = `<span class="text-[10px] text-orange-600 font-bold italic"><i class="fas fa-lock"></i> Absen Dulu</span>`;
+        
+        if (sudahAbsen || isGuru) {
+            aksiMateri = `<a href="${m.link}" target="_blank" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">BUKA</a>`;
+        }
+
+        const hapusBtn = isGuru ? `<button onclick="hapusMateri('${id}')" class="text-red-500 text-[10px] ml-4 font-bold uppercase"><i class="fas fa-trash"></i></button>` : "";
+        
+        list.innerHTML += `
+            <div class="flex justify-between items-center p-4 bg-white border rounded-2xl shadow-sm">
+                <div class="flex items-center gap-3">
+                    <i class="fas ${m.link.includes('youtube') ? 'fa-video text-red-500' : 'fa-file-lines text-indigo-500'}"></i>
+                    <div><p class="font-bold text-sm">${m.judul}</p><p class="text-[10px] text-gray-400 uppercase">${m.waktu}</p></div>
+                </div>
+                <div class="flex items-center">
+                    ${aksiMateri}
+                    ${hapusBtn}
+                </div>
+            </div>`;
+    });
+});
+
+// Update Tabel Absensi Guru
+onValue(ref(db, 'absensi/'), (snap) => {
+    const tabel = document.getElementById('tabel-absensi');
+    tabel.innerHTML = "";
+    snap.forEach(child => {
+        const a = child.val();
+        tabel.innerHTML += `
+            <tr class="border-b text-sm">
+                <td class="p-4 font-bold text-indigo-900">${a.nama}</td>
+                <td class="p-4 text-gray-600">${a.nup}</td>
+                <td class="p-4 text-gray-600">${a.unit}</td>
+                <td class="p-4 text-gray-400 text-[10px]">${a.waktu}</td>
+            </tr>`;
+    });
+});
 
         // (Chat & Laporan Nilai tetap ada seperti sebelumnya)
         window.kirimChat = () => {
@@ -234,31 +293,60 @@
         });
 
         window.siswaSelesai = () => {
-            const nama = prompt("Nama Lengkap:");
-            if (nama) { push(ref(db, 'laporan/'), { nama, nilai: "-", waktu: new Date().toLocaleTimeString() }); alert("Laporan terkirim!"); }
-        };
+    const nama = prompt("Masukkan Nama Lengkap Anda:");
+    const judulPelatihan = prompt("Masukkan Judul Pelatihan/Tugas (Contoh: Matematika Dasar):");
+    
+    if (nama && judulPelatihan) { 
+        push(ref(db, 'laporan/'), { 
+            nama: nama, 
+            pelatihan: judulPelatihan, // Kolom baru
+            nilai: "-", 
+            waktu: new Date().toLocaleTimeString() 
+        }); 
+        alert("Laporan tugas '" + judulPelatihan + "' berhasil terkirim!"); 
+    } else {
+        alert("Nama dan Judul Pelatihan harus diisi!");
+    }
+};
 
         window.beriNilai = (id) => {
             const n = prompt("Input Nilai (0-100):");
             if (n) update(ref(db, `laporan/${id}`), { nilai: n });
         };
 
-        onValue(ref(db, 'laporan/'), (snap) => {
-            const tabel = document.getElementById('tabel-laporan');
-            let lapor = 0; let dinilai = 0;
-            tabel.innerHTML = "";
-            snap.forEach(child => {
-                const l = child.val(); const k = child.key;
-                lapor++; if(l.nilai !== "-") dinilai++;
-                tabel.innerHTML += `<tr class="border-b text-sm"><td class="p-4 font-bold">${l.nama}</td><td class="p-4 text-gray-400 text-xs">${l.waktu}</td><td class="p-4 text-center"><span class="bg-indigo-100 px-3 py-1 rounded-full font-bold text-indigo-600">${l.nilai}</span></td><td class="p-4 text-right text-indigo-600"><button onclick="beriNilai('${k}')">NILAI</button></td></tr>`;
-            });
-            document.getElementById('total-lapor').innerText = lapor;
-            document.getElementById('total-dinilai').innerText = dinilai;
-        });
+       onValue(ref(db, 'laporan/'), (snap) => {
+    const tabel = document.getElementById('tabel-laporan');
+    let lapor = 0; let dinilai = 0;
+    tabel.innerHTML = "";
+    
+    snap.forEach(child => {
+        const l = child.val(); 
+        const k = child.key;
+        lapor++; 
+        if(l.nilai !== "-") dinilai++;
+
+        tabel.innerHTML += `
+            <tr class="border-b text-sm">
+                <td class="p-4 font-bold text-indigo-900">${l.nama}</td>
+                <td class="p-4 text-gray-600">${l.pelatihan || "-"}</td> <td class="p-4 text-gray-400 text-[10px]">${l.waktu}</td>
+                <td class="p-4 text-center">
+                    <span class="bg-indigo-100 px-3 py-1 rounded-full font-bold text-indigo-600">
+                        ${l.nilai}
+                    </span>
+                </td>
+                <td class="p-4 text-right text-indigo-600 font-bold">
+                    <button onclick="beriNilai('${k}')" class="hover:underline">NILAI</button>
+                </td>
+            </tr>`;
+    });
+    document.getElementById('total-lapor').innerText = lapor;
+    document.getElementById('total-dinilai').innerText = dinilai;
+});
 
         // Mulai sebagai Siswa
         window.setRole('siswa');
     </script>
 </body>
 </html>
+
 
