@@ -114,16 +114,22 @@
             </div>
 
             <div id="content-absensi-list" class="hidden p-6">
-                <h3 class="font-bold mb-4 text-orange-900">Rekap Daftar Hadir Siswa</h3>
-                <div class="overflow-hidden border rounded-xl">
-                    <table class="w-full text-left bg-white">
-                        <thead class="bg-orange-50 text-xs font-bold uppercase text-orange-900"><tr class="border-b"><th class="p-4">Nama Siswa</th><th class="p-4">Waktu Absen</th></tr></thead>
-                        <tbody id="tabel-absensi"></tbody>
-                    </table>
-                </div>
-            </div>
+    <h3 class="font-bold mb-4 text-orange-900">Rekap Daftar Hadir Siswa</h3>
+    <div class="overflow-hidden border rounded-xl">
+        <table class="w-full text-left bg-white">
+            <thead class="bg-orange-50 text-[10px] font-bold uppercase text-orange-900">
+                <tr class="border-b">
+                    <th class="p-4">Nama</th>
+                    <th class="p-4">NUP</th>
+                    <th class="p-4">Unit Kerja</th>
+                    <th class="p-4">Waktu Absen</th>
+                </tr>
+            </thead>
+            <tbody id="tabel-absensi"></tbody>
+        </table>
+    </div>
+</div>
 
-        </div>
     </section>
 
     <script type="module">
@@ -268,13 +274,12 @@ onValue(ref(db, 'absensi/'), (snap) => {
         tabel.innerHTML += `
             <tr class="border-b text-sm">
                 <td class="p-4 font-bold text-indigo-900">${a.nama}</td>
-                <td class="p-4 text-gray-600">${a.nup}</td>
-                <td class="p-4 text-gray-600">${a.unit}</td>
+                <td class="p-4 text-gray-600">${a.nup || "-"}</td>
+                <td class="p-4 text-gray-600">${a.unit || "-"}</td>
                 <td class="p-4 text-gray-400 text-[10px]">${a.waktu}</td>
             </tr>`;
     });
 });
-
         // (Chat & Laporan Nilai tetap ada seperti sebelumnya)
         window.kirimChat = () => {
             const nama = document.getElementById('chat-nama').value;
@@ -326,13 +331,13 @@ onValue(ref(db, 'absensi/'), (snap) => {
         if(l.nilai !== "-") dinilai++;
 
         tabel.innerHTML += `
-            <tr class="border-b text-sm">
+            <tr class="border-b text-sm hover:bg-gray-50">
                 <td class="p-4 font-bold text-indigo-900">${l.nama}</td>
-                <td class="p-4 text-gray-600">${l.pelatihan || "-"}</td> <td class="p-4 text-gray-400 text-[10px]">${l.waktu}</td>
+                <td class="p-4 text-gray-600">${l.nup || "-"}</td>
+                <td class="p-4 text-gray-600">${l.unit || "-"}</td>
+                <td class="p-4 text-gray-400 text-[10px]">${l.waktu}</td>
                 <td class="p-4 text-center">
-                    <span class="bg-indigo-100 px-3 py-1 rounded-full font-bold text-indigo-600">
-                        ${l.nilai}
-                    </span>
+                    <span class="bg-indigo-100 px-3 py-1 rounded-full font-bold text-indigo-600">${l.nilai}</span>
                 </td>
                 <td class="p-4 text-right text-indigo-600 font-bold">
                     <button onclick="beriNilai('${k}')" class="hover:underline">NILAI</button>
@@ -342,12 +347,12 @@ onValue(ref(db, 'absensi/'), (snap) => {
     document.getElementById('total-lapor').innerText = lapor;
     document.getElementById('total-dinilai').innerText = dinilai;
 });
-
         // Mulai sebagai Siswa
         window.setRole('siswa');
     </script>
 </body>
 </html>
+
 
 
 
