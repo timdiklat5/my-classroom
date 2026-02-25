@@ -131,153 +131,122 @@
 };
 
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        let currentRole = 'siswa'; // Default role
+    let currentUser = null;
+    let currentRole = 'siswa';
 
-        // 2. DAFTARKAN SEMUA FUNGSI KE WINDOW AGAR BISA DIKLIK OLEH HTML
+    // --- FUNGSI AGAR TOMBOL BISA DIKLIK (WINDOW) ---
 
-        window.loginGoogle = () => {
-            signInWithPopup(auth, provider).catch(err => alert("Gagal Login: " + err.message));
-        };
+    window.loginGoogle = () => signInWithPopup(auth, provider);
+    window.logout = () => signOut(auth).then(() => location.reload());
 
-        window.logout = () => {
-            signOut(auth).then(() => location.reload());
-        };
+    // 2. FUNGSI GANTI HALAMAN GURU VS SISWA (DIPERBAIKI)
+    window.setRole = (role) => {
+        currentRole = role;
+        const isGuru = (role === 'guru');
 
-        window.showDashboard = () => {
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('class-detail').classList.add('hidden');
-        };
+        // Update Tombol Navigasi
+        document.getElementById('btn-role-guru').className = isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
+        document.getElementById('btn-role-siswa').className = !isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
+        
+        // Sembunyikan/Tampilkan Tombol Tambah Materi
+        document.getElementById('btn-tambah-materi').style.display = isGuru ? 'block' : 'none';
+        
+        // Sembunyikan/Tampilkan View Laporan
+        document.getElementById('view-guru-laporan').classList.toggle('hidden', !isGuru);
+        document.getElementById('view-siswa-tugas').classList.toggle('hidden', isGuru);
 
-        window.openClass = (name) => {
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('class-detail').classList.remove('hidden');
-            document.getElementById('active-class-title').innerText = name;
-        };
+        alert("Mode " + role.toUpperCase() + " Aktif");
+    };
 
-        window.switchTab = (tab) => {
-            document.getElementById('content-materi').classList.toggle('hidden', tab !== 'materi');
-            document.getElementById('content-laporan').classList.toggle('hidden', tab !== 'laporan');
-            document.getElementById('tab-materi').className = tab === 'materi' ? "flex-1 px-6 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold" : "flex-1 px-6 py-4 border-b-2 border-transparent text-gray-500 font-bold";
-            document.getElementById('tab-laporan').className = tab === 'laporan' ? "flex-1 px-6 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold" : "flex-1 px-6 py-4 border-b-2 border-transparent text-gray-500 font-bold";
-        };
-
-        window.setRole = (role) => {
-            currentRole = role;
-            const isGuru = role === 'guru';
-            
-            // Ubah Warna Tombol Role
-            document.getElementById('btn-role-guru').className = isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
-            document.getElementById('btn-role-siswa').className = !isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
-            
-            // Atur Tampilan
-            document.getElementById('dashboard-title').innerText = isGuru ? "Daftar Kelas (Mode Guru)" : "Daftar Kelas (Mode Siswa)";
-            document.getElementById('btn-buat-kelas').style.display = isGuru ? 'block' : 'none';
-            
-            document.getElementById('view-guru-laporan').classList.toggle('hidden', !isGuru);
-            document.getElementById('view-siswa-tugas').classList.toggle('hidden', isGuru);
-            
-            window.showDashboard();
-        };
-
-        window.tambahKelas = () => {
-            alert("Fitur tambah kelas berhasil diklik!");
-        };
-
-        window.kirimChat = () => {
-            const input = document.getElementById('chat-input');
-            if (!input.value || !currentUser) return;
-            push(ref(db, 'chat/'), {
-                pengirim: currentUser.displayName,
-                pesan: input.value,
-                foto: currentUser.photoURL,
-                timestamp: serverTimestamp(),
-                uid: currentUser.uid
+    // 3. FITUR UPLOAD MATERI (LINK DRIVE/YOUTUBE)
+    window.tambahMateri = () => {
+        const judul = prompt("Masukkan Judul Materi:");
+        const link = prompt("Tempel Link (Google Drive / YouTube):");
+        
+        if (judul && link) {
+            push(ref(db, 'materi/'), {
+                judul: judul,
+                link: link,
+                waktu: new Date().toLocaleDateString()
             });
-            input.value = "";
-        };
-
-        window.siswaSelesai = () => {
-            if (!currentUser) return;
-            push(ref(db, 'laporan/'), {
-                nama: currentUser.displayName,
-                status: "Selesai",
-                nilai: "-",
-                waktu: new Date().toLocaleTimeString()
-            });
-            alert("Laporan berhasil dikirim ke Guru!");
-        };
-
-        window.beriNilai = (id) => {
-            const n = prompt("Input Nilai (0-100):");
-            if (n) update(ref(db, `laporan/${id}`), { nilai: n });
-        };
-
-        // 3. PANTAU LOGIN STATUS
-        onAuthStateChanged(auth, (user) => {
-            const overlay = document.getElementById('login-overlay');
-            if (user) {
-                currentUser = user;
-                overlay.classList.add('hidden'); // Tutup layar login
-                
-                // Tampilkan foto profil
-                const img = document.getElementById('user-photo');
-                img.src = user.photoURL;
-                img.classList.remove('hidden');
-
-                muatDataFirebase(); // Panggil data setelah login
-            } else {
-                overlay.classList.remove('hidden'); // Tampilkan layar login
-            }
-        });
-
-        // 4. BACA DATA DARI FIREBASE
-        function muatDataFirebase() {
-            // Muat Chat
-            onValue(ref(db, 'chat/'), (snap) => {
-                const box = document.getElementById('chat-box');
-                box.innerHTML = "";
-                snap.forEach(child => {
-                    const c = child.val();
-                    const isMe = currentUser && c.uid === currentUser.uid;
-                    box.innerHTML += `
-                        <div class="flex ${isMe ? 'justify-end' : 'justify-start'} mb-3">
-                            <div class="flex gap-2 max-w-[80%] ${isMe ? 'flex-row-reverse' : ''}">
-                                <img src="${c.foto}" class="w-8 h-8 rounded-full shadow-sm">
-                                <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-white border text-gray-800'} p-3 rounded-2xl shadow-sm">
-                                    <p class="text-[10px] opacity-70 font-bold mb-1">${c.pengirim}</p>
-                                    <p class="text-sm">${c.pesan}</p>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-                box.scrollTop = box.scrollHeight; // Auto scroll ke bawah
-            });
-
-            // Muat Laporan
-            onValue(ref(db, 'laporan/'), (snap) => {
-                const tabel = document.getElementById('tabel-laporan');
-                tabel.innerHTML = "";
-                snap.forEach(child => {
-                    const s = child.val();
-                    const key = child.key;
-                    // Tombol nilai hanya muncul jika role = guru
-                    const aksi = `<button onclick="beriNilai('${key}')" class="text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-lg hover:bg-indigo-100">Beri Nilai</button>`;
-                    
-                    tabel.innerHTML += `
-                        <tr class="hover:bg-gray-50">
-                            <td class="p-4 font-bold text-gray-800">${s.nama}</td>
-                            <td class="p-4 text-xs text-gray-500">${s.waktu}</td>
-                            <td class="p-4 font-bold text-green-600">${s.nilai}</td>
-                            <td class="p-4 aksi-guru">${aksi}</td>
-                        </tr>`;
-                });
-            });
+            alert("Materi Berhasil Ditambahkan!");
         }
-    </script>
+    };
+
+    // Baca Materi dari Firebase
+    onValue(ref(db, 'materi/'), (snap) => {
+        const listMateri = document.getElementById('list-materi');
+        listMateri.innerHTML = "";
+        snap.forEach(child => {
+            const m = child.val();
+            const icon = m.link.includes('youtube') ? 'fa-video text-red-500' : 'fa-file-pdf text-blue-500';
+            listMateri.innerHTML += `
+                <div class="p-4 bg-white border rounded-xl flex justify-between items-center shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fas ${icon} text-2xl"></i>
+                        <div>
+                            <p class="font-bold">${m.judul}</p>
+                            <p class="text-xs text-gray-400">${m.waktu}</p>
+                        </div>
+                    </div>
+                    <a href="${m.link}" target="_blank" class="bg-indigo-100 text-indigo-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-200">Buka</a>
+                </div>`;
+        });
+    });
+
+    // 4. FITUR INPUT NILAI
+    window.beriNilai = (id) => {
+        const nilai = prompt("Masukkan Nilai Siswa (0-100):");
+        if (nilai) {
+            update(ref(db, `laporan/${id}`), { nilai: nilai });
+        }
+    };
+
+    // Login & Sync Data
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('user-photo').src = user.photoURL;
+            document.getElementById('user-photo').classList.remove('hidden');
+            muatDataLaporan();
+        }
+    });
+
+    function muatDataLaporan() {
+        onValue(ref(db, 'laporan/'), (snap) => {
+            const tabel = document.getElementById('tabel-laporan');
+            tabel.innerHTML = "";
+            snap.forEach(child => {
+                const s = child.val();
+                const key = child.key;
+                tabel.innerHTML += `
+                    <tr class="border-b">
+                        <td class="p-4 font-medium">${s.nama}</td>
+                        <td class="p-4 text-center text-indigo-600 font-bold text-lg">${s.nilai || '-'}</td>
+                        <td class="p-4 text-right">
+                            <button onclick="beriNilai('${key}')" class="bg-indigo-600 text-white px-3 py-1 rounded text-xs">Input Nilai</button>
+                        </td>
+                    </tr>`;
+            });
+        });
+    }
+
+    // Navigasi Standar
+    window.openClass = (name) => {
+        document.getElementById('dashboard').classList.add('hidden');
+        document.getElementById('class-detail').classList.remove('hidden');
+        document.getElementById('active-class-title').innerText = name;
+    };
+    window.showDashboard = () => {
+        document.getElementById('dashboard').classList.remove('hidden');
+        document.getElementById('class-detail').classList.add('hidden');
+    };
+</script>
 </body>
 </html>
+
