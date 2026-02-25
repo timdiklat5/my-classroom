@@ -148,12 +148,23 @@
 
         // --- LOGIKA DATA (MATERI & NILAI) ---
         window.tambahMateri = () => {
-            const judul = prompt("Judul Materi:");
-            const link = prompt("Link (Drive/YouTube):");
-            if (judul && link) {
-                push(ref(db, 'materi/'), { judul, link, waktu: new Date().toLocaleDateString() });
-            }
-        };
+    const judul = prompt("Judul Materi:");
+    const link = prompt("Link (Drive/YouTube):");
+    
+    if (judul && link) {
+        // Menggunakan push untuk membuat ID otomatis di folder 'materi'
+        const materiRef = ref(db, 'materi/');
+        push(materiRef, {
+            judul: judul,
+            link: link,
+            waktu: new Date().toLocaleDateString()
+        }).then(() => {
+            alert("Materi berhasil disimpan!");
+        }).catch((error) => {
+            alert("Gagal menyimpan: " + error.message);
+        });
+    }
+};
 
         window.siswaSelesai = () => {
             if (!currentUser) return;
@@ -181,20 +192,32 @@
             }
         });
 
-        function syncData() {
-            // Muat Materi
-            onValue(ref(db, 'materi/'), (snap) => {
-                const list = document.getElementById('list-materi');
-                list.innerHTML = "";
-                snap.forEach(child => {
-                    const m = child.val();
-                    list.innerHTML += `
-                        <div class="flex justify-between items-center p-4 bg-white border rounded-xl">
-                            <span><b>${m.judul}</b></span>
-                            <a href="${m.link}" target="_blank" class="text-indigo-600 font-bold">Buka &rarr;</a>
-                        </div>`;
-                });
+      function syncData() {
+    const listMateri = document.getElementById('list-materi');
+    
+    // onValue akan terpanggil otomatis setiap ada data baru
+    onValue(ref(db, 'materi/'), (snapshot) => {
+        listMateri.innerHTML = ""; // Bersihkan list lama
+        
+        if (snapshot.exists()) {
+            snapshot.forEach((childSnapshot) => {
+                const data = childSnapshot.val();
+                listMateri.innerHTML += `
+                    <div class="flex justify-between items-center p-4 bg-white border rounded-xl shadow-sm mb-2">
+                        <div>
+                            <p class="font-bold text-indigo-900">${data.judul}</p>
+                            <p class="text-xs text-gray-400">${data.waktu}</p>
+                        </div>
+                        <a href="${data.link}" target="_blank" class="bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition">
+                            Buka Materi
+                        </a>
+                    </div>`;
             });
+        } else {
+            listMateri.innerHTML = "<p class="text-gray-400 text-center text-sm">Belum ada materi tersedia.</p>";
+        }
+    });
+}
 
             // Muat Laporan (Untuk Guru)
             onValue(ref(db, 'laporan/'), (snap) => {
@@ -216,3 +239,4 @@
     </script>
 </body>
 </html>
+
