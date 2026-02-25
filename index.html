@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyClassroom Pro - No Login</title>
+    <title>MyClassroom Pro - Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -11,7 +11,7 @@
 
     <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="showDashboard()">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
                 <i class="fas fa-graduation-cap text-indigo-600 text-2xl"></i>
                 <span class="font-bold text-xl">MyClassroom</span>
             </div>
@@ -26,13 +26,13 @@
     </nav>
 
     <main id="dashboard" class="max-w-7xl mx-auto px-4 py-8">
-        <h1 id="dashboard-title" class="text-2xl font-bold mb-6 text-indigo-900 text-center">Panel Siswa</h1>
+        <h1 id="dashboard-title" class="text-2xl font-bold mb-6 text-indigo-900 text-center uppercase tracking-wide">Mode Siswa</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <div onclick="openClass('Matematika Dasar')" class="bg-white border-2 border-indigo-100 rounded-2xl p-8 cursor-pointer hover:border-indigo-500 hover:shadow-xl transition-all group">
                 <div class="flex justify-between items-center">
                     <div>
                         <h2 class="text-2xl font-bold text-indigo-800">Matematika Dasar</h2>
-                        <p class="text-gray-500 mt-1">Buka ruang materi dan diskusi</p>
+                        <p class="text-gray-500 mt-1">Klik untuk Masuk Kelas</p>
                     </div>
                     <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center group-hover:bg-indigo-600 transition">
                         <i class="fas fa-arrow-right text-indigo-600 group-hover:text-white"></i>
@@ -43,46 +43,44 @@
     </main>
 
     <section id="class-detail" class="hidden max-w-5xl mx-auto px-4 py-8">
-        <button onclick="showDashboard()" class="mb-4 text-indigo-600 font-bold flex items-center gap-2">
-            <i class="fas fa-chevron-left"></i> Kembali ke Dashboard
+        <button onclick="showDashboard()" class="mb-6 text-indigo-600 font-bold flex items-center gap-2 hover:translate-x-[-5px] transition-transform">
+            <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
         </button>
         
-        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <div class="flex bg-gray-50 border-b">
-                <button onclick="switchTab('materi')" id="tab-materi" class="flex-1 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold">MATERI</button>
-                <button onclick="switchTab('laporan')" id="tab-laporan" class="flex-1 py-4 border-b-2 border-transparent text-gray-500 font-bold">TUGAS & NILAI</button>
+        <div class="bg-white rounded-3xl shadow-xl border overflow-hidden">
+            <div class="flex bg-gray-50 border-b p-2 gap-2">
+                <button onclick="switchTab('materi')" id="tab-materi" class="flex-1 py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold">MATERI</button>
+                <button onclick="switchTab('laporan')" id="tab-laporan" class="flex-1 py-3 rounded-xl text-gray-500 font-bold">TUGAS & NILAI</button>
             </div>
 
             <div id="content-materi" class="p-6">
-                <div id="list-materi" class="space-y-4 mb-8">
-                    </div>
+                <div id="list-materi" class="space-y-4 mb-10"></div>
                 <hr class="my-8">
-                <h3 class="font-bold mb-4 flex items-center gap-2"><i class="fas fa-comments text-indigo-500"></i> Ruang Tanya Jawab</h3>
-                <div id="chat-box" class="h-64 overflow-y-auto bg-gray-50 rounded-xl p-4 space-y-3 mb-4 border"></div>
+                <h3 class="font-bold mb-4 flex items-center gap-2 text-indigo-900"><i class="fas fa-comments"></i> Tanya Jawab</h3>
+                <div id="chat-box" class="h-64 overflow-y-auto bg-gray-50 rounded-2xl p-4 space-y-3 mb-4 border shadow-inner"></div>
                 <div class="flex gap-2">
-                    <input id="chat-nama" type="text" placeholder="Nama Anda" class="w-1/4 border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-                    <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-                    <button onclick="kirimChat()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg"><i class="fas fa-paper-plane"></i></button>
+                    <input id="chat-nama" type="text" placeholder="Nama" class="w-24 border rounded-xl px-3 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input id="chat-pesan" type="text" placeholder="Ketik pesan..." class="flex-1 border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <button onclick="kirimChat()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
 
             <div id="content-laporan" class="hidden p-6">
-                <div id="view-siswa-tugas" class="text-center py-10 bg-green-50 rounded-2xl border border-dashed border-green-200">
-                    <h3 class="font-bold text-green-800 mb-2">Sudah selesai belajar hari ini?</h3>
-                    <p class="text-green-600 text-sm mb-6">Lapor agar guru bisa memberikan nilai.</p>
-                    <button onclick="siswaSelesai()" class="bg-green-600 text-white px-10 py-4 rounded-2xl font-bold text-xl shadow-lg hover:scale-105 transition">Lapor Selesai & Kirim</button>
+                <div id="view-siswa-tugas" class="text-center py-12 bg-indigo-50 rounded-3xl border-2 border-dashed border-indigo-200">
+                    <h3 class="font-bold text-indigo-900 text-xl mb-6">Sudah selesai belajar hari ini?</h3>
+                    <button onclick="siswaSelesai()" class="bg-indigo-600 text-white px-12 py-4 rounded-2xl font-bold text-xl shadow-lg hover:scale-105 active:scale-95 transition">Lapor Sekarang</button>
                 </div>
 
                 <div id="view-guru-laporan" class="hidden">
-                    <h3 class="font-bold mb-4">Daftar Pengumpulan Siswa</h3>
-                    <div class="overflow-x-auto rounded-xl border">
+                    <h3 class="font-bold mb-4 text-indigo-900">Rekap Nilai Siswa</h3>
+                    <div class="overflow-hidden rounded-2xl border bg-white">
                         <table class="w-full text-left">
-                            <thead class="bg-gray-100 text-xs font-bold uppercase">
+                            <thead class="bg-gray-50 text-xs font-bold uppercase text-gray-600">
                                 <tr>
-                                    <th class="p-4">Nama Siswa</th>
-                                    <th class="p-4">Jam Lapor</th>
+                                    <th class="p-4">Siswa</th>
+                                    <th class="p-4">Jam</th>
                                     <th class="p-4 text-center">Nilai</th>
-                                    <th class="p-4 text-right">Tindakan</th>
+                                    <th class="p-4 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="tabel-laporan" class="divide-y"></tbody>
@@ -95,9 +93,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIG (Gunakan milik Anda)
+        // CONFIG (PASTIKAN DATA INI BENAR)
         const firebaseConfig = {
             apiKey: "GANTI_API_KEY_ANDA",
             databaseURL: "GANTI_DATABASE_URL_ANDA",
@@ -106,11 +104,11 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let currentRole = 'siswa';
 
-        // --- NAVIGASI ---
+        // --- SOLUSI TOMBOL TIDAK BISA DIKLIK ---
+        // Kita tempelkan semua fungsi ke objek 'window' secara eksplisit
+        
         window.setRole = (role) => {
-            currentRole = role;
             const isGuru = (role === 'guru');
             document.getElementById('btn-role-guru').className = isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
             document.getElementById('btn-role-siswa').className = !isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
@@ -118,6 +116,7 @@
             document.getElementById('btn-tambah-materi').style.display = isGuru ? 'block' : 'none';
             document.getElementById('view-guru-laporan').classList.toggle('hidden', !isGuru);
             document.getElementById('view-siswa-tugas').classList.toggle('hidden', isGuru);
+            console.log("Role switched to: " + role);
         };
 
         window.showDashboard = () => {
@@ -133,62 +132,63 @@
         window.switchTab = (tab) => {
             document.getElementById('content-materi').classList.toggle('hidden', tab !== 'materi');
             document.getElementById('content-laporan').classList.toggle('hidden', tab !== 'laporan');
-            document.getElementById('tab-materi').className = tab === 'materi' ? "flex-1 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold" : "flex-1 py-4 border-b-2 border-transparent text-gray-500 font-bold";
-            document.getElementById('tab-laporan').className = tab === 'laporan' ? "flex-1 py-4 border-b-2 border-indigo-600 text-indigo-600 font-bold" : "flex-1 py-4 border-b-2 border-transparent text-gray-500 font-bold";
+            document.getElementById('tab-materi').className = tab === 'materi' ? "flex-1 py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold" : "flex-1 py-3 rounded-xl text-gray-500 font-bold";
+            document.getElementById('tab-laporan').className = tab === 'laporan' ? "flex-1 py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold" : "flex-1 py-3 rounded-xl text-gray-500 font-bold";
         };
 
-        // --- MATERI ---
         window.tambahMateri = () => {
-            const judul = prompt("Masukkan Judul Materi:");
-            const link = prompt("Tempel Link (Drive/YouTube):");
+            const judul = prompt("Judul Materi:");
+            const link = prompt("Link (YouTube/Drive):");
             if (judul && link) {
                 push(ref(db, 'materi/'), { judul, link, waktu: new Date().toLocaleDateString() });
             }
         };
 
+        window.kirimChat = () => {
+            const nama = document.getElementById('chat-nama').value;
+            const pesan = document.getElementById('chat-pesan').value;
+            if (nama && pesan) {
+                push(ref(db, 'chat/'), { nama, pesan });
+                document.getElementById('chat-pesan').value = "";
+            } else { alert("Isi Nama & Pesan!"); }
+        };
+
+        window.siswaSelesai = () => {
+            const nama = prompt("Masukkan Nama Lengkap Anda:");
+            if (nama) {
+                push(ref(db, 'laporan/'), { nama, nilai: "-", waktu: new Date().toLocaleTimeString() });
+                alert("Laporan Terkirim!");
+            }
+        };
+
+        window.beriNilai = (id) => {
+            const n = prompt("Input Nilai (0-100):");
+            if (n) update(ref(db, `laporan/${id}`), { nilai: n });
+        };
+
+        // --- REALTIME DATA SYNC ---
         onValue(ref(db, 'materi/'), (snap) => {
             const list = document.getElementById('list-materi');
             list.innerHTML = "";
             snap.forEach(child => {
                 const m = child.val();
                 list.innerHTML += `
-                    <div class="flex justify-between items-center p-5 bg-white border-2 border-gray-50 rounded-2xl hover:border-indigo-200 transition">
-                        <div>
-                            <p class="font-bold text-gray-800">${m.judul}</p>
-                            <p class="text-xs text-gray-400">${m.waktu}</p>
-                        </div>
-                        <a href="${m.link}" target="_blank" class="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition">BUKA MATERI</a>
+                    <div class="flex justify-between items-center p-4 bg-white border rounded-2xl hover:bg-indigo-50 transition">
+                        <span><b class="text-indigo-900">${m.judul}</b></span>
+                        <a href="${m.link}" target="_blank" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">BUKA</a>
                     </div>`;
             });
         });
-
-        // --- CHAT ---
-        window.kirimChat = () => {
-            const nama = document.getElementById('chat-nama').value;
-            const pesan = document.getElementById('chat-pesan').value;
-            if (!nama || !pesan) return alert("Isi nama dan pesan!");
-            push(ref(db, 'chat/'), { nama, pesan });
-            document.getElementById('chat-pesan').value = "";
-        };
 
         onValue(ref(db, 'chat/'), (snap) => {
             const box = document.getElementById('chat-box');
             box.innerHTML = "";
             snap.forEach(child => {
                 const c = child.val();
-                box.innerHTML += `<div class="bg-white p-3 rounded-lg border shadow-sm text-sm"><b class="text-indigo-600">${c.nama}:</b> ${c.pesan}</div>`;
+                box.innerHTML += `<div class="bg-white p-3 rounded-xl border shadow-sm text-sm"><b class="text-indigo-600">${c.nama}:</b> ${c.pesan}</div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
-
-        // --- LAPORAN & NILAI ---
-        window.siswaSelesai = () => {
-            const nama = prompt("Masukkan Nama Lengkap:");
-            if (nama) {
-                push(ref(db, 'laporan/'), { nama, nilai: "-", waktu: new Date().toLocaleTimeString() });
-                alert("Berhasil lapor ke Guru!");
-            }
-        };
 
         onValue(ref(db, 'laporan/'), (snap) => {
             const tabel = document.getElementById('tabel-laporan');
@@ -197,22 +197,14 @@
                 const l = child.val();
                 const k = child.key;
                 tabel.innerHTML += `
-                    <tr>
-                        <td class="p-4 font-bold text-gray-700">${l.nama}</td>
+                    <tr class="hover:bg-indigo-50 transition">
+                        <td class="p-4 font-bold text-gray-800">${l.nama}</td>
                         <td class="p-4 text-xs text-gray-400">${l.waktu}</td>
-                        <td class="p-4 text-center"><span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-bold">${l.nilai}</span></td>
-                        <td class="p-4 text-right"><button onclick="beriNilai('${k}')" class="text-indigo-600 font-bold hover:underline">Beri Nilai</button></td>
+                        <td class="p-4 text-center"><span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full font-bold text-xs">${l.nilai}</span></td>
+                        <td class="p-4 text-right"><button onclick="beriNilai('${k}')" class="text-indigo-600 font-bold hover:underline">NILAI</button></td>
                     </tr>`;
             });
         });
-
-        window.beriNilai = (id) => {
-            const n = prompt("Input Nilai (0-100):");
-            if (n) update(ref(db, `laporan/${id}`), { nilai: n });
-        };
-
-        // Inisialisasi awal
-        window.setRole('siswa');
     </script>
 </body>
 </html>
