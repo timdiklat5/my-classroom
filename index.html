@@ -3,140 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyClassroom Pro - Ultra Edition</title>
+    <title>MyClassroom Pro - Administrator Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900">
+<body class="bg-gray-100 font-sans text-gray-900">
 
     <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
             <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
                 <i class="fas fa-graduation-cap text-indigo-600 text-2xl"></i>
-                <span class="font-bold text-xl">MyClassroom</span>
+                <span class="font-bold text-xl tracking-tight">MyClassroom-PPSDM</span>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="bg-gray-100 p-1 rounded-lg flex text-xs font-bold">
-                    <button id="btn-role-guru" onclick="setRole('guru')" class="px-3 py-1.5 rounded-md text-gray-500">GURU</button>
-                    <button id="btn-role-siswa" onclick="setRole('siswa')" class="px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600">SISWA</button>
-                </div>
-                <button id="btn-tambah-materi" onclick="tambahMateri()" class="hidden bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-xs">+ Materi</button>
+            <div class="bg-gray-100 p-1 rounded-xl flex gap-1 shadow-inner">
+                <button id="nav-siswa" onclick="pindahMenu('siswa')" class="px-5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase">Siswa</button>
+                <button id="nav-guru" onclick="pindahMenu('guru')" class="px-5 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 uppercase">Guru</button>
             </div>
         </div>
     </nav>
 
-    <main id="dashboard" class="max-w-7xl mx-auto px-4 py-8">
-        <h1 id="dashboard-title" class="text-2xl font-bold mb-6 text-indigo-900 text-center uppercase">Mode Siswa</h1>
+    <main id="view-siswa" class="max-w-4xl mx-auto px-4 py-8">
+        <div id="siswa-home">
+             <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
+            <p class="text-gray-500 text-center text-sm">Pilih materi dan pastikan Anda sudah absen di setiap materi.</p>
+            <div id="list-materi-siswa" class="grid gap-4"></div>
+        </div>
+
+        <div id="siswa-belajar" class="hidden">
+    <div class="bg-white rounded-3xl shadow-lg border p-8 mb-6">
+        <h2 id="judul-aktif" class="text-4xl font-black text-indigo-900 mb-2 uppercase tracking-tighter italic">JUDUL MATERI</h2>
         
-       <div id="absensi-section" class="max-w-4xl mx-auto mb-8 bg-white border-2 border-orange-100 rounded-3xl p-8 shadow-sm">
-    <div id="form-absen-input">
-        <h3 class="font-bold text-orange-800 text-xl mb-4"><i class="fas fa-user-check mr-2"></i>Absensi Wajib Pelatihan</h3>
-        <p class="text-sm text-gray-500 mb-6 italic">*Anda harus mengisi absen untuk membuka akses materi pelatihan.</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
-            <input id="abs-nup" type="number" placeholder="NUP / NIK" class="border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
-            <input id="abs-unit" type="text" placeholder="Unit Kerja" class="border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+        <p id="status-belajar" class="text-sm text-rose-500 mb-8 font-bold flex items-center gap-2">
+            <i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <a id="link-materi-aktif" onclick="tandaiProgres('materi')" target="_blank" class="bg-[#5851db] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
+                <i class="fas fa-play-circle text-2xl"></i> Buka Materi
+            </a>
+            <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
+                <i class="fas fa-edit text-2xl"></i> Kerjakan Kuis
+            </a>
         </div>
-        <button onclick="kirimAbsen()" class="w-full bg-orange-500 text-white py-4 rounded-2xl font-bold hover:bg-orange-600 transition shadow-lg">Kirim Absen & Buka Materi</button>
-    </div>
-    <div id="absen-sukses" class="hidden text-center py-4">
-        <div class="bg-green-100 text-green-700 p-4 rounded-2xl font-bold">
-            <i class="fas fa-check-circle mr-2"></i> Absen Berhasil! Akses Materi Telah Terbuka.
+
+        <button id="btn-lapor" onclick="prosesLaporSelesai()" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all">
+            <i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)
+        </button>
+
+        <hr class="mb-8 border-gray-200 border-dashed">
+
+        <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest">
+            <i class="fas fa-comments text-lg"></i> Tanya Jawab
+        </h3>
+        
+        <div id="chat-box" class="min-h-[200px] max-h-[400px] overflow-y-auto bg-white rounded-2xl p-6 space-y-4 mb-6 border-2 border-gray-100 shadow-inner custom-scroll">
+            </div>
+        
+        <div class="flex gap-3 items-center">
+            <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-gray-50 transition-all">
+            <button onclick="kirimChat()" class="bg-[#5851db] text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                <i class="fas fa-paper-plane text-xl"></i>
+            </button>
         </div>
     </div>
+    
+    <button onclick="backToHome()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 transition-all shadow-lg uppercase text-xs tracking-widest">
+        <i class="fas fa-arrow-left"></i> Kembali ke Daftar Materi
+    </button>
 </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            <div onclick="openClass('Matematika Dasar')" class="bg-white border-2 border-indigo-100 rounded-2xl p-8 cursor-pointer hover:border-indigo-500 hover:shadow-xl transition-all group">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-bold text-indigo-800">Matematika Dasar</h2>
-                        <p class="text-gray-500 mt-1">Klik untuk Masuk Kelas</p>
-                    </div>
-                    <div class="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center group-hover:bg-indigo-600 transition">
-                        <i class="fas fa-arrow-right text-indigo-600 group-hover:text-white"></i>
-                    </div>
-                </div>
+    </main>
+
+    <main id="view-guru" class="hidden max-w-7xl mx-auto px-4 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <h1 class="text-2xl font-black text-indigo-900 uppercase">Panel Administrator</h1>
+            <button onclick="tambahMateri()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 w-full md:w-auto">+ Add Materi & Kuis</button>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-xl border overflow-hidden">
+            <div class="flex bg-gray-50 border-b p-2 gap-2 overflow-x-auto">
+                <button onclick="switchTabGuru('materi')" id="tab-g-materi" class="flex-1 min-w-[150px] py-4 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-xs uppercase tracking-widest">Materi</button>
+                <button onclick="switchTabGuru('nilai')" id="tab-g-nilai" class="flex-1 min-w-[150px] py-4 rounded-xl text-gray-400 font-bold text-xs uppercase tracking-widest">Tugas & Nilai</button>
+                <button onclick="switchTabGuru('absen')" id="tab-g-absen" class="flex-1 min-w-[150px] py-4 rounded-xl text-gray-400 font-bold text-xs uppercase tracking-widest">Rekap Absen</button>
+                <button onclick="switchTabGuru('chat')" id="tab-g-chat" class="flex-1 min-w-[150px] py-4 rounded-xl text-gray-400 font-bold text-xs uppercase tracking-widest">Hapus Chat</button>
+            </div>
+
+            <div id="g-content-materi" class="p-6"><div id="list-materi-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+
+            <div id="g-content-nilai" class="hidden p-6 overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                        <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
+                            <th class="p-4">Nama Siswa</th><th class="p-4">NUP</th><th class="p-4">Unit Kerja</th><th class="p-4">Materi</th><th class="p-4 text-center">Nilai</th><th class="p-4 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-laporan" class="divide-y text-sm"></tbody>
+                </table>
+            </div>
+
+            <div id="g-content-absen" class="hidden p-6 overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                        <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
+                            <th class="p-4">Nama Siswa</th><th class="p-4">NUP</th><th class="p-4">Unit Kerja</th><th class="p-4">Materi</th><th class="p-4">Waktu</th><th class="p-4 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-absensi" class="divide-y text-sm"></tbody>
+                </table>
+            </div>
+
+            <div id="g-content-chat" class="hidden p-6">
+                <div id="admin-chat-list" class="space-y-2"></div>
             </div>
         </div>
     </main>
 
-    <section id="class-detail" class="hidden max-w-5xl mx-auto px-4 py-8">
-        <button onclick="showDashboard()" class="mb-6 text-indigo-600 font-bold flex items-center gap-2 hover:translate-x-[-5px] transition-transform">
-            <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
-        </button>
-        
-        <div class="bg-white rounded-3xl shadow-xl border overflow-hidden">
-            <div class="flex bg-gray-50 border-b p-2 gap-2">
-                <button onclick="switchTab('materi')" id="tab-materi" class="flex-1 py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold uppercase text-xs">Materi</button>
-                <button onclick="switchTab('laporan')" id="tab-laporan" class="flex-1 py-3 rounded-xl text-gray-500 font-bold uppercase text-xs text-center">Tugas & Nilai</button>
-                <button onclick="switchTab('absensi-list')" id="tab-absensi-list" class="hidden flex-1 py-3 rounded-xl text-gray-500 font-bold uppercase text-xs">Rekap Absen</button>
+    <div id="modal-absen" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
+            <h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic">Konfirmasi Absensi</h3>
+			<p class="text-red-500 text-sm">isi absen untuk membuka materi</p>
+            <div class="space-y-3 mb-8">
+                <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50">
+                <input id="abs-nup" type="number" placeholder="NUP / NIK" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50">
+                <input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50">
             </div>
-
-            <div id="content-materi" class="p-6">
-                <div id="list-materi" class="space-y-4 mb-10"></div>
-                <hr class="my-8">
-                <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2"><i class="fas fa-comments"></i> Tanya Jawab</h3>
-                <div id="chat-box" class="h-64 overflow-y-auto bg-gray-50 rounded-2xl p-4 space-y-3 mb-4 border shadow-inner"></div>
-                <div class="flex gap-2">
-                    <input id="chat-nama" type="text" placeholder="Nama" class="w-24 border rounded-xl px-3 py-3 text-sm outline-none">
-                    <input id="chat-pesan" type="text" placeholder="Pesan..." class="flex-1 border rounded-xl px-4 py-3 text-sm outline-none">
-                    <button onclick="kirimChat()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl"><i class="fas fa-paper-plane"></i></button>
-                </div>
+            <div class="flex gap-2">
+                <button onclick="tutupModal()" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
+                <button onclick="prosesAbsen()" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs">Kirim & Buka Materi</button>
             </div>
-
-            <div id="content-laporan" class="hidden p-6">
-                <div id="stat-guru" class="hidden grid grid-cols-2 gap-4 mb-6 text-white text-center">
-                    <div class="bg-indigo-600 p-4 rounded-2xl"><p class="text-[10px] opacity-70">Lapor Selesai</p><h2 id="total-lapor" class="text-xl font-bold">0</h2></div>
-                    <div class="bg-green-500 p-4 rounded-2xl"><p class="text-[10px] opacity-70">Selesai Dinilai</p><h2 id="total-dinilai" class="text-xl font-bold">0</h2></div>
-                </div>
-
-                <div id="view-siswa-tugas" class="text-center py-10 bg-indigo-50 rounded-3xl border-2 border-dashed border-indigo-200">
-                    <h3 class="font-bold text-indigo-900 mb-4">Sudah selesai belajar hari ini?</h3>
-                    <button onclick="siswaSelesai()" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-bold">Lapor Sekarang</button>
-                </div>
-
-                <div id="view-guru-laporan" class="hidden">
-                    <table class="w-full text-left bg-white border rounded-xl overflow-hidden">
-<thead class="bg-orange-50 text-[10px] font-bold uppercase text-orange-900">
-    <tr class="border-b">
-        <th class="p-4">Nama Siswa</th>
-        <th class="p-4">NUP</th>
-        <th class="p-4">Unit Kerja</th>
-        <th class="p-4">Waktu</th>
-         <th class="p-4 text-right">Aksi</th>
-    </tr>
-</thead>
-<tbody id="tabel-absensi"></tbody>
-                        <tbody id="tabel-laporan"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="content-absensi-list" class="hidden p-6">
-    <h3 class="font-bold mb-4 text-orange-900">Rekap Daftar Hadir Siswa</h3>
-    <div class="overflow-hidden border rounded-xl">
-        <table class="w-full text-left bg-white">
-            <thead class="bg-orange-50 text-[10px] font-bold uppercase text-orange-900">
-                <tr class="border-b">
-                    <th class="p-4">Nama</th>
-                    <th class="p-4">NUP</th>
-                    <th class="p-4">Unit Kerja</th>
-                    <th class="p-4">Waktu Absen</th>
-                </tr>
-            </thead>
-            <tbody id="tabel-absensi"></tbody>
-        </table>
+        </div>
     </div>
-</div>
-
-    </section>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-       const firebaseConfig = {
+        // CONFIG FIREBASE
+        const firebaseConfig = {
   apiKey: "AIzaSyBkLiqHrvTuFFpaVsmWT2H1wF5NzwgmuBQ",
   authDomain: "diklatppsdm-e7788.firebaseapp.com",
   databaseURL: "https://diklatppsdm-e7788-default-rtdb.firebaseio.com",
@@ -145,214 +153,183 @@
   messagingSenderId: "573889493408",
   appId: "1:573889493408:web:fd7704a7d40e72e72c4cc5"
 };
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- GLOBAL FUNCTIONS ---
-        window.setRole = (role) => {
-            const isGuru = (role === 'guru');
-            document.getElementById('btn-role-guru').className = isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
-            document.getElementById('btn-role-siswa').className = !isGuru ? "px-3 py-1.5 rounded-md bg-white shadow-sm text-indigo-600" : "px-3 py-1.5 rounded-md text-gray-500";
-            document.getElementById('dashboard-title').innerText = isGuru ? "Panel Guru" : "Panel Siswa";
-            document.getElementById('btn-tambah-materi').style.display = isGuru ? 'block' : 'none';
-            document.getElementById('absensi-section').style.display = isGuru ? 'none' : 'block';
-            document.getElementById('tab-absensi-list').classList.toggle('hidden', !isGuru);
-            document.getElementById('view-guru-laporan').classList.toggle('hidden', !isGuru);
-            document.getElementById('stat-guru').classList.toggle('hidden', !isGuru);
-            document.getElementById('view-siswa-tugas').classList.toggle('hidden', isGuru);
-            window.showDashboard();
-        };
+        let curId = ""; let curJudul = ""; let isAdmin = false;
+		
+		// VARIABEL PENGUNCI (TARUH DI ATAS)
+let materiSelesai = false;
+let kuisSelesai = false;
 
-        window.showDashboard = () => {
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('class-detail').classList.add('hidden');
-        };
+// FUNGSI UNTUK MEMBUKA KUNCI TOMBOL
+window.tandaiProgres = (tipe) => {
+    if (tipe === 'materi') materiSelesai = true;
+    if (tipe === 'kuis') kuisSelesai = true;
 
-        window.openClass = (name) => {
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('class-detail').classList.remove('hidden');
-        };
+    const btnLapor = document.getElementById('btn-lapor');
+    const statusText = document.getElementById('status-belajar');
+    const kuisBtn = document.getElementById('link-kuis-aktif');
+    const hasKuis = !kuisBtn.classList.contains('hidden');
 
-        window.switchTab = (tab) => {
-            const tabs = ['materi', 'laporan', 'absensi-list'];
-            tabs.forEach(t => {
-                document.getElementById('content-' + t).classList.toggle('hidden', t !== tab);
-                document.getElementById('tab-' + t).className = t === tab ? "flex-1 py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold uppercase text-xs" : "flex-1 py-3 rounded-xl text-gray-500 font-bold uppercase text-xs text-center";
-            });
-        };
-
-        // --- FITUR MATERI (INPUT & HAPUS) ---
-        window.tambahMateri = () => {
-            const judul = prompt("Judul Materi:");
-            const link = prompt("Link (YouTube/Drive):");
-            if (judul && link) {
-                push(ref(db, 'materi/'), { judul, link, waktu: new Date().toLocaleDateString() });
-            }
-        };
-
-        window.hapusMateri = (id) => {
-            if (confirm("Hapus materi ini secara permanen?")) {
-                remove(ref(db, `materi/${id}`));
-            }
-        };
-
-        // --- FITUR ABSENSI ---
-      // Cek status absen saat load
-window.onload = () => {
-    if (localStorage.getItem('isAbsen') === 'true') {
-        document.getElementById('form-absen-input').classList.add('hidden');
-        document.getElementById('absen-sukses').classList.remove('hidden');
-    }
-};
-
-window.kirimAbsen = () => {
-    const nama = document.getElementById('abs-nama').value;
-    const nup = document.getElementById('abs-nup').value;
-    const unit = document.getElementById('abs-unit').value;
-
-    if (nama && nup && unit) {
-        push(ref(db, 'absensi/'), {
-            nama: nama,
-            nup: nup,
-            unit: unit,
-            waktu: new Date().toLocaleString()
-        }).then(() => {
-            localStorage.setItem('isAbsen', 'true'); // Simpan status di browser
-            document.getElementById('form-absen-input').classList.add('hidden');
-            document.getElementById('absen-sukses').classList.remove('hidden');
-            alert("Absen Berhasil! Materi sekarang bisa diakses.");
-            location.reload(); // Refresh untuk membuka kunci materi
-        });
-    } else {
-        alert("Mohon lengkapi Nama, NUP, dan Unit Kerja!");
-    }
-};
-
-// Update tampilan materi dengan sistem KUNCI
-onValue(ref(db, 'materi/'), (snap) => {
-    const list = document.getElementById('list-materi');
-    list.innerHTML = "";
-    
-    // Cek apakah sudah absen atau sedang mode guru
-    const sudahAbsen = localStorage.getItem('isAbsen') === 'true';
-    const isGuru = document.getElementById('btn-role-guru').classList.contains('bg-white');
-
-    snap.forEach(child => {
-        const m = child.val();
-        const id = child.key;
-
-        // Jika belum absen dan bukan guru, tombol BUKA akan diganti pesan KUNCI
-        let aksiMateri = `<span class="text-[10px] text-orange-600 font-bold italic"><i class="fas fa-lock"></i> Absen Dulu</span>`;
+    // SYARAT: Materi diklik DAN (Kuis diklik jika kuis ada)
+    if (materiSelesai && (hasKuis ? kuisSelesai : true)) {
+        btnLapor.disabled = false;
+        btnLapor.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        btnLapor.classList.add('bg-[#24d164]', 'hover:opacity-90');
+        btnLapor.innerHTML = `<i class="fas fa-check-circle"></i> Lapor Selesai`;
         
-        if (sudahAbsen || isGuru) {
-            aksiMateri = `<a href="${m.link}" target="_blank" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">BUKA</a>`;
+        statusText.innerHTML = `<i class="fas fa-unlock text-emerald-500"></i> Materi selesai, silakan lapor!`;
+        statusText.classList.remove('text-rose-500');
+        statusText.classList.add('text-emerald-600');
+    }
+};
+
+        // NAV & ROLE
+        window.pindahMenu = (role) => {
+            if (role === 'guru') {
+                if (prompt("PIN Admin:") !== "1234") return alert("Akses gagal!");
+                isAdmin = true;
+            } else { isAdmin = false; }
+            const isG = (role === 'guru');
+            document.getElementById('nav-guru').className = isG ? "px-5 py-2 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm uppercase" : "px-5 py-2 rounded-lg text-xs font-bold text-gray-400 uppercase";
+            document.getElementById('nav-siswa').className = !isG ? "px-5 py-2 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm uppercase" : "px-5 py-2 rounded-lg text-xs font-bold text-gray-400 uppercase";
+            document.getElementById('view-siswa').classList.toggle('hidden', isG);
+            document.getElementById('view-guru').classList.toggle('hidden', !isG);
+        };
+
+        window.backToHome = () => {
+            document.getElementById('siswa-home').classList.remove('hidden');
+            document.getElementById('siswa-belajar').classList.add('hidden');
+        };
+
+        window.bukaMateriSiswa = (id, judul, link, kuis) => {
+            curId = id; curJudul = judul;
+            const h = JSON.parse(localStorage.getItem('absensi_history') || "[]");
+            if (h.includes(id)) {
+                document.getElementById('siswa-home').classList.add('hidden');
+                document.getElementById('siswa-belajar').classList.remove('hidden');
+                document.getElementById('judul-aktif').innerText = judul;
+                document.getElementById('link-materi-aktif').href = link;
+				materiSelesai = false;
+    kuisSelesai = false;
+    const btnLapor = document.getElementById('btn-lapor');
+    btnLapor.disabled = true;
+    btnLapor.className = "w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all";
+    btnLapor.innerHTML = `<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)`;
+                const bk = document.getElementById('link-kuis-aktif');
+                if (kuis && kuis !== "undefined") { bk.href = kuis; bk.classList.remove('hidden'); } else { bk.classList.add('hidden'); }
+                loadChat();
+            } else { document.getElementById('modal-absen').classList.remove('hidden'); }
+        };
+
+        window.prosesAbsen = () => {
+            const n = document.getElementById('abs-nama').value, u = document.getElementById('abs-nup').value, k = document.getElementById('abs-unit').value;
+            if (n && u && k) {
+                push(ref(db, 'absensi/'), { nama: n, nup: u, unit: k, materi: curJudul, waktu: new Date().toLocaleString() }).then(() => {
+                    const h = JSON.parse(localStorage.getItem('absensi_history') || "[]"); h.push(curId);
+                    localStorage.setItem('absensi_history', JSON.stringify(h));
+                    localStorage.setItem('user_nama', n); localStorage.setItem('user_nup', u); localStorage.setItem('user_unit', k);
+                    location.reload();
+                });
+            } else alert("Harap diisi!");
+        };
+
+        window.tutupModal = () => document.getElementById('modal-absen').classList.add('hidden');
+
+        // CHAT SYSTEM
+        window.kirimChat = () => {
+            const n = localStorage.getItem('user_nama') || "Anonim", p = document.getElementById('chat-pesan').value;
+            if (p) { push(ref(db, 'chat/'), { nama: n, pesan: p, materiId: curId }); document.getElementById('chat-pesan').value = ""; }
+        };
+
+        function loadChat() {
+            onValue(ref(db, 'chat/'), (snap) => {
+                const box = document.getElementById('chat-box'); box.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.val();
+                    if(d.materiId === curId) {
+                        box.innerHTML += `<div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 text-sm"><b class="text-indigo-600 uppercase text-[10px] block mb-1">${d.nama}</b><span class="text-gray-700 font-medium">${d.pesan}</span></div>`;
+                    }
+                });
+                box.scrollTop = box.scrollHeight;
+            });
         }
 
-        const hapusBtn = isGuru ? `<button onclick="hapusMateri('${id}')" class="text-red-500 text-[10px] ml-4 font-bold uppercase"><i class="fas fa-trash"></i></button>` : "";
-        
-        list.innerHTML += `
-            <div class="flex justify-between items-center p-4 bg-white border rounded-2xl shadow-sm">
-                <div class="flex items-center gap-3">
-                    <i class="fas ${m.link.includes('youtube') ? 'fa-video text-red-500' : 'fa-file-lines text-indigo-500'}"></i>
-                    <div><p class="font-bold text-sm">${m.judul}</p><p class="text-[10px] text-gray-400 uppercase">${m.waktu}</p></div>
-                </div>
-                <div class="flex items-center">
-                    ${aksiMateri}
-                    ${hapusBtn}
-                </div>
-            </div>`;
-    });
-});
-
-// Update Tabel Absensi Guru
-onValue(ref(db, 'absensi/'), (snap) => {
-    const tabel = document.getElementById('tabel-absensi');
-    tabel.innerHTML = "";
-    snap.forEach(child => {
-        const a = child.val();
-        tabel.innerHTML += `
-            <tr class="border-b text-sm">
-                <td class="p-4 font-bold text-indigo-900">${a.nama}</td>
-                <td class="p-4 text-gray-600">${a.nup || "-"}</td>
-                <td class="p-4 text-gray-600">${a.unit || "-"}</td>
-                <td class="p-4 text-gray-400 text-[10px]">${a.waktu}</td>
-            </tr>`;
-    });
-});
-        // (Chat & Laporan Nilai tetap ada seperti sebelumnya)
-        window.kirimChat = () => {
-            const nama = document.getElementById('chat-nama').value;
-            const pesan = document.getElementById('chat-pesan').value;
-            if (nama && pesan) { push(ref(db, 'chat/'), { nama, pesan }); document.getElementById('chat-pesan').value = ""; }
-        };
-
+        // ADMIN CHAT MANAGEMENT
         onValue(ref(db, 'chat/'), (snap) => {
-            const box = document.getElementById('chat-box');
-            box.innerHTML = "";
-            snap.forEach(child => {
-                const c = child.val();
-                box.innerHTML += `<div class="bg-white p-3 rounded-xl border text-sm shadow-sm"><b class="text-indigo-600">${c.nama}:</b> ${c.pesan}</div>`;
+            const list = document.getElementById('admin-chat-list'); list.innerHTML = "";
+            snap.forEach(c => {
+                const d = c.val();
+                list.innerHTML += `<div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border text-xs">
+                    <span><b>${d.nama}:</b> ${d.pesan}</span>
+                    <button onclick="hapusRecord('chat/${c.key}')" class="text-red-500 p-2 hover:bg-red-50 rounded-lg"><i class="fas fa-trash"></i></button>
+                </div>`;
             });
-            box.scrollTop = box.scrollHeight;
         });
 
-        window.siswaSelesai = () => {
-    const nama = prompt("Masukkan Nama Lengkap Anda:");
-    const judulPelatihan = prompt("Masukkan Judul Pelatihan/Tugas (Contoh: Matematika Dasar):");
-    
-    if (nama && judulPelatihan) { 
-        push(ref(db, 'laporan/'), { 
-            nama: nama, 
-            pelatihan: judulPelatihan, // Kolom baru
-            nilai: "-", 
-            waktu: new Date().toLocaleTimeString() 
-        }); 
-        alert("Laporan tugas '" + judulPelatihan + "' berhasil terkirim!"); 
-    } else {
-        alert("Nama dan Judul Pelatihan harus diisi!");
-    }
-};
-
-        window.beriNilai = (id) => {
-            const n = prompt("Input Nilai (0-100):");
-            if (n) update(ref(db, `laporan/${id}`), { nilai: n });
+        // ADMIN: MATERI
+        window.tambahMateri = () => {
+            const j = prompt("Judul Materi:"), l = prompt("Link Materi:"), k = prompt("Link Kuis (Optional):");
+            if (j && l) push(ref(db, 'materi/'), { judul: j, link: l, kuis: k || "", waktu: new Date().toLocaleDateString() });
         };
 
-       onValue(ref(db, 'laporan/'), (snap) => {
-    const tabel = document.getElementById('tabel-laporan');
-    let lapor = 0; let dinilai = 0;
-    tabel.innerHTML = "";
-    
-    snap.forEach(child => {
-        const l = child.val(); 
-        const k = child.key;
-        lapor++; 
-        if(l.nilai !== "-") dinilai++;
+        window.editMateri = (id, j, l, k) => {
+            const nj = prompt("Edit Judul:", j), nl = prompt("Edit Link:", l), nk = prompt("Edit Kuis:", k);
+            if (nj && nl) update(ref(db, `materi/${id}`), { judul: nj, link: nl, kuis: nk || "" });
+        };
 
-        tabel.innerHTML += `
-            <tr class="border-b text-sm hover:bg-gray-50">
-                <td class="p-4 font-bold text-indigo-900">${l.nama}</td>
-                <td class="p-4 text-gray-600">${l.nup || "-"}</td>
-                <td class="p-4 text-gray-600">${l.unit || "-"}</td>
-                <td class="p-4 text-gray-400 text-[10px]">${l.waktu}</td>
-                <td class="p-4 text-center">
-                    <span class="bg-indigo-100 px-3 py-1 rounded-full font-bold text-indigo-600">${l.nilai}</span>
-                </td>
-                <td class="p-4 text-right text-indigo-600 font-bold">
-                    <button onclick="beriNilai('${k}')" class="hover:underline">NILAI</button>
-                </td>
-            </tr>`;
-    });
-    document.getElementById('total-lapor').innerText = lapor;
-    document.getElementById('total-dinilai').innerText = dinilai;
-});
-        // Mulai sebagai Siswa
-        window.setRole('siswa');
+        onValue(ref(db, 'materi/'), (snap) => {
+            const ls = document.getElementById('list-materi-siswa'), la = document.getElementById('list-materi-admin');
+            ls.innerHTML = ""; la.innerHTML = "";
+            snap.forEach(c => {
+                const m = c.val(), id = c.key;
+                ls.innerHTML += `<div class="bg-white p-6 rounded-2xl shadow-sm flex justify-between items-center border-2 border-transparent hover:border-indigo-500 transition-all">
+                    <div><h3 class="font-black text-indigo-900 uppercase italic tracking-tighter">${m.judul}</h3><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${m.kuis ? 'Kuis Tersedia' : 'Materi Saja'}</p></div>
+                    <button onclick="bukaMateriSiswa('${id}', '${m.judul}', '${m.link}', '${m.kuis}')" class="bg-indigo-600 text-white px-8 py-3 rounded-xl text-xs font-bold shadow-md uppercase italic">BUKA</button>
+                </div>`;
+                la.innerHTML += `<div class="bg-white p-5 rounded-2xl border flex justify-between items-center">
+                    <div><p class="font-black text-indigo-900 uppercase italic tracking-tighter">${m.judul}</p></div>
+                    <div class="flex gap-2">
+                        <button onclick="editMateri('${id}', '${m.judul}', '${m.link}', '${m.kuis}')" class="text-indigo-600 bg-indigo-50 p-3 rounded-xl"><i class="fas fa-edit"></i></button>
+                        <button onclick="hapusRecord('materi/${id}')" class="text-red-600 bg-red-50 p-3 rounded-xl"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>`;
+            });
+        });
+
+        window.switchTabGuru = (t) => {
+            ['materi', 'nilai', 'absen', 'chat'].forEach(i => {
+                document.getElementById('g-content-'+i).classList.toggle('hidden', i !== t);
+                document.getElementById('tab-g-'+i).className = (i===t) ? "flex-1 min-w-[150px] py-4 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-xs uppercase tracking-widest" : "flex-1 min-w-[150px] py-4 rounded-xl text-gray-400 font-bold text-xs uppercase tracking-widest";
+            });
+        };
+
+        // REKAP LOADERS
+        onValue(ref(db, 'laporan/'), (snap) => {
+            const t = document.getElementById('tabel-laporan'); t.innerHTML = "";
+            snap.forEach(c => { const d = c.val(); 
+                t.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold uppercase">${d.nama}</td><td class="p-4">${d.nup}</td><td class="p-4">${d.unit}</td><td class="p-4 font-medium">${d.pelatihan}</td><td class="p-4 text-center"><span class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full font-black text-xs">${d.nilai}</span></td><td class="p-4 text-right flex justify-end gap-3"><button onclick="beriNilai('${c.key}')" class="text-indigo-600 font-bold text-xs uppercase underline">Nilai</button><button onclick="hapusRecord('laporan/${c.key}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+            });
+        });
+
+        onValue(ref(db, 'absensi/'), (snap) => {
+            const t = document.getElementById('tabel-absensi'); t.innerHTML = "";
+            snap.forEach(c => { const d = c.val(); 
+                t.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold uppercase">${d.nama}</td><td class="p-4">${d.nup}</td><td class="p-4">${d.unit}</td><td class="p-4 font-medium">${d.materi}</td><td class="p-4 text-gray-400 text-[10px]">${d.waktu}</td><td class="p-4 text-right"><button onclick="hapusRecord('absensi/${c.key}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+            });
+        });
+
+        window.prosesLaporSelesai = () => {
+            if (confirm("Lapor selesai?")) {
+                push(ref(db, 'laporan/'), { nama: localStorage.getItem('user_nama'), nup: localStorage.getItem('user_nup'), unit: localStorage.getItem('user_unit'), pelatihan: curJudul, nilai: "-", waktu: new Date().toLocaleString() });
+                alert("Berhasil!"); backToHome();
+            }
+        };
+
+        window.beriNilai = (id) => { const n = prompt("Nilai:"); if(n) update(ref(db, `laporan/${id}`), { nilai: n }); };
+        window.hapusRecord = (path) => { if(confirm("Hapus data ini?")) remove(ref(db, path)); };
+
     </script>
 </body>
 </html>
-
-
-
-
