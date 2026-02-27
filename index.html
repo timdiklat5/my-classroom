@@ -188,7 +188,7 @@ window.tandaiProgres = (tipe) => {
         // NAV & ROLE
         window.pindahMenu = (role) => {
             if (role === 'guru') {
-                if (prompt("PIN Admin:") !== "1234") return alert("Akses gagal!");
+                if (prompt("PIN Admin:") !== "0") return alert("Akses gagal!");
                 isAdmin = true;
             } else { isAdmin = false; }
             const isG = (role === 'guru');
@@ -369,4 +369,5 @@ window.tandaiProgres = (tipe) => {
     </script>
 </body>
 </html>
+
 
