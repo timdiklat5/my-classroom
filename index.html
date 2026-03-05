@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyClassroom by. PPSDM</title>
-	<head>
-    <title>MyClassroom | Learning Management System</title>
+    <title>HC Diklat PPSDM</title>
     <link rel="icon" type="image/png" href="https://docs.google.com/uc?export=view&id=1-MlYRfiNuuZfw3gjELOmlLrnkTCRYFAw">
-    <link rel="apple-touch-icon" href="https://docs.google.com/uc?export=view&id=1-MlYRfiNuuZfw3gjELOmlLrnkTCRYFAw">
-    </head>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -21,7 +19,7 @@
 
     <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-            <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+             <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
                 <i class="fas fa-graduation-cap text-indigo-600 text-2xl"></i>
                 <span class="font-bold text-xl tracking-tight">bki Classroom</span>
 				  <span class="text-[8px] font-bold text-indigo-400 tracking-[0.2em] uppercase">by.hc diklat ppsdm</span>
@@ -37,58 +35,62 @@
         <div id="siswa-home">
              <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
             <p class="text-gray-500 text-center text-sm">Pilih materi dan pastikan Anda sudah absen di setiap materi.</p>
-            <div id="list-materi-siswa" class="grid gap-4"></div>
+            <div id="list-materi-siswa" class="grid gap-4 mt-6"></div>
         </div>
 
         <div id="siswa-belajar" class="hidden">
-    <div class="bg-white rounded-3xl shadow-lg border p-8 mb-6">
-        <h2 id="judul-aktif" class="text-4xl font-black text-indigo-900 mb-2 uppercase tracking-tighter italic">JUDUL MATERI</h2>
-        
-        <p id="status-belajar" class="text-sm text-rose-500 mb-8 font-bold flex items-center gap-2">
-            <i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan
-        </p>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <a id="link-materi-aktif" onclick="tandaiProgres('materi')" target="_blank" class="bg-[#5851db] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
-                <i class="fas fa-play-circle text-2xl"></i> Buka Materi
-            </a>
-            <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
-                <i class="fas fa-edit text-2xl"></i> Kerjakan Kuis
-            </a>
-        </div>
+            <div class="bg-white rounded-3xl shadow-lg border p-8 mb-6">
+                <h2 id="judul-aktif" class="text-4xl font-black text-indigo-900 mb-2 uppercase tracking-tighter italic">JUDUL MATERI</h2>
+                
+                <p id="status-belajar" class="text-sm text-rose-500 mb-8 font-bold flex items-center gap-2">
+                    <i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <a id="link-materi-aktif" onclick="tandaiProgres('materi')" target="_blank" class="bg-[#5851db] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
+                        <i class="fas fa-play-circle text-2xl"></i> Buka Materi
+                    </a>
+                    <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
+                        <i class="fas fa-edit text-2xl"></i> Kerjakan Kuis
+                    </a>
+                </div>
 
-        <button id="btn-lapor" onclick="prosesLaporSelesai()" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all">
-            <i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)
-        </button>
+                <button id="btn-lapor" onclick="prosesLaporSelesai()" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all">
+                    <i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)
+                </button>
 
-        <hr class="mb-8 border-gray-200 border-dashed">
+                <hr class="mb-8 border-gray-200 border-dashed">
 
-        <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest">
+               <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest">
             <i class="fas fa-comments text-lg"></i> Live Chat
         </h3>
         
         <div id="chat-box" class="min-h-[200px] max-h-[400px] overflow-y-auto bg-white rounded-2xl p-6 space-y-4 mb-6 border-2 border-gray-100 shadow-inner custom-scroll">
             </div>
-        
-        <div class="flex gap-3 items-center">
-            <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-gray-50 transition-all">
-            <button onclick="kirimChat()" class="bg-[#5851db] text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-                <i class="fas fa-paper-plane text-xl"></i>
+                
+                <div class="flex gap-3 items-center">
+                    <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-white transition-all">
+                    <button onclick="kirimChat()" class="bg-[#5851db] text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                        <i class="fas fa-paper-plane text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <button onclick="backToHome()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 transition-all shadow-lg uppercase text-xs tracking-widest">
+                <i class="fas fa-arrow-left"></i> Kembali ke Daftar Materi
             </button>
         </div>
-    </div>
-    
-    <button onclick="backToHome()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 transition-all shadow-lg uppercase text-xs tracking-widest">
-        <i class="fas fa-arrow-left"></i> Kembali ke Daftar Materi
-    </button>
-</div>
-
     </main>
 
     <main id="view-guru" class="hidden max-w-7xl mx-auto px-4 py-8">
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <h1 class="text-2xl font-black text-indigo-900 uppercase">Panel Administrator</h1>
-            <button onclick="tambahMateri()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 w-full md:w-auto">+ Add Materi & Kuis</button>
+            <div class="flex gap-2 w-full md:w-auto">
+                <button onclick="downloadExcel()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 flex items-center gap-2 transition-all text-xs uppercase">
+                    <i class="fas fa-file-excel"></i> Download Excel
+                </button>
+                <button onclick="tambahMateri()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 text-xs uppercase">+ Add Materi</button>
+            </div>
         </div>
 
         <div class="bg-white rounded-3xl shadow-xl border overflow-hidden">
@@ -102,12 +104,17 @@
             <div id="g-content-materi" class="p-6"><div id="list-materi-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
 
             <div id="g-content-nilai" class="hidden p-6 overflow-x-auto">
-                <table class="w-full text-left border-collapse min-w-[800px]">
+                <table class="w-full text-left border-collapse min-w-[900px]">
                     <thead>
-                        <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
-                            <th class="p-4">Nama Siswa</th><th class="p-4">NUP</th><th class="p-4">Unit Kerja</th><th class="p-4">Materi</th><th class="p-4 text-center">Nilai</th><th class="p-4 text-right">Aksi</th>
-                        </tr>
-                    </thead>
+    <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
+        <th class="p-4 text-left" style="width: 25%;">Nama Siswa</th>
+        <th class="p-4 text-left" style="width: 10%;">NUP</th>
+        <th class="p-4 text-left" style="width: 20%;">Unit Kerja</th>
+        <th class="p-4 text-center" style="width: 20%;">Materi</th>
+        <th class="p-4 text-center" style="width: 10%;">Nilai</th>
+        <th class="p-4 text-right" style="width: 15%;">Aksi</th>
+    </tr>
+</thead>
                     <tbody id="tabel-laporan" class="divide-y text-sm"></tbody>
                 </table>
             </div>
@@ -116,7 +123,7 @@
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
-                            <th class="p-4">Nama Siswa</th><th class="p-4">NUP</th><th class="p-4">Unit Kerja</th><th class="p-4">Materi</th><th class="p-4">Waktu</th><th class="p-4 text-right">Aksi</th>
+                            <th class="p-4">Nama Siswa</th><th class="p-4">NUP</th><th class="p-4">Unit Kerja</th><th class="p-4 w-full">Materi</th><th class="p-4">Waktu</th><th class="p-4 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tabel-absensi" class="divide-y text-sm"></tbody>
@@ -132,11 +139,11 @@
     <div id="modal-absen" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
             <h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic">Konfirmasi Absensi</h3>
-			<p class="text-red-500 text-sm">isi absen untuk membuka materi</p>
+            <p class="text-red-500 text-sm mb-4">Isi absen untuk membuka materi</p>
             <div class="space-y-3 mb-8">
-                <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50">
-                <input id="abs-nup" type="number" placeholder="NUP" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50">
-                <input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50">
+                <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
+                <input id="abs-nup" type="number" placeholder="NUP" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm">
+                <input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
             </div>
             <div class="flex gap-2">
                 <button onclick="tutupModal()" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
@@ -149,49 +156,38 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIG FIREBASE
         const firebaseConfig = {
-  apiKey: "AIzaSyBkLiqHrvTuFFpaVsmWT2H1wF5NzwgmuBQ",
-  authDomain: "diklatppsdm-e7788.firebaseapp.com",
-  databaseURL: "https://diklatppsdm-e7788-default-rtdb.firebaseio.com",
-  projectId: "diklatppsdm-e7788",
-  storageBucket: "diklatppsdm-e7788.firebasestorage.app",
-  messagingSenderId: "573889493408",
-  appId: "1:573889493408:web:fd7704a7d40e72e72c4cc5"
-};
+            apiKey: "AIzaSyBkLiqHrvTuFFpaVsmWT2H1wF5NzwgmuBQ",
+            authDomain: "diklatppsdm-e7788.firebaseapp.com",
+            databaseURL: "https://diklatppsdm-e7788-default-rtdb.firebaseio.com",
+            projectId: "diklatppsdm-e7788",
+            storageBucket: "diklatppsdm-e7788.firebasestorage.app",
+            messagingSenderId: "573889493408",
+            appId: "1:573889493408:web:fd7704a7d40e72e72c4cc5"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
         let curId = ""; let curJudul = ""; let isAdmin = false;
-		
-		// VARIABEL PENGUNCI (TARUH DI ATAS)
-let materiSelesai = false;
-let kuisSelesai = false;
+        let materiSelesai = false;
+        let kuisSelesai = false;
 
-// FUNGSI UNTUK MEMBUKA KUNCI TOMBOL
-window.tandaiProgres = (tipe) => {
-    if (tipe === 'materi') materiSelesai = true;
-    if (tipe === 'kuis') kuisSelesai = true;
+        window.tandaiProgres = (tipe) => {
+            if (tipe === 'materi') materiSelesai = true;
+            if (tipe === 'kuis') kuisSelesai = true;
+            const btnLapor = document.getElementById('btn-lapor');
+            const statusText = document.getElementById('status-belajar');
+            const hasKuis = !document.getElementById('link-kuis-aktif').classList.contains('hidden');
+            if (materiSelesai && (hasKuis ? kuisSelesai : true)) {
+                btnLapor.disabled = false;
+                btnLapor.classList.replace('bg-gray-400', 'bg-[#24d164]');
+                btnLapor.classList.remove('cursor-not-allowed');
+                btnLapor.innerHTML = `<i class="fas fa-check-circle"></i> Lapor Selesai`;
+                statusText.innerHTML = `<i class="fas fa-unlock text-emerald-500"></i> Materi selesai, silakan lapor!`;
+                statusText.classList.replace('text-rose-500', 'text-emerald-600');
+            }
+        };
 
-    const btnLapor = document.getElementById('btn-lapor');
-    const statusText = document.getElementById('status-belajar');
-    const kuisBtn = document.getElementById('link-kuis-aktif');
-    const hasKuis = !kuisBtn.classList.contains('hidden');
-
-    // SYARAT: Materi diklik DAN (Kuis diklik jika kuis ada)
-    if (materiSelesai && (hasKuis ? kuisSelesai : true)) {
-        btnLapor.disabled = false;
-        btnLapor.classList.remove('bg-gray-400', 'cursor-not-allowed');
-        btnLapor.classList.add('bg-[#24d164]', 'hover:opacity-90');
-        btnLapor.innerHTML = `<i class="fas fa-check-circle"></i> Lapor Selesai`;
-        
-        statusText.innerHTML = `<i class="fas fa-unlock text-emerald-500"></i> Materi selesai, silakan lapor!`;
-        statusText.classList.remove('text-rose-500');
-        statusText.classList.add('text-emerald-600');
-    }
-};
-
-        // NAV & ROLE
         window.pindahMenu = (role) => {
             if (role === 'guru') {
                 if (prompt("PIN Admin:") !== "0") return alert("Akses gagal!");
@@ -217,14 +213,12 @@ window.tandaiProgres = (tipe) => {
                 document.getElementById('siswa-belajar').classList.remove('hidden');
                 document.getElementById('judul-aktif').innerText = judul;
                 document.getElementById('link-materi-aktif').href = link;
-				materiSelesai = false;
-    kuisSelesai = false;
-    const btnLapor = document.getElementById('btn-lapor');
-    btnLapor.disabled = true;
-    btnLapor.className = "w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all";
-    btnLapor.innerHTML = `<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)`;
+                materiSelesai = false; kuisSelesai = false;
+                const btnLapor = document.getElementById('btn-lapor');
+                btnLapor.disabled = true;
+                btnLapor.className = "w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all";
                 const bk = document.getElementById('link-kuis-aktif');
-                if (kuis && kuis !== "undefined") { bk.href = kuis; bk.classList.remove('hidden'); } else { bk.classList.add('hidden'); }
+                if (kuis && kuis !== "undefined" && kuis !== "") { bk.href = kuis; bk.classList.remove('hidden'); } else { bk.classList.add('hidden'); }
                 loadChat();
             } else { document.getElementById('modal-absen').classList.remove('hidden'); }
         };
@@ -243,10 +237,9 @@ window.tandaiProgres = (tipe) => {
 
         window.tutupModal = () => document.getElementById('modal-absen').classList.add('hidden');
 
-        // CHAT SYSTEM
         window.kirimChat = () => {
             const n = localStorage.getItem('user_nama') || "Anonim", p = document.getElementById('chat-pesan').value;
-            if (p) { push(ref(db, 'chat/'), { nama: n, pesan: p, materiId: curId }); document.getElementById('chat-pesan').value = ""; }
+            if (p) { push(ref(db, 'chat/'), { nama: n, pesan: p, materiId: curId, waktu: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }); document.getElementById('chat-pesan').value = ""; }
         };
 
         function loadChat() {
@@ -255,14 +248,20 @@ window.tandaiProgres = (tipe) => {
                 snap.forEach(c => {
                     const d = c.val();
                     if(d.materiId === curId) {
-                        box.innerHTML += `<div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 text-sm"><b class="text-indigo-600 uppercase text-[10px] block mb-1">${d.nama}</b><span class="text-gray-700 font-medium">${d.pesan}</span></div>`;
+                        const isCS = d.nama.toLowerCase().includes('admin') || d.nama.toLowerCase().includes('cs');
+                        box.innerHTML += `
+                            <div class="flex flex-col ${isCS ? 'items-start' : 'items-end'}">
+                                <span class="text-[9px] font-black uppercase text-gray-400 mb-1 px-2">${isCS ? '<i class="fas fa-headset text-indigo-600"></i> CS - ' : ''}${d.nama}</span>
+                                <div class="${isCS ? 'bg-indigo-600 text-white' : 'bg-white border-2 border-gray-100 text-gray-800'} p-3 rounded-2xl text-sm shadow-sm max-w-[80%] font-medium">
+                                    ${d.pesan}
+                                </div>
+                            </div>`;
                     }
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        // ADMIN CHAT MANAGEMENT
         onValue(ref(db, 'chat/'), (snap) => {
             const list = document.getElementById('admin-chat-list'); list.innerHTML = "";
             snap.forEach(c => {
@@ -274,7 +273,6 @@ window.tandaiProgres = (tipe) => {
             });
         });
 
-        // ADMIN: MATERI
         window.tambahMateri = () => {
             const j = prompt("Judul Materi:"), l = prompt("Link Materi:"), k = prompt("Link Kuis (Optional):");
             if (j && l) push(ref(db, 'materi/'), { judul: j, link: l, kuis: k || "", waktu: new Date().toLocaleDateString() });
@@ -311,42 +309,51 @@ window.tandaiProgres = (tipe) => {
             });
         };
 
-        // REKAP LOADERS
-       onValue(ref(db, 'laporan/'), (snap) => {
+        onValue(ref(db, 'laporan/'), (snap) => {
     const t = document.getElementById('tabel-laporan'); 
+    if (!t) return;
     t.innerHTML = "";
+    
     snap.forEach(c => { 
         const d = c.val(); 
         const id = c.key;
 
-        t.innerHTML += `<tr class="hover:bg-gray-50 border-b">
-            <td class="p-4 font-bold text-indigo-900 uppercase">${d.nama}</td>
+        t.innerHTML += `
+        <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
+            <td class="p-4 font-bold text-indigo-900 uppercase text-[10px] whitespace-nowrap text-left">
+                ${d.nama}
+            </td>
             
-            <td class="p-4 text-gray-500">${d.nup}</td>
+            <td class="p-4 text-gray-500 text-[10px] whitespace-nowrap text-left">
+                ${d.nup}
+            </td>
             
-            <td class="p-4 text-gray-700 font-medium">${d.unit || '-'}</td>
+            <td class="p-4 text-gray-700 font-medium text-[10px] whitespace-nowrap text-left">
+                ${d.unit || '-'}
+            </td>
             
-            <td class="p-4">
-                <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold">
+            <td class="p-4 text-center whitespace-nowrap">
+                <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">
                     ${d.pelatihan || d.materi}
                 </span>
             </td>
             
-            <td class="p-4 text-center">
-                <span class="font-black text-indigo-700">${d.nilai || '0'}</span>
+            <td class="p-4 text-center font-black text-indigo-700 text-[11px] whitespace-nowrap">
+                ${d.nilai || '0'}
             </td>
             
-            <td class="p-4 text-right">
-                <div class="flex justify-end gap-2">
-                    <button onclick="beriNilai('${id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase">
+            <td class="p-4 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-1">
+                    <button onclick="beriNilai('${id}')" 
+                            class="bg-indigo-50 text-indigo-600 h-7 px-2 rounded-md font-bold text-[9px] uppercase hover:bg-indigo-600 hover:text-white transition-all">
                         <i class="fas fa-edit"></i> Nilai
                     </button>
                     
-                    <a href="https://generatorsertifikat.netlify.app/" target="_blank" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg font-bold text-[10px] uppercase shadow-sm flex items-center gap-1">
+                    <a href="#" class="bg-amber-500 text-white h-7 px-2 rounded-md font-bold text-[9px] uppercase flex items-center gap-1 shadow-sm hover:bg-amber-600" style="text-decoration:none">
                         <i class="fas fa-certificate"></i> Cetak Sertifikat
                     </a>
 
-                    <button onclick="hapusRecord('laporan/${id}')" class="text-red-400 hover:text-red-600 px-2">
+                    <button onclick="hapusRecord('laporan/${id}')" class="text-red-300 hover:text-red-600 px-2">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -354,11 +361,27 @@ window.tandaiProgres = (tipe) => {
         </tr>`;
     });
 });
+        window.downloadExcel = () => {
+            const table = document.getElementById('tabel-laporan');
+            const data = [];
+            data.push(["Nama Siswa", "NUP", "Unit Kerja", "Materi", "Nilai"]);
+            const rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if (cols.length > 0) {
+                    data.push([cols[0].innerText.trim(), cols[1].innerText.trim(), cols[2].innerText.trim(), cols[3].innerText.trim(), cols[4].innerText.trim()]);
+                }
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Rekap Nilai");
+            XLSX.writeFile(wb, `Rekap_Nilai_PPSDM_${new Date().toLocaleDateString('id-ID').replace(/\//g, '-')}.xlsx`);
+        };
 
         onValue(ref(db, 'absensi/'), (snap) => {
             const t = document.getElementById('tabel-absensi'); t.innerHTML = "";
             snap.forEach(c => { const d = c.val(); 
-                t.innerHTML += `<tr class="hover:bg-gray-50"><td class="p-4 font-bold uppercase">${d.nama}</td><td class="p-4">${d.nup}</td><td class="p-4">${d.unit}</td><td class="p-4 font-medium">${d.materi}</td><td class="p-4 text-gray-400 text-[10px]">${d.waktu}</td><td class="p-4 text-right"><button onclick="hapusRecord('absensi/${c.key}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`;
+                t.innerHTML += `<tr class="hover:bg-gray-50 border-b"><td class="p-4 font-bold text-[11px] uppercase">${d.nama}</td><td class="p-4 text-[11px]">${d.nup}</td><td class="p-4 text-[11px]">${d.unit}</td><td class="p-4 font-medium text-[11px]">${d.materi}</td><td class="p-4 text-gray-400 text-[10px]">${d.waktu}</td><td class="p-4 text-right"><button onclick="hapusRecord('absensi/${c.key}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`;
             });
         });
 
@@ -369,20 +392,8 @@ window.tandaiProgres = (tipe) => {
             }
         };
 
-        window.beriNilai = (id) => { const n = prompt("Nilai:"); if(n) update(ref(db, `laporan/${id}`), { nilai: n }); };
-        window.hapusRecord = (path) => { if(confirm("Hapus data ini?")) remove(ref(db, path)); };
-
+        window.beriNilai = (id) => { const n = prompt("Masukkan Nilai (0-100):"); if(n) update(ref(db, `laporan/${id}`), { nilai: n }); };
+        window.hapusRecord = (path) => { if(confirm("Hapus data ini secara permanen?")) remove(ref(db, path)); };
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
