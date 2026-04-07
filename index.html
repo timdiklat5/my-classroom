@@ -6,23 +6,36 @@
     <title>HC Diklat PPSDM</title>
     <link rel="icon" type="image/png" href="https://docs.google.com/uc?export=view&id=1-MlYRfiNuuZfw3gjELOmlLrnkTCRYFAw">
     
+    <!-- Library Eksternal -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+        
+        /* Gaya untuk gambar cover agar rapi seperti GClass */
+        .cover-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+        .card-gradient {
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
 
+    <!-- Navbar -->
     <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
              <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
                 <i class="fas fa-graduation-cap text-indigo-600 text-2xl"></i>
                 <span class="font-bold text-xl tracking-tight">bki Classroom</span>
-				  <span class="text-[8px] font-bold text-indigo-400 tracking-[0.2em] uppercase">by.hc diklat ppsdm</span>
+                <span class="text-[8px] font-bold text-indigo-400 tracking-[0.2em] uppercase">by.hc diklat ppsdm</span>
             </div>
             <div class="bg-gray-100 p-1 rounded-xl flex gap-1 shadow-inner">
                 <button id="nav-siswa" onclick="pindahMenu('siswa')" class="px-5 py-2 rounded-lg text-xs font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase">Siswa</button>
@@ -31,48 +44,61 @@
         </div>
     </nav>
 
-    <main id="view-siswa" class="max-w-4xl mx-auto px-4 py-8">
+    <!-- View Siswa -->
+    <main id="view-siswa" class="max-w-6xl mx-auto px-4 py-8">
         <div id="siswa-home">
              <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
-            <p class="text-gray-500 text-center text-sm">Pilih materi dan pastikan Anda sudah absen di setiap materi.</p>
-            <div id="list-materi-siswa" class="grid gap-4 mt-6"></div>
+            <p class="text-gray-500 text-center text-sm mb-8">Pilih materi dan pastikan Anda sudah absen di setiap materi.</p>
+            
+            <!-- Grid Materi Siswa (Style Google Classroom Card) -->
+            <div id="list-materi-siswa" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
         <div id="siswa-belajar" class="hidden">
-            <div class="bg-white rounded-3xl shadow-lg border p-8 mb-6">
-                <h2 id="judul-aktif" class="text-4xl font-black text-indigo-900 mb-2 uppercase tracking-tighter italic">JUDUL MATERI</h2>
-                
-                <p id="status-belajar" class="text-sm text-rose-500 mb-8 font-bold flex items-center gap-2">
-                    <i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan
-                </p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <a id="link-materi-aktif" onclick="tandaiProgres('materi')" target="_blank" class="bg-[#5851db] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
-                        <i class="fas fa-play-circle text-2xl"></i> Buka Materi
-                    </a>
-                    <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic">
-                        <i class="fas fa-edit text-2xl"></i> Kerjakan Kuis
-                    </a>
+            <div class="bg-white rounded-3xl shadow-lg border p-0 overflow-hidden mb-6">
+                <!-- Cover Image Belajar -->
+                <div class="relative h-48 md:h-64 w-full bg-gray-200">
+                    <img id="img-header-belajar" src="" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-black/30 flex items-end p-6 md:p-10">
+                        <div class="text-white w-full">
+                            <h2 id="judul-aktif" class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none drop-shadow-md">JUDUL MATERI</h2>
+                        </div>
+                    </div>
                 </div>
 
-                <button id="btn-lapor" onclick="prosesLaporSelesai()" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-10 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all">
-                    <i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)
-                </button>
+                <div class="p-6 md:p-8">
+                    <p id="status-belajar" class="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit">
+                        <i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <a id="link-materi-aktif" onclick="tandaiProgres('materi')" target="_blank" class="bg-[#5851db] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic group">
+                            <i class="fas fa-play-circle text-2xl group-hover:scale-110 transition-transform"></i> Buka Materi
+                        </a>
+                        <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-5 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic group">
+                            <i class="fas fa-edit text-2xl group-hover:scale-110 transition-transform"></i> Kerjakan Kuis
+                        </a>
+                    </div>
 
-                <hr class="mb-8 border-gray-200 border-dashed">
-
-               <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest">
-            <i class="fas fa-comments text-lg"></i> Live Chat
-        </h3>
-        
-        <div id="chat-box" class="min-h-[200px] max-h-[400px] overflow-y-auto bg-white rounded-2xl p-6 space-y-4 mb-6 border-2 border-gray-100 shadow-inner custom-scroll">
-            </div>
-                
-                <div class="flex gap-3 items-center">
-                    <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-white transition-all">
-                    <button onclick="kirimChat()" class="bg-[#5851db] text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
-                        <i class="fas fa-paper-plane text-xl"></i>
+                    <button id="btn-lapor" onclick="prosesLaporSelesai()" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all">
+                        <i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)
                     </button>
+
+                    <hr class="mb-6 border-gray-200 border-dashed">
+
+                   <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest">
+                <i class="fas fa-comments text-lg"></i> Live Chat
+            </h3>
+            
+            <div id="chat-box" class="min-h-[200px] max-h-[400px] overflow-y-auto bg-white rounded-2xl p-6 space-y-4 mb-6 border-2 border-gray-100 shadow-inner custom-scroll">
+                </div>
+                    
+                    <div class="flex gap-3 items-center">
+                        <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-white transition-all">
+                        <button onclick="kirimChat()" class="bg-[#5851db] text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                            <i class="fas fa-paper-plane text-xl"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -82,6 +108,7 @@
         </div>
     </main>
 
+    <!-- View Guru -->
     <main id="view-guru" class="hidden max-w-7xl mx-auto px-4 py-8">
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <h1 class="text-2xl font-black text-indigo-900 uppercase">Panel Administrator</h1>
@@ -89,7 +116,9 @@
                 <button onclick="downloadExcel()" class="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 flex items-center gap-2 transition-all text-xs uppercase">
                     <i class="fas fa-file-excel"></i> Download Excel
                 </button>
-                <button onclick="tambahMateri()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 text-xs uppercase">+ Add Materi</button>
+                <button onclick="bukaModalTambahMateri()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 text-xs uppercase flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Add Materi
+                </button>
             </div>
         </div>
 
@@ -101,24 +130,27 @@
                 <button onclick="switchTabGuru('chat')" id="tab-g-chat" class="flex-1 min-w-[150px] py-4 rounded-xl text-gray-400 font-bold text-xs uppercase tracking-widest">Hapus Chat</button>
             </div>
 
-            <div id="g-content-materi" class="p-6"><div id="list-materi-admin" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+            <!-- Tab Materi Admin -->
+            <div id="g-content-materi" class="p-6"><div id="list-materi-admin" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div></div>
 
+            <!-- Tab Nilai -->
             <div id="g-content-nilai" class="hidden p-6 overflow-x-auto">
                 <table class="w-full text-left border-collapse min-w-[900px]">
                     <thead>
-    <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
-        <th class="p-4 text-left" style="width: 25%;">Nama Siswa</th>
-        <th class="p-4 text-left" style="width: 10%;">NUP</th>
-        <th class="p-4 text-left" style="width: 20%;">Unit Kerja</th>
-        <th class="p-4 text-center" style="width: 20%;">Materi</th>
-        <th class="p-4 text-center" style="width: 10%;">Nilai</th>
-        <th class="p-4 text-right" style="width: 15%;">Aksi</th>
-    </tr>
-</thead>
+                        <tr class="bg-indigo-50 text-[11px] uppercase font-black text-indigo-800 border-b">
+                            <th class="p-4 text-left" style="width: 25%;">Nama Siswa</th>
+                            <th class="p-4 text-left" style="width: 10%;">NUP</th>
+                            <th class="p-4 text-left" style="width: 20%;">Unit Kerja</th>
+                            <th class="p-4 text-center" style="width: 20%;">Materi</th>
+                            <th class="p-4 text-center" style="width: 10%;">Nilai</th>
+                            <th class="p-4 text-right" style="width: 15%;">Aksi</th>
+                        </tr>
+                    </thead>
                     <tbody id="tabel-laporan" class="divide-y text-sm"></tbody>
                 </table>
             </div>
 
+            <!-- Tab Absen -->
             <div id="g-content-absen" class="hidden p-6 overflow-x-auto">
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
@@ -130,12 +162,14 @@
                 </table>
             </div>
 
+            <!-- Tab Chat -->
             <div id="g-content-chat" class="hidden p-6">
                 <div id="admin-chat-list" class="space-y-2"></div>
             </div>
         </div>
     </main>
 
+    <!-- Modal Absen Siswa -->
     <div id="modal-absen" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
             <h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic">Konfirmasi Absensi</h3>
@@ -146,15 +180,62 @@
                 <input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
             </div>
             <div class="flex gap-2">
-                <button onclick="tutupModal()" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
+                <button onclick="tutupModalAbsen()" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
                 <button onclick="prosesAbsen()" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs">Kirim & Buka Materi</button>
             </div>
         </div>
     </div>
 
+    <!-- Modal Tambah Materi (Baru) -->
+    <div id="modal-tambah" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-3xl p-8 shadow-2xl">
+            <h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic border-b pb-4">Tambah Materi Baru</h3>
+            
+            <div class="space-y-4 mb-8">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul Materi</label>
+                    <input id="input-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Materi</label>
+                        <input id="input-link" type="text" placeholder="https://..." class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis (Opsional)</label>
+                        <input id="input-kuis" type="text" placeholder="https://..." class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Upload Cover Gambar</label>
+                    <div class="relative w-full h-32 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 hover:bg-indigo-50 transition-colors cursor-pointer overflow-hidden">
+                        <input type="file" id="input-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)">
+                        <img id="img-preview" src="" class="absolute inset-0 w-full h-full object-cover hidden z-0">
+                        <div id="upload-placeholder" class="text-center pointer-events-none z-0">
+                            <i class="fas fa-cloud-upload-alt text-2xl text-indigo-400 mb-2"></i>
+                            <p class="text-xs font-bold text-indigo-500">Klik untuk upload gambar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button onclick="tutupModalTambah()" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
+                <button id="btn-simpan-materi" onclick="simpanMateriBaru()" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs flex items-center justify-center gap-2">
+                    <span>Simpan Materi</span> <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Utama -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // Tambahkan import Storage untuk Upload Gambar
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBkLiqHrvTuFFpaVsmWT2H1wF5NzwgmuBQ",
@@ -167,10 +248,88 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const storage = getStorage(app);
 
         let curId = ""; let curJudul = ""; let isAdmin = false;
         let materiSelesai = false;
         let kuisSelesai = false;
+
+        // --- Helper Preview Image ---
+        window.previewImage = (input) => {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('img-preview');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById('upload-placeholder').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // --- Logika Tambah Materi dengan Upload Gambar ---
+        window.bukaModalTambahMateri = () => {
+            document.getElementById('modal-tambah').classList.remove('hidden');
+            // Reset form
+            document.getElementById('input-judul').value = "";
+            document.getElementById('input-link').value = "";
+            document.getElementById('input-kuis').value = "";
+            document.getElementById('input-gambar').value = "";
+            document.getElementById('img-preview').src = "";
+            document.getElementById('img-preview').classList.add('hidden');
+            document.getElementById('upload-placeholder').classList.remove('hidden');
+        };
+
+        window.tutupModalTambah = () => document.getElementById('modal-tambah').classList.add('hidden');
+
+        window.simpanMateriBaru = async () => {
+            const j = document.getElementById('input-judul').value;
+            const l = document.getElementById('input-link').value;
+            const k = document.getElementById('input-kuis').value;
+            const fileInput = document.getElementById('input-gambar');
+            const btn = document.getElementById('btn-simpan-materi');
+
+            if (!j || !l) return alert("Judul dan Link Materi wajib diisi!");
+
+            // Ubah tombol jadi loading
+            const originalBtnContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            btn.disabled = true;
+
+            try {
+                let gambarUrl = "https://picsum.photos/seed/" + j.replace(/\s/g, '') + "/800/400"; // Default placeholder jika tidak ada upload
+
+                // Jika ada gambar yang dipilih
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const storageRef = sRef(storage, `materi_images/${Date.now()}_${file.name}`);
+                    const snapshot = await uploadBytes(storageRef, file);
+                    gambarUrl = await getDownloadURL(snapshot.ref);
+                }
+
+                // Simpan ke Database
+                await push(ref(db, 'materi/'), {
+                    judul: j,
+                    link: l,
+                    kuis: k || "",
+                    gambar: gambarUrl,
+                    waktu: new Date().toLocaleDateString()
+                });
+
+                tutupModalTambah();
+                alert("Materi berhasil ditambahkan!");
+            } catch (error) {
+                console.error(error);
+                alert("Gagal mengupload gambar atau menyimpan data. Periksa koneksi internet.");
+            } finally {
+                btn.innerHTML = originalBtnContent;
+                btn.disabled = false;
+            }
+        };
+
+        // --- Logika Siswa & Navigasi ---
 
         window.tandaiProgres = (tipe) => {
             if (tipe === 'materi') materiSelesai = true;
@@ -185,6 +344,7 @@
                 btnLapor.innerHTML = `<i class="fas fa-check-circle"></i> Lapor Selesai`;
                 statusText.innerHTML = `<i class="fas fa-unlock text-emerald-500"></i> Materi selesai, silakan lapor!`;
                 statusText.classList.replace('text-rose-500', 'text-emerald-600');
+                statusText.classList.replace('bg-rose-50', 'bg-emerald-50');
             }
         };
 
@@ -205,7 +365,9 @@
             document.getElementById('siswa-belajar').classList.add('hidden');
         };
 
-        window.bukaMateriSiswa = (id, judul, link, kuis) => {
+        window.tutupModalAbsen = () => document.getElementById('modal-absen').classList.add('hidden');
+
+        window.bukaMateriSiswa = (id, judul, link, kuis, gambar) => {
             curId = id; curJudul = judul;
             const h = JSON.parse(localStorage.getItem('absensi_history') || "[]");
             if (h.includes(id)) {
@@ -213,6 +375,17 @@
                 document.getElementById('siswa-belajar').classList.remove('hidden');
                 document.getElementById('judul-aktif').innerText = judul;
                 document.getElementById('link-materi-aktif').href = link;
+                
+                // Set Gambar Header
+                const headerImg = document.getElementById('img-header-belajar');
+                if(gambar) {
+                    headerImg.src = gambar;
+                    headerImg.classList.remove('hidden');
+                } else {
+                    // Jika tidak ada gambar, pakai pattern abstrak solid color
+                    headerImg.style.display = 'none'; 
+                }
+
                 materiSelesai = false; kuisSelesai = false;
                 const btnLapor = document.getElementById('btn-lapor');
                 btnLapor.disabled = true;
@@ -234,8 +407,6 @@
                 });
             } else alert("Harap diisi!");
         };
-
-        window.tutupModal = () => document.getElementById('modal-absen').classList.add('hidden');
 
         window.kirimChat = () => {
             const n = localStorage.getItem('user_nama') || "Anonim", p = document.getElementById('chat-pesan').value;
@@ -262,6 +433,8 @@
             });
         }
 
+        // --- Render Data ---
+
         onValue(ref(db, 'chat/'), (snap) => {
             const list = document.getElementById('admin-chat-list'); list.innerHTML = "";
             snap.forEach(c => {
@@ -273,30 +446,48 @@
             });
         });
 
-        window.tambahMateri = () => {
-            const j = prompt("Judul Materi:"), l = prompt("Link Materi:"), k = prompt("Link Kuis (Optional):");
-            if (j && l) push(ref(db, 'materi/'), { judul: j, link: l, kuis: k || "", waktu: new Date().toLocaleDateString() });
-        };
-
-        window.editMateri = (id, j, l, k) => {
-            const nj = prompt("Edit Judul:", j), nl = prompt("Edit Link:", l), nk = prompt("Edit Kuis:", k);
-            if (nj && nl) update(ref(db, `materi/${id}`), { judul: nj, link: nl, kuis: nk || "" });
-        };
-
+        // Render Materi (Siswa & Admin) dengan Gambar
         onValue(ref(db, 'materi/'), (snap) => {
             const ls = document.getElementById('list-materi-siswa'), la = document.getElementById('list-materi-admin');
             ls.innerHTML = ""; la.innerHTML = "";
             snap.forEach(c => {
                 const m = c.val(), id = c.key;
-                ls.innerHTML += `<div class="bg-white p-6 rounded-2xl shadow-sm flex justify-between items-center border-2 border-transparent hover:border-indigo-500 transition-all">
-                    <div><h3 class="font-black text-indigo-900 uppercase italic tracking-tighter">${m.judul}</h3><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${m.kuis ? 'Kuis Tersedia' : 'Materi Saja'}</p></div>
-                    <button onclick="bukaMateriSiswa('${id}', '${m.judul}', '${m.link}', '${m.kuis}')" class="bg-indigo-600 text-white px-8 py-3 rounded-xl text-xs font-bold shadow-md uppercase italic">BUKA</button>
+                const imgUrl = m.gambar || `https://picsum.photos/seed/${m.judul}/400/200`;
+                const styleBg = `background-image: url('${imgUrl}'); background-size: cover; background-position: center;`;
+
+                // Render Siswa (Google Classroom Style)
+                ls.innerHTML += `
+                <div onclick="bukaMateriSiswa('${id}', '${m.judul}', '${m.link}', '${m.kuis}', '${imgUrl}')" class="group relative bg-white h-48 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end">
+                    <!-- Gambar Cover -->
+                    <div class="absolute inset-0 bg-gray-200">
+                        <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <!-- Gradient Overlay -->
+                    <div class="absolute inset-0 card-gradient"></div>
+                    
+                    <!-- Konten Text -->
+                    <div class="relative z-10 p-5 text-white">
+                        <h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight mb-1 drop-shadow-md">${m.judul}</h3>
+                        <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-indigo-200">
+                            <span class="bg-indigo-600/80 px-2 py-1 rounded backdrop-blur-sm border border-indigo-400/30">
+                                ${m.kuis ? 'Materi + Kuis' : 'Materi Saja'}
+                            </span>
+                        </div>
+                    </div>
                 </div>`;
-                la.innerHTML += `<div class="bg-white p-5 rounded-2xl border flex justify-between items-center">
-                    <div><p class="font-black text-indigo-900 uppercase italic tracking-tighter">${m.judul}</p></div>
-                    <div class="flex gap-2">
-                        <button onclick="editMateri('${id}', '${m.judul}', '${m.link}', '${m.kuis}')" class="text-indigo-600 bg-indigo-50 p-3 rounded-xl"><i class="fas fa-edit"></i></button>
-                        <button onclick="hapusRecord('materi/${id}')" class="text-red-600 bg-red-50 p-3 rounded-xl"><i class="fas fa-trash-alt"></i></button>
+
+                // Render Admin
+                la.innerHTML += `<div class="bg-white rounded-2xl border flex flex-col overflow-hidden">
+                    <div class="h-24 bg-gray-100 overflow-hidden relative">
+                        <img src="${imgUrl}" class="w-full h-full object-cover">
+                        <div class="absolute top-2 right-2 flex gap-1">
+                             <button onclick="editMateri('${id}', '${m.judul}', '${m.link}', '${m.kuis}')" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-edit"></i></button>
+                            <button onclick="hapusRecord('materi/${id}')" class="bg-white/90 text-red-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm truncate">${m.judul}</p>
+                        <p class="text-[10px] text-gray-400 mt-1">${m.waktu}</p>
                     </div>
                 </div>`;
             });
@@ -310,57 +501,58 @@
         };
 
         onValue(ref(db, 'laporan/'), (snap) => {
-    const t = document.getElementById('tabel-laporan'); 
-    if (!t) return;
-    t.innerHTML = "";
-    
-    snap.forEach(c => { 
-        const d = c.val(); 
-        const id = c.key;
+            const t = document.getElementById('tabel-laporan'); 
+            if (!t) return;
+            t.innerHTML = "";
+            
+            snap.forEach(c => { 
+                const d = c.val(); 
+                const id = c.key;
 
-        t.innerHTML += `
-        <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
-            <td class="p-4 font-bold text-indigo-900 uppercase text-[10px] whitespace-nowrap text-left">
-                ${d.nama}
-            </td>
-            
-            <td class="p-4 text-gray-500 text-[10px] whitespace-nowrap text-left">
-                ${d.nup}
-            </td>
-            
-            <td class="p-4 text-gray-700 font-medium text-[10px] whitespace-nowrap text-left">
-                ${d.unit || '-'}
-            </td>
-            
-            <td class="p-4 text-center whitespace-nowrap">
-                <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">
-                    ${d.pelatihan || d.materi}
-                </span>
-            </td>
-            
-            <td class="p-4 text-center font-black text-indigo-700 text-[11px] whitespace-nowrap">
-                ${d.nilai || '0'}
-            </td>
-            
-            <td class="p-4 text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-1">
-                    <button onclick="beriNilai('${id}')" 
-                            class="bg-indigo-50 text-indigo-600 h-7 px-2 rounded-md font-bold text-[9px] uppercase hover:bg-indigo-600 hover:text-white transition-all">
-                        <i class="fas fa-edit"></i> Nilai
-                    </button>
+                t.innerHTML += `
+                <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
+                    <td class="p-4 font-bold text-indigo-900 uppercase text-[10px] whitespace-nowrap text-left">
+                        ${d.nama}
+                    </td>
                     
-                    <a href="https://generatorsertifikat.netlify.app/" class="bg-amber-500 text-white h-7 px-2 rounded-md font-bold text-[9px] uppercase flex items-center gap-1 shadow-sm hover:bg-amber-600" style="text-decoration:none">
-                        <i class="fas fa-certificate"></i> Cetak Sertifikat
-                    </a>
+                    <td class="p-4 text-gray-500 text-[10px] whitespace-nowrap text-left">
+                        ${d.nup}
+                    </td>
+                    
+                    <td class="p-4 text-gray-700 font-medium text-[10px] whitespace-nowrap text-left">
+                        ${d.unit || '-'}
+                    </td>
+                    
+                    <td class="p-4 text-center whitespace-nowrap">
+                        <span class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[9px] font-black uppercase">
+                            ${d.pelatihan || d.materi}
+                        </span>
+                    </td>
+                    
+                    <td class="p-4 text-center font-black text-indigo-700 text-[11px] whitespace-nowrap">
+                        ${d.nilai || '0'}
+                    </td>
+                    
+                    <td class="p-4 text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1">
+                            <button onclick="beriNilai('${id}')" 
+                                    class="bg-indigo-50 text-indigo-600 h-7 px-2 rounded-md font-bold text-[9px] uppercase hover:bg-indigo-600 hover:text-white transition-all">
+                                <i class="fas fa-edit"></i> Nilai
+                            </button>
+                            
+                            <a href="https://generatorsertifikat.netlify.app/" class="bg-amber-500 text-white h-7 px-2 rounded-md font-bold text-[9px] uppercase flex items-center gap-1 shadow-sm hover:bg-amber-600" style="text-decoration:none">
+                                <i class="fas fa-certificate"></i> Cetak
+                            </a>
 
-                    <button onclick="hapusRecord('laporan/${id}')" class="text-red-300 hover:text-red-600 px-2">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>`;
-    });
-});
+                            <button onclick="hapusRecord('laporan/${id}')" class="text-red-300 hover:text-red-600 px-2">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        });
+
         window.downloadExcel = () => {
             const table = document.getElementById('tabel-laporan');
             const data = [];
@@ -394,8 +586,12 @@
 
         window.beriNilai = (id) => { const n = prompt("Masukkan Nilai (0-100):"); if(n) update(ref(db, `laporan/${id}`), { nilai: n }); };
         window.hapusRecord = (path) => { if(confirm("Hapus data ini secara permanen?")) remove(ref(db, path)); };
+        
+        // Fungsi edit lama tetap ada, tapi tidak support ganti gambar (agar simplisitas kode terjaga)
+        window.editMateri = (id, j, l, k) => {
+            const nj = prompt("Edit Judul:", j), nl = prompt("Edit Link:", l), nk = prompt("Edit Kuis:", k);
+            if (nj && nl) update(ref(db, `materi/${id}`), { judul: nj, link: nl, kuis: nk || "" });
+        };
     </script>
 </body>
 </html>
-
-
