@@ -17,7 +17,7 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
         
         .cover-image { width: 100%; height: 160px; object-fit: cover; }
-        .card-gradient { background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 100%); }
+        .card-gradient { background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0) 100%); }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.3s ease-out; }
@@ -44,7 +44,7 @@
     <main id="view-siswa" class="max-w-6xl mx-auto px-4 py-8">
         <div id="siswa-home">
              <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
-            <p class="text-gray-500 text-center text-sm mb-8">Pilih materi dan pastikan Anda sudah absen di setiap materi.</p>
+            <p class="text-gray-500 text-center text-sm mb-8">Pilih materi untuk melihat detail materi dan kuis.</p>
             
             <div id="list-materi-siswa" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -69,6 +69,12 @@
                     
                     <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Resource Materi:</h3>
                     <div id="container-links-materi" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
+
+                    <!-- TOMBOL KUIS YANG HILANG KEMBALI DITAMBAHKAN DISINI -->
+                    <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic mb-6 border-2 border-transparent hover:border-orange-400" style="display:none;">
+                        <i class="fas fa-edit text-xl"></i> Kerjakan Kuis
+                    </a>
+                    <!-- END TOMBOL KUIS -->
 
                     <button id="btn-lapor" onclick="prosesLaporSelesai()" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all">
                         <i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)
@@ -229,6 +235,73 @@
         </div>
     </div>
 
+    <!-- Modal Edit Materi -->
+    <div id="modal-edit" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Edit Kategori Materi</h3>
+                <button onclick="tutupModalEdit()" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2">
+                <input type="hidden" id="edit-id">
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul Kategori</label>
+                    <input id="input-edit-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm">
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">Daftar Link Materi</label>
+                        <button onclick="tambahBarisLinkEdit()" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold hover:bg-indigo-100">+ Tambah Link</button>
+                    </div>
+                    
+                    <div id="dynamic-links-container-edit" class="space-y-2"></div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis (Opsional)</label>
+                    <input id="input-edit-kuis" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm">
+                </div>
+
+                <!-- FITUR SEMBUNYIKAN MATERI -->
+                <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between">
+                    <div>
+                        <label for="input-edit-hidden" class="block text-xs font-bold text-red-800 uppercase cursor-pointer">Status Materi</label>
+                        <span class="text-[10px] text-red-600">Jika dicentang, materi akan hilang dari menu siswa.</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="input-edit-hidden" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                        <span class="ml-3 text-sm font-bold text-red-800 hidden">Sembunyikan</span>
+                    </label>
+                </div>
+                <!-- END FITUR SEMBUNYIKAN -->
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ganti Cover Gambar (Opsional)</label>
+                    <p class="text-[10px] text-gray-400 mb-2">Biarkan kosong jika tidak ingin mengubah gambar.</p>
+                    <div class="relative w-full h-32 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 hover:bg-indigo-50 transition-colors cursor-pointer overflow-hidden">
+                        <input type="file" id="input-edit-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImageEdit(this)">
+                        <img id="img-preview-edit" src="" class="absolute inset-0 w-full h-full object-cover hidden z-0">
+                        <div id="upload-placeholder-edit" class="text-center pointer-events-none z-0">
+                            <i class="fas fa-cloud-upload-alt text-2xl text-indigo-400 mb-2"></i>
+                            <p class="text-xs font-bold text-indigo-500">Klik untuk ganti gambar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 border-t pt-4">
+                <button onclick="tutupModalEdit()" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs hover:bg-gray-100 rounded-xl transition-colors">Batal</button>
+                <button id="btn-update-materi" onclick="updateMateri()" class="flex-[2] bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all">
+                    <span>Update Materi</span> <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script Utama -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -248,10 +321,13 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
 
+        // --- GLOBAL VARS ---
         let curId = ""; let curJudul = ""; let isAdmin = false;
         let materiSelesai = false;
         let kuisSelesai = false;
+        window.allMateriData = {}; 
 
+        // Helper Preview (Tambah)
         window.previewImage = (input) => {
             const file = input.files[0];
             if (file) {
@@ -266,6 +342,23 @@
             }
         };
 
+        // Helper Preview (Edit)
+        window.previewImageEdit = (input) => {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('img-preview-edit');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    document.getElementById('upload-placeholder-edit').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // --- LOGIKA TAMBAH MATERI ---
+        
         window.tambahBarisLink = () => {
             const container = document.getElementById('dynamic-links-container');
             const div = document.createElement('div');
@@ -331,11 +424,13 @@
                     gambarUrl = await getDownloadURL(snapshot.ref);
                 }
 
+                // Default isHidden = false
                 await push(ref(db, 'materi/'), {
                     judul: judul,
                     links: linksArray,
                     kuis: kuis || "",
                     gambar: gambarUrl,
+                    isHidden: false,
                     waktu: new Date().toLocaleDateString()
                 });
 
@@ -349,6 +444,123 @@
                 btn.disabled = false;
             }
         };
+
+        // --- LOGIKA EDIT MATERI ---
+
+        window.tambahBarisLinkEdit = () => {
+            const container = document.getElementById('dynamic-links-container-edit');
+            const div = document.createElement('div');
+            div.className = "link-row flex gap-2 items-center animate-fade-in";
+            div.innerHTML = `
+                <input type="text" placeholder="Label Link" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label">
+                <input type="text" placeholder="URL Link" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url">
+                <button onclick="this.parentElement.remove()" class="text-gray-300 hover:text-red-500 p-2 transition-colors"><i class="fas fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        };
+
+        window.bukaModalEditMateri = (id) => {
+            const data = window.allMateriData[id];
+            if (!data) return;
+
+            document.getElementById('modal-edit').classList.remove('hidden');
+            document.getElementById('edit-id').value = id;
+            
+            // Isi Data
+            document.getElementById('input-edit-judul').value = data.judul || "";
+            document.getElementById('input-edit-kuis').value = data.kuis || "";
+            
+            // Set Checkbox Hidden
+            const isHidden = data.isHidden === true;
+            document.getElementById('input-edit-hidden').checked = isHidden;
+
+            // Reset Gambar Preview
+            document.getElementById('input-edit-gambar').value = "";
+            document.getElementById('img-preview-edit').src = "";
+            document.getElementById('img-preview-edit').classList.add('hidden');
+            document.getElementById('upload-placeholder-edit').classList.remove('hidden');
+
+            // Render Links
+            const container = document.getElementById('dynamic-links-container-edit');
+            container.innerHTML = "";
+
+            const currentLinks = Array.isArray(data.links) ? data.links : [];
+            if (currentLinks.length === 0) {
+                tambahBarisLinkEdit();
+            } else {
+                currentLinks.forEach(link => {
+                    const div = document.createElement('div');
+                    div.className = "link-row flex gap-2 items-center animate-fade-in";
+                    div.innerHTML = `
+                        <input type="text" value="${link.label || ''}" placeholder="Label Link" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label">
+                        <input type="text" value="${link.url || ''}" placeholder="URL Link" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url">
+                        <button onclick="this.parentElement.remove()" class="text-gray-300 hover:text-red-500 p-2 transition-colors"><i class="fas fa-trash"></i></button>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+        };
+
+        window.tutupModalEdit = () => document.getElementById('modal-edit').classList.add('hidden');
+
+        window.updateMateri = async () => {
+            const id = document.getElementById('edit-id').value;
+            const judul = document.getElementById('input-edit-judul').value;
+            const kuis = document.getElementById('input-edit-kuis').value;
+            const isHidden = document.getElementById('input-edit-hidden').checked;
+            const fileInput = document.getElementById('input-edit-gambar');
+            const btn = document.getElementById('btn-update-materi');
+            const oldData = window.allMateriData[id];
+
+            const linksArray = [];
+            let hasLink = false;
+            document.querySelectorAll('#dynamic-links-container-edit .link-row').forEach(row => {
+                const label = row.querySelector('.input-label').value;
+                const url = row.querySelector('.input-url').value;
+                if (label && url) {
+                    linksArray.push({ label, url });
+                    hasLink = true;
+                }
+            });
+
+            if (!judul) return alert("Judul wajib diisi!");
+
+            const originalBtnContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            btn.disabled = true;
+
+            try {
+                let updates = {
+                    judul: judul,
+                    links: linksArray,
+                    kuis: kuis || "",
+                    isHidden: isHidden
+                };
+
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const storageRef = sRef(storage, `materi_images/${Date.now()}_${file.name}`);
+                    const snapshot = await uploadBytes(storageRef, file);
+                    updates.gambar = await getDownloadURL(snapshot.ref);
+                } else {
+                    if (oldData && oldData.gambar) {
+                        updates.gambar = oldData.gambar;
+                    }
+                }
+
+                await update(ref(db, `materi/${id}`), updates);
+                tutupModalEdit();
+                alert("Materi berhasil diupdate!");
+            } catch (error) {
+                console.error(error);
+                alert("Gagal mengupdate data.");
+            } finally {
+                btn.innerHTML = originalBtnContent;
+                btn.disabled = false;
+            }
+        };
+
+        // --- LOGIKA SISWA ---
 
         window.tandaiProgres = (tipe) => {
             if (tipe === 'materi') materiSelesai = true;
@@ -387,26 +599,31 @@
 
         window.tutupModalAbsen = () => document.getElementById('modal-absen').classList.add('hidden');
 
-        window.bukaMateriSiswa = (id, judul, linksData, kuis, gambar) => {
-            curId = id; curJudul = judul;
+        window.bukaMateriSiswa = (id) => {
+            const data = window.allMateriData[id]; 
+            if (!data) return alert("Data materi tidak ditemukan!");
+
+            curId = id; 
+            curJudul = data.judul;
+            
             const h = JSON.parse(localStorage.getItem('absensi_history') || "[]");
             if (h.includes(id)) {
                 document.getElementById('siswa-home').classList.add('hidden');
                 document.getElementById('siswa-belajar').classList.remove('hidden');
-                document.getElementById('judul-aktif').innerText = judul;
+                document.getElementById('judul-aktif').innerText = data.judul;
                 
                 const headerImg = document.getElementById('img-header-belajar');
-                if(gambar) { headerImg.src = gambar; headerImg.classList.remove('hidden'); } 
+                if(data.gambar) { headerImg.src = data.gambar; headerImg.classList.remove('hidden'); } 
                 else { headerImg.style.display = 'none'; }
 
                 const linkContainer = document.getElementById('container-links-materi');
                 linkContainer.innerHTML = ""; 
 
                 let linksToRender = [];
-                if (Array.isArray(linksData)) {
-                    linksToRender = linksData;
-                } else if (typeof linksData === 'string' && linksData) {
-                    linksToRender = [{ label: "Buka Materi", url: linksData }];
+                if (Array.isArray(data.links)) {
+                    linksToRender = data.links;
+                } else if (typeof data.links === 'string' && data.links) {
+                    linksToRender = [{ label: "Buka Materi", url: data.links }];
                 }
 
                 linksToRender.forEach((item, index) => {
@@ -422,12 +639,15 @@
                     `;
                 });
 
+                // FIX KUIS: Pastikan elemen ada sebelum mengakses
                 const kuisBtn = document.getElementById('link-kuis-aktif');
-                if (kuis && kuis !== "undefined" && kuis !== "") { 
-                    kuisBtn.href = kuis; 
-                    kuisBtn.style.display = 'flex'; 
-                } else { 
-                    kuisBtn.style.display = 'none'; 
+                if (kuisBtn) {
+                    if (data.kuis && data.kuis !== "undefined" && data.kuis !== "") { 
+                        kuisBtn.href = data.kuis; 
+                        kuisBtn.style.display = 'flex'; 
+                    } else { 
+                        kuisBtn.style.display = 'none'; 
+                    }
                 }
 
                 materiSelesai = false; kuisSelesai = false;
@@ -497,71 +717,76 @@
             ls.innerHTML = ""; la.innerHTML = "";
             snap.forEach(c => {
                 const m = c.val(), id = c.key;
+                window.allMateriData[id] = m;
                 const imgUrl = m.gambar || `https://picsum.photos/seed/${m.judul}/400/200`;
 
-                // Cek Kondisi Kuis untuk Label
-                const hasKuis = (m.kuis && m.kuis !== "" && m.kuis !== "undefined");
-                const labelHtml = hasKuis 
-                    ? `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md backdrop-blur-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> Materi & Kuis</span>` 
-                    : `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md backdrop-blur-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> Materi Saja</span>`;
+                // --- LOGIKA HIDDEN (FILTER SISWA) ---
+                if (m.isHidden !== true) {
+                    const hasKuis = (m.kuis && m.kuis !== "" && m.kuis !== "undefined");
+                    const labelHtml = hasKuis 
+                        ? `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md backdrop-blur-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> Materi & Kuis</span>` 
+                        : `<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md backdrop-blur-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> Materi Saja</span>`;
 
-                // Student Card (Dengan Label Kiri Atas)
-                ls.innerHTML += `
-                <div onclick="bukaMateriSiswa('${id}', '${m.judul.replace(/'/g, "\\'")}', '${encodeURIComponent(JSON.stringify(m.links || m.link))}', '${m.kuis}', '${imgUrl}')" class="group relative bg-white h-52 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end">
-                    <!-- Image Background -->
-                    <div class="absolute inset-0 bg-gray-200">
-                        <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                    </div>
-                    
-                    <!-- Badge Label (Kiri Atas) -->
-                    <div class="absolute top-4 left-4 z-20 animate-fade-in">
-                        ${labelHtml}
-                    </div>
-                    
-                    <div class="absolute inset-0 card-gradient"></div>
-                    <div class="relative z-10 p-5 text-white">
-                        <div class="flex items-center gap-2 mb-1">
-                             <i class="fas fa-layer-group text-indigo-300 text-[9px]"></i>
-                             <span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">
-                                ${Array.isArray(m.links) ? m.links.length + ' Resource' : 'Single Link'}
-                            </span>
+                    let miniListHtml = '';
+                    if(Array.isArray(m.links)) {
+                        miniListHtml = `<div class="mt-2 space-y-1">`;
+                        m.links.slice(0, 3).forEach((l, idx) => {
+                            miniListHtml += `<div class="flex items-center gap-2 text-[10px] text-white/90 truncate"><i class="fas fa-check-circle text-indigo-300"></i> ${l.label || 'Materi ' + (idx+1)}</div>`;
+                        });
+                        if(m.links.length > 3) miniListHtml += `<div class="text-[9px] text-white/60 italic ml-5">+${m.links.length - 3} lainnya</div>`;
+                        miniListHtml += `</div>`;
+                    }
+
+                    ls.innerHTML += `
+                    <div onclick="bukaMateriSiswa('${id}')" class="group relative bg-white h-64 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end">
+                        <div class="absolute inset-0 bg-gray-200">
+                            <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
                         </div>
-                        <h3 class="font-black text-lg uppercase italic tracking-tighter leading-tight drop-shadow-md">${m.judul}</h3>
-                    </div>
-                </div>`;
+                        <div class="absolute top-4 left-4 z-20 animate-fade-in">${labelHtml}</div>
+                        <div class="absolute inset-0 card-gradient"></div>
+                        <div class="relative z-10 p-5 text-white">
+                            <div class="flex items-center gap-2 mb-2">
+                                 <i class="fas fa-layer-group text-indigo-300 text-[9px]"></i>
+                                 <span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">${Array.isArray(m.links) ? m.links.length + ' Resource' : 'Single Link'}</span>
+                            </div>
+                            <h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight drop-shadow-md mb-1">${m.judul}</h3>
+                            ${miniListHtml}
+                        </div>
+                    </div>`;
+                }
 
-                // Admin Card (Label di Body)
-                const adminLabel = hasKuis 
-                    ? `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">Materi & Kuis</span>`
-                    : `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-gray-100 text-gray-600 border border-gray-200">Materi Saja</span>`;
+                // --- RENDER ADMIN (TERLIHAT SEMUA) ---
+                
+                const isHidden = m.isHidden === true;
+                const adminLabel = isHidden 
+                    ? `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-gray-800 text-gray-300 border border-gray-700"><i class="fas fa-eye-slash mr-1"></i>TERSEMBUNYI</span>` 
+                    : ((m.kuis && m.kuis !== "" && m.kuis !== "undefined") 
+                        ? `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-orange-100 text-orange-700 border border-orange-200">Materi & Kuis</span>` 
+                        : `<span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200">AKTIF</span>`);
 
-                la.innerHTML += `<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full">
+                la.innerHTML += `<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full ${isHidden ? 'opacity-75 grayscale-[0.5]' : ''}">
                     <div class="h-32 bg-gray-100 overflow-hidden relative">
                         <img src="${imgUrl}" class="w-full h-full object-cover">
+                        ${isHidden ? `<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-black text-xs uppercase italic">Hidden from Student</div>` : ''}
                         <div class="absolute top-2 right-2 flex gap-1">
-                             <button onclick="editMateriSimple('${id}', '${m.judul.replace(/'/g, "\\'")}', '${m.kuis}')" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-edit"></i></button>
+                             <button onclick="bukaModalEditMateri('${id}')" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-edit"></i></button>
                             <button onclick="hapusRecord('materi/${id}')" class="bg-white/90 text-red-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-between">
                         <div>
-                            <div class="mb-2">${adminLabel}</div>
+                            <div class="mb-2 flex justify-between items-center">
+                                ${adminLabel}
+                                ${isHidden ? '<i class="fas fa-ban text-red-500 text-xs" title="Hidden"></i>' : ''}
+                            </div>
                             <p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm leading-tight mb-2">${m.judul}</p>
-                            <p class="text-[10px] text-gray-500 mb-2">
-                                <i class="fas fa-link"></i> ${Array.isArray(m.links) ? m.links.length + ' Links' : '1 Link'}
-                            </p>
+                            <p class="text-[10px] text-gray-500 mb-2"><i class="fas fa-link"></i> ${Array.isArray(m.links) ? m.links.length + ' Links' : '1 Link'}</p>
                         </div>
                         <div class="text-[10px] text-gray-300 font-mono">${m.waktu}</div>
                     </div>
                 </div>`;
             });
         });
-
-        window.editMateriSimple = (id, j, k) => {
-            const nj = prompt("Edit Judul Kategori:", j);
-            const nk = prompt("Edit Link Kuis:", k);
-            if (nj) update(ref(db, `materi/${id}`), { judul: nj, kuis: nk || "" });
-        };
 
         window.switchTabGuru = (t) => {
             ['materi', 'nilai', 'absen', 'chat'].forEach(i => {
