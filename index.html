@@ -12,12 +12,16 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
     <style>
-        .custom-scroll::-webkit-scrollbar{width:5px}.custom-scroll::-webkit-scrollbar-track{background:#f1f1f1}.custom-scroll::-webkit-scrollbar-thumb{background:#6366f1;border-radius:10px}
+        .custom-scroll::-webkit-scrollbar{width:5px}
+        .custom-scroll::-webkit-scrollbar-track{background:#f1f1f1}
+        .custom-scroll::-webkit-scrollbar-thumb{background:#6366f1;border-radius:10px}
         .card-gradient{background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.3) 60%,rgba(0,0,0,0) 100%)}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.animate-fade-in{animation:fadeIn .3s ease-out}
-        @keyframes livePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.4)}}.live-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;animation:livePulse 1s ease-in-out infinite}
-        @keyframes recBlink{0%,100%{opacity:1}50%{opacity:.2}}.rec-blink{animation:recBlink 1s ease-in-out infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}.waiting-pulse{border:3px solid rgba(99,102,241,.3);border-top-color:#6366f1;border-radius:50%;width:40px;height:40px;animation:spin .8s linear infinite}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .animate-fade-in{animation:fadeIn .3s ease-out}
+        @keyframes recBlink{0%,100%{opacity:1}50%{opacity:.2}}
+        .rec-blink{animation:recBlink 1s ease-in-out infinite}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .waiting-pulse{border:3px solid rgba(99,102,241,.3);border-top-color:#6366f1;border-radius:50%;width:40px;height:40px;animation:spin .8s linear infinite}
         .video-tile{position:relative;border-radius:12px;overflow:hidden;background:#111827;aspect-ratio:16/9}
         .video-tile video{width:100%;height:100%;object-fit:cover;display:block}
         .video-tile .mirror{transform:scaleX(-1)}
@@ -31,6 +35,8 @@
         .toggle-eye:hover{transform:scale(1.15)}
         .toggle-eye.show{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
         .toggle-eye.hide{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+        /* Modal overlay - pakai style.display, bukan class hidden/flex */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
@@ -53,10 +59,10 @@
 <main id="view-siswa" class="max-w-6xl mx-auto px-4 py-8">
     <div id="siswa-home">
         <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
-        <p class="text-gray-500 text-center text-sm mb-8">Pilih materi untuk melihat detail dan kuis.</p>
+        <p class="text-gray-500 text-center text-sm mb-8">Pilih materi dan isi absensi untuk melihat detail materi dan kuis.</p>
         <div id="list-materi-siswa" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
-    <div id="siswa-belajar" class="hidden">
+    <div id="siswa-belajar" style="display:none">
         <div class="bg-white rounded-3xl shadow-lg border p-0 overflow-hidden mb-6">
             <div class="relative h-48 md:h-64 w-full bg-gray-200">
                 <img id="img-header-belajar" src="" class="w-full h-full object-cover">
@@ -66,7 +72,7 @@
                 <p id="status-belajar" class="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit"><i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan</p>
                 <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Resource Materi:</h3>
                 <div id="container-links-materi" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
-                <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic mb-6 border-2 border-transparent hover:border-orange-400 cursor-pointer" style="display:none;"><i class="fas fa-edit text-xl"></i> Kerjakan Kuis</a>
+                <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic mb-6 border-2 border-transparent hover:border-orange-400 cursor-pointer" style="display:none;text-decoration:none;"><i class="fas fa-edit text-xl"></i> Kerjakan Kuis</a>
                 <button id="btn-lapor" onclick="prosesLaporSelesai()" type="button" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"><i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)</button>
                 <hr class="mb-6 border-gray-200 border-dashed">
                 <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest"><i class="fas fa-comments text-lg"></i> Diskusi Kelas</h3>
@@ -81,7 +87,7 @@
     </div>
 </main>
 
-<main id="view-live" class="hidden max-w-xl mx-auto px-4 py-8">
+<main id="view-live" style="display:none" class="max-w-xl mx-auto px-4 py-8">
     <div id="pre-meeting" class="animate-fade-in">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-100 mb-4"><i class="fas fa-sign-in-alt text-emerald-600 text-2xl"></i></div>
@@ -94,30 +100,20 @@
             <input id="joinCode" type="text" placeholder="KODE RUANGAN" maxlength="6" class="w-full border-2 border-gray-200 rounded-xl px-4 py-4 mb-4 text-sm outline-none focus:border-indigo-500 bg-gray-50 font-black uppercase tracking-[0.4em] text-center text-2xl text-indigo-700">
             <button onclick="gabungRuangan()" type="button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all"><i class="fas fa-arrow-right"></i> Gabung Sekarang</button>
         </div>
-        <div class="grid grid-cols-3 gap-3 mt-6">
-            <div class="bg-white rounded-xl border p-3 text-center"><i class="fas fa-users text-indigo-400 text-sm mb-1"></i><p class="text-[9px] font-bold text-gray-500 uppercase">Video 2 Arah</p></div>
-            <div class="bg-white rounded-xl border p-3 text-center"><i class="fas fa-desktop text-indigo-400 text-sm mb-1"></i><p class="text-[9px] font-bold text-gray-500 uppercase">Layar Trainer</p></div>
-            <div class="bg-white rounded-xl border p-3 text-center"><i class="fas fa-comments text-indigo-400 text-sm mb-1"></i><p class="text-[9px] font-bold text-gray-500 uppercase">Chat Live</p></div>
-        </div>
     </div>
-    <div id="post-meeting" class="hidden">
+    <div id="post-meeting" style="display:none">
         <div class="bg-white rounded-3xl shadow-xl border p-8 max-w-md mx-auto text-center animate-fade-in">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-4"><i class="fas fa-check-circle text-emerald-600 text-3xl"></i></div>
             <h2 class="text-xl font-black text-indigo-900 uppercase mb-1">Sesi Berakhir</h2>
             <p class="text-sm text-gray-500 mb-6" id="postSummary">Durasi: 00:00</p>
-            <div id="recPreviewBox" class="hidden mb-6"><video id="recPreview" controls class="w-full rounded-xl bg-black" style="max-height:240px;"></video></div>
+            <div id="recPreviewBox" style="display:none" class="mb-6"><video id="recPreview" controls class="w-full rounded-xl bg-black" style="max-height:240px;"></video></div>
             <button id="btnDownloadRec" onclick="downloadRekaman()" type="button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold text-sm uppercase flex items-center justify-center gap-2 shadow-lg mb-3 transition-all"><i class="fas fa-download"></i> Download Rekaman</button>
-            <p class="text-[10px] text-gray-400 font-bold uppercase mb-2 mt-4">Upload ke cloud setelah diunduh:</p>
-            <div class="flex gap-2 mb-6">
-                <a href="https://drive.google.com/drive/my-drive" target="_blank" class="flex-1 bg-white border-2 border-gray-200 hover:border-blue-400 text-gray-700 py-3 rounded-xl font-bold text-[11px] uppercase flex items-center justify-center gap-2 transition-all"><i class="fab fa-google-drive text-blue-500"></i> Google Drive</a>
-                <a href="https://onedrive.live.com/" target="_blank" class="flex-1 bg-white border-2 border-gray-200 hover:border-blue-400 text-gray-700 py-3 rounded-xl font-bold text-[11px] uppercase flex items-center justify-center gap-2 transition-all"><i class="fab fa-microsoft text-blue-600"></i> OneDrive</a>
-            </div>
             <button onclick="kembaliDariPost()" type="button" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 rounded-xl font-bold text-xs uppercase transition-all"><i class="fas fa-arrow-left mr-2"></i> Kembali</button>
         </div>
     </div>
 </main>
 
-<main id="view-guru" class="hidden max-w-7xl mx-auto px-4 py-8">
+<main id="view-guru" style="display:none" class="max-w-7xl mx-auto px-4 py-8">
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 class="text-2xl font-black text-indigo-900 uppercase">Panel Administrator</h1>
         <div class="flex gap-2 w-full md:w-auto">
@@ -135,7 +131,7 @@
                     <div><h3 class="font-black text-lg uppercase tracking-wider">Pelatihan Live</h3><p class="text-indigo-200 text-xs mt-0.5">Video call, share screen, share materi, rekam sesi</p></div>
                 </div>
                 <div class="flex items-center gap-3 w-full md:w-auto">
-                    <input id="hostName" type="text" placeholder="Nama Trainer" class="bg-white/15 border border-white/20 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white/25 placeholder-white/50 font-bold w-full md:w-44 backdrop-blur-sm text-white">
+                    <input id="hostName" type="text" placeholder="Nama Trainer" class="bg-white/15 border border-white/20 rounded-xl px-4 py-3 text-sm outline-none focus:bg-white/25 placeholder-white/50 font-bold w-full md:w-44 text-white">
                     <button onclick="buatRuangan()" type="button" class="bg-white text-indigo-700 hover:bg-indigo-100 px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all flex-shrink-0"><i class="fas fa-video"></i> Buat Ruangan</button>
                 </div>
             </div>
@@ -150,25 +146,26 @@
     <div class="bg-white rounded-3xl shadow-xl border overflow-hidden">
         <div class="flex bg-gray-50 border-b p-2 gap-2 overflow-x-auto">
             <button onclick="switchTabGuru('materi')" id="tab-g-materi" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">Materi</button>
-            <button onclick="switchTabGuru('hidden')" id="tab-g-hidden" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"><i class="fas fa-eye-slash text-[9px]"></i> Tersembunyi <span id="hiddenCount" class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[9px] font-black ml-1 hidden">0</span></button>
+            <button onclick="switchTabGuru('hidden')" id="tab-g-hidden" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"><i class="fas fa-eye-slash text-[9px]"></i> Tersembunyi <span id="hiddenCount" class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[9px] font-black ml-1" style="display:none">0</span></button>
             <button onclick="switchTabGuru('nilai')" id="tab-g-nilai" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Nilai</button>
             <button onclick="switchTabGuru('absen')" id="tab-g-absen" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Absen</button>
             <button onclick="switchTabGuru('chat')" id="tab-g-chat" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Chat</button>
         </div>
         <div id="g-content-materi" class="p-6"><div id="list-materi-admin" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div></div>
-        <div id="g-content-hidden" class="hidden p-6">
-            <div class="bg-red-50 border border-red-100 rounded-xl p-4 mb-5 flex items-start gap-3"><i class="fas fa-info-circle text-red-400 mt-0.5"></i><div><p class="text-xs font-bold text-red-800">Materi tersembunyi tidak terlihat oleh peserta di panel Siswa.</p><p class="text-[10px] text-red-600 mt-1">Klik tombol <i class="fas fa-eye"></i> untuk menampilkan kembali.</p></div></div>
+        <div id="g-content-hidden" style="display:none" class="p-6">
+            <div class="bg-red-50 border border-red-100 rounded-xl p-4 mb-5 flex items-start gap-3"><i class="fas fa-info-circle text-red-400 mt-0.5"></i><div><p class="text-xs font-bold text-red-800">Materi tersembunyi tidak terlihat oleh peserta.</p></div></div>
             <div id="list-materi-hidden" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-            <div id="emptyHidden" class="hidden text-center py-12"><i class="fas fa-eye text-3xl text-gray-200 mb-3"></i><p class="text-sm text-gray-400 font-medium">Tidak ada materi yang disembunyikan</p></div>
+            <div id="emptyHidden" style="display:none" class="text-center py-12"><i class="fas fa-eye text-3xl text-gray-200 mb-3"></i><p class="text-sm text-gray-400">Tidak ada materi yang disembunyikan</p></div>
         </div>
-        <div id="g-content-nilai" class="hidden p-6 overflow-x-auto"><table class="w-full text-left border-collapse min-w-[800px]"><thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3 text-center">Materi</th><th class="p-3 text-center">Nilai</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody id="tabel-laporan" class="divide-y text-sm"></tbody></table></div>
-        <div id="g-content-absen" class="hidden p-6 overflow-x-auto"><table class="w-full text-left border-collapse min-w-[700px]"><thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3">Materi</th><th class="p-3">Waktu</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody id="tabel-absensi" class="divide-y text-sm"></tbody></table></div>
-        <div id="g-content-chat" class="hidden p-6"><div id="admin-chat-list" class="space-y-2"></div></div>
+        <div id="g-content-nilai" style="display:none" class="p-6 overflow-x-auto"><table class="w-full text-left border-collapse min-w-[800px]"><thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3 text-center">Materi</th><th class="p-3 text-center">Nilai</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody id="tabel-laporan" class="divide-y text-sm"></tbody></table></div>
+        <div id="g-content-absen" style="display:none" class="p-6 overflow-x-auto"><table class="w-full text-left border-collapse min-w-[700px]"><thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3">Materi</th><th class="p-3">Waktu</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody id="tabel-absensi" class="divide-y text-sm"></tbody></table></div>
+        <div id="g-content-chat" style="display:none" class="p-6"><div id="admin-chat-list" class="space-y-2"></div></div>
     </div>
 </main>
 
-<div id="in-meeting" class="hidden fixed inset-0 z-[100] bg-gray-900 flex flex-col">
-    <div class="h-14 bg-gray-800/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 flex-shrink-0">
+<!-- IN-MEETING -->
+<div id="in-meeting" style="display:none;position:fixed;inset:0;z-index:150;background:#111827;" class="flex flex-col">
+    <div class="h-14 bg-gray-800/90 border-b border-white/5 flex items-center justify-between px-4 flex-shrink-0">
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-2 bg-indigo-600/20 px-3 py-1.5 rounded-lg"><i class="fas fa-lock text-indigo-400 text-[10px]"></i><span class="text-indigo-300 text-xs font-bold tracking-wider" id="meetingCodeDisplay">------</span><button onclick="copyCode()" type="button" class="text-indigo-400 hover:text-white text-[10px] ml-1"><i class="fas fa-copy"></i></button></div>
             <span class="text-gray-500 text-[10px] font-bold uppercase" id="meetingTimer">00:00</span>
@@ -176,27 +173,27 @@
         </div>
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5 text-gray-400 text-[11px]"><i class="fas fa-users text-[10px]"></i><span id="participantCount">1</span></div>
-            <div id="screenShareBadge" class="hidden items-center gap-1.5 bg-emerald-500/20 px-2.5 py-1 rounded-lg"><i class="fas fa-desktop text-emerald-400 text-[10px]"></i><span class="text-emerald-300 text-[10px] font-bold uppercase">Sharing</span></div>
-            <div id="recBadge" class="hidden items-center gap-1.5 bg-red-500/20 px-2.5 py-1 rounded-lg"><div class="w-2 h-2 rounded-full bg-red-500 rec-blink"></div><span class="text-red-300 text-[10px] font-bold uppercase">REC</span></div>
+            <div id="screenShareBadge" style="display:none" class="items-center gap-1.5 bg-emerald-500/20 px-2.5 py-1 rounded-lg"><i class="fas fa-desktop text-emerald-400 text-[10px]"></i><span class="text-emerald-300 text-[10px] font-bold uppercase">Sharing</span></div>
+            <div id="recBadge" style="display:none" class="items-center gap-1.5 bg-red-500/20 px-2.5 py-1 rounded-lg"><div class="w-2 h-2 rounded-full bg-red-500 rec-blink"></div><span class="text-red-300 text-[10px] font-bold uppercase">REC</span></div>
         </div>
     </div>
     <div class="flex-1 flex overflow-hidden">
         <div id="videoGrid" class="flex-1 p-3 grid gap-3 items-center" style="grid-template-columns:1fr;">
-            <div class="video-tile" id="localTile"><video id="localVideo" autoplay playsinline muted class="mirror"></video><div class="video-label"><i class="fas fa-user text-[9px] mr-1.5 opacity-60"></i><span id="localNameLabel">Anda</span></div><div id="localMicOff" class="hidden absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500/80 flex items-center justify-center"><i class="fas fa-microphone-slash text-white text-[10px]"></i></div></div>
-            <div class="video-tile hidden" id="remoteTile"><video id="remoteVideo" autoplay playsinline></video><div id="remoteWaiting" class="video-overlay-msg"><div class="waiting-pulse"></div><span style="font-size:11px;color:#9ca3af;">Menghubungkan...</span></div><div class="video-label"><i class="fas fa-user text-[9px] mr-1.5 opacity-60"></i><span id="remoteNameLabel">Peserta</span></div></div>
+            <div class="video-tile" id="localTile"><video id="localVideo" autoplay playsinline muted class="mirror"></video><div class="video-label"><i class="fas fa-user text-[9px] mr-1.5 opacity-60"></i><span id="localNameLabel">Anda</span></div><div id="localMicOff" style="display:none" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500/80 flex items-center justify-center"><i class="fas fa-microphone-slash text-white text-[10px]"></i></div></div>
+            <div class="video-tile" id="remoteTile" style="display:none"><video id="remoteVideo" autoplay playsinline></video><div id="remoteWaiting" class="video-overlay-msg"><div class="waiting-pulse"></div><span style="font-size:11px;color:#9ca3af;">Menghubungkan...</span></div><div class="video-label"><i class="fas fa-user text-[9px] mr-1.5 opacity-60"></i><span id="remoteNameLabel">Peserta</span></div></div>
         </div>
-        <div id="sidePanel" class="hidden w-80 bg-gray-800 border-l border-white/5 flex flex-col flex-shrink-0">
+        <div id="sidePanel" style="display:none" class="w-80 bg-gray-800 border-l border-white/5 flex flex-col flex-shrink-0">
             <div class="flex border-b border-white/5">
                 <button onclick="switchMeetingTab('chat')" id="mtab-chat" type="button" class="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-indigo-400 border-b-2 border-indigo-400">Chat</button>
                 <button onclick="switchMeetingTab('materi')" id="mtab-materi" type="button" class="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500 border-b-2 border-transparent">Materi</button>
                 <button onclick="switchMeetingTab('peserta')" id="mtab-peserta" type="button" class="flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500 border-b-2 border-transparent">Peserta</button>
             </div>
-            <div id="mcontent-chat" class="flex-1 flex flex-col overflow-hidden"><div id="meetingChatBox" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll" style="scrollbar-width:thin;scrollbar-color:#4f46e5 transparent;"></div><div class="p-3 border-t border-white/5 flex gap-2"><input id="meetingChatInput" type="text" placeholder="Kirim pesan..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-indigo-500" onkeydown="if(event.key==='Enter')kirimMeetingChat()"><button onclick="kirimMeetingChat()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white w-9 h-9 rounded-lg flex items-center justify-center transition-colors"><i class="fas fa-paper-plane text-[11px]"></i></button></div></div>
-            <div id="mcontent-materi" class="hidden flex-1 flex flex-col overflow-hidden"><div id="meetingMateriList" class="flex-1 overflow-y-auto p-4 space-y-2 custom-scroll"></div><div class="p-3 border-t border-white/5" id="addMateriArea"><div class="flex gap-2"><input id="materiLabelInput" type="text" placeholder="Label" class="w-1/3 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-indigo-500"><input id="materiUrlInput" type="text" placeholder="Paste URL..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-indigo-500"><button onclick="shareMateriMeeting()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white w-9 h-9 rounded-lg flex items-center justify-center transition-colors"><i class="fas fa-plus text-[11px]"></i></button></div></div>
-            <div id="mcontent-peserta" class="hidden flex-1 overflow-y-auto p-4"><div id="participantList" class="space-y-2"></div></div>
+            <div id="mcontent-chat" class="flex-1 flex flex-col overflow-hidden"><div id="meetingChatBox" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll"></div><div class="p-3 border-t border-white/5 flex gap-2"><input id="meetingChatInput" type="text" placeholder="Kirim pesan..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-indigo-500" onkeydown="if(event.key==='Enter')kirimMeetingChat()"><button onclick="kirimMeetingChat()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white w-9 h-9 rounded-lg flex items-center justify-center"><i class="fas fa-paper-plane text-[11px]"></i></button></div></div>
+            <div id="mcontent-materi" style="display:none" class="flex-1 flex flex-col overflow-hidden"><div id="meetingMateriList" class="flex-1 overflow-y-auto p-4 space-y-2 custom-scroll"></div><div class="p-3 border-t border-white/5" id="addMateriArea"><div class="flex gap-2"><input id="materiLabelInput" type="text" placeholder="Label" class="w-1/3 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-indigo-500"><input id="materiUrlInput" type="text" placeholder="Paste URL..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-indigo-500"><button onclick="shareMateriMeeting()" type="button" class="bg-indigo-600 hover:bg-indigo-700 text-white w-9 h-9 rounded-lg flex items-center justify-center"><i class="fas fa-plus text-[11px]"></i></button></div></div></div>
+            <div id="mcontent-peserta" style="display:none" class="flex-1 overflow-y-auto p-4"><div id="participantList" class="space-y-2"></div></div>
         </div>
     </div>
-    <div class="h-20 bg-gray-800/90 backdrop-blur-md border-t border-white/5 flex items-center justify-center gap-3 px-4 flex-shrink-0">
+    <div class="h-20 bg-gray-800/90 border-t border-white/5 flex items-center justify-center gap-3 px-4 flex-shrink-0">
         <button id="btnMic" onclick="toggleMic()" type="button" class="ctrl-btn on"><i class="fas fa-microphone"></i></button>
         <button id="btnCam" onclick="toggleCam()" type="button" class="ctrl-btn on"><i class="fas fa-video"></i></button>
         <button id="btnShare" onclick="toggleScreenShare()" type="button" class="ctrl-btn on"><i class="fas fa-desktop"></i></button>
@@ -207,19 +204,71 @@
     </div>
 </div>
 
-<div id="modal-absen" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"><div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl"><h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic">Konfirmasi Absensi</h3><div class="space-y-3 mb-8"><input id="abs-nama" type="text" placeholder="Nama Lengkap" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm"><input id="abs-nup" type="number" placeholder="NUP" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm"><input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm"></div><div class="flex gap-2"><button onclick="tutupModalAbsen()" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button><button onclick="prosesAbsen()" type="button" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs">Kirim & Buka</button></div></div></div>
+<!-- MODAL ABSEN -->
+<div id="modal-absen" class="modal-overlay">
+    <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
+        <h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic">Konfirmasi Absensi</h3>
+        <div class="space-y-3 mb-8">
+            <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
+            <input id="abs-nup" type="number" placeholder="NUP" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm">
+            <input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
+        </div>
+        <div class="flex gap-2">
+            <button onclick="tutupModal('modal-absen')" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
+            <button onclick="prosesAbsen()" type="button" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs">Kirim & Buka</button>
+        </div>
+    </div>
+</div>
 
-<div id="modal-tambah" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"><div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Tambah Materi</h3><button onclick="tutupModalTambah()" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div><div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul Kategori</label><input id="input-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm" placeholder="Modul 1 - K3 Dasar"></div><div><div class="flex justify-between items-center mb-2"><label class="block text-xs font-bold text-gray-500 uppercase">Daftar Link</label><button onclick="tambahBarisLink()" type="button" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold">+ Tambah</button></div><div id="dynamic-links-container" class="space-y-2"><div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></div></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis (Opsional)</label><input id="input-kuis" type="text" placeholder="https://..." class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm"></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cover Gambar</label><div class="relative w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 cursor-pointer overflow-hidden"><input type="file" id="input-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)"><img id="img-preview" src="" class="absolute inset-0 w-full h-full object-cover hidden z-0"><div id="upload-placeholder" class="text-center pointer-events-none z-0"><i class="fas fa-cloud-upload-alt text-xl text-indigo-400 mb-1"></i><p class="text-[10px] font-bold text-indigo-500">Klik upload</p></div></div></div></div><div class="flex gap-2 border-t pt-4"><button onclick="tutupModalTambah()" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button><button id="btn-simpan-materi" onclick="simpanMateriBaru()" type="button" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs flex items-center justify-center gap-2"><span>Simpan</span><i class="fas fa-save"></i></button></div></div></div>
+<!-- MODAL TAMBAH MATERI -->
+<div id="modal-tambah" class="modal-overlay">
+    <div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Tambah Materi</h3>
+            <button onclick="tutupModal('modal-tambah')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2">
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul Kategori</label><input id="input-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm" placeholder="Modul 1 - K3 Dasar"></div>
+            <div><div class="flex justify-between items-center mb-2"><label class="block text-xs font-bold text-gray-500 uppercase">Daftar Link</label><button onclick="tambahBarisLink('dynamic-links-container')" type="button" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold">+ Tambah</button></div><div id="dynamic-links-container" class="space-y-2"><div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></div></div>
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis (Opsional)</label><input id="input-kuis" type="text" placeholder="https://..." class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm"></div>
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cover Gambar</label><div class="relative w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 cursor-pointer overflow-hidden"><input type="file" id="input-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)"><img id="img-preview" src="" class="absolute inset-0 w-full h-full object-cover z-0" style="display:none"><div id="upload-placeholder" class="text-center pointer-events-none z-0"><i class="fas fa-cloud-upload-alt text-xl text-indigo-400 mb-1"></i><p class="text-[10px] font-bold text-indigo-500">Klik upload</p></div></div></div>
+        </div>
+        <div class="flex gap-2 border-t pt-4">
+            <button onclick="tutupModal('modal-tambah')" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
+            <button id="btn-simpan-materi" onclick="simpanMateriBaru()" type="button" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs flex items-center justify-center gap-2"><span>Simpan</span><i class="fas fa-save"></i></button>
+        </div>
+    </div>
+</div>
 
-<div id="modal-edit" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"><div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Edit Materi</h3><button onclick="tutupModalEdit()" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button></div><div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2"><input type="hidden" id="edit-id"><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul</label><input id="input-edit-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm"></div><div><div class="flex justify-between items-center mb-2"><label class="block text-xs font-bold text-gray-500 uppercase">Links</label><button onclick="tambahBarisLinkEdit()" type="button" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold">+ Tambah</button></div><div id="dynamic-links-container-edit" class="space-y-2"></div></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis</label><input id="input-edit-kuis" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm"></div><div class="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between"><div><label for="input-edit-hidden" class="block text-xs font-bold text-red-800 uppercase cursor-pointer">Status</label><span class="text-[9px] text-red-600">Centang = sembunyikan dari siswa</span></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="input-edit-hidden" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div></label></div><div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ganti Cover</label><div class="relative w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 cursor-pointer overflow-hidden"><input type="file" id="input-edit-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImageEdit(this)"><img id="img-preview-edit" src="" class="absolute inset-0 w-full h-full object-cover hidden z-0"><div id="upload-placeholder-edit" class="text-center pointer-events-none z-0"><i class="fas fa-cloud-upload-alt text-xl text-indigo-400 mb-1"></i><p class="text-[10px] font-bold text-indigo-500">Klik ganti</p></div></div></div></div><div class="flex gap-2 border-t pt-4"><button onclick="tutupModalEdit()" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button><button id="btn-update-materi" onclick="updateMateri()" type="button" class="flex-[2] bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs flex items-center justify-center gap-2"><span>Update</span><i class="fas fa-sync-alt"></i></button></div></div></div>
+<!-- MODAL EDIT MATERI -->
+<div id="modal-edit" class="modal-overlay">
+    <div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Edit Materi</h3>
+            <button onclick="tutupModal('modal-edit')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2">
+            <input type="hidden" id="edit-id">
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul</label><input id="input-edit-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm"></div>
+            <div><div class="flex justify-between items-center mb-2"><label class="block text-xs font-bold text-gray-500 uppercase">Links</label><button onclick="tambahBarisLink('dynamic-links-container-edit')" type="button" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold">+ Tambah</button></div><div id="dynamic-links-container-edit" class="space-y-2"></div></div>
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis</label><input id="input-edit-kuis" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm"></div>
+            <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between"><div><label for="input-edit-hidden" class="block text-xs font-bold text-red-800 uppercase cursor-pointer">Status</label><span class="text-[9px] text-red-600">Centang = sembunyikan dari siswa</span></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="input-edit-hidden" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div></label></div>
+            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ganti Cover</label><div class="relative w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 cursor-pointer overflow-hidden"><input type="file" id="input-edit-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImageEdit(this)"><img id="img-preview-edit" src="" class="absolute inset-0 w-full h-full object-cover z-0" style="display:none"><div id="upload-placeholder-edit" class="text-center pointer-events-none z-0"><i class="fas fa-cloud-upload-alt text-xl text-indigo-400 mb-1"></i><p class="text-[10px] font-bold text-indigo-500">Klik ganti</p></div></div></div>
+        </div>
+        <div class="flex gap-2 border-t pt-4">
+            <button onclick="tutupModal('modal-edit')" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
+            <button id="btn-update-materi" onclick="updateMateri()" type="button" class="flex-[2] bg-emerald-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs flex items-center justify-center gap-2"><span>Update</span><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </div>
+</div>
 
-<div id="toastBox" class="fixed top-16 right-4 z-[300] flex flex-col gap-2 pointer-events-none"></div>
+<div id="toastBox" class="fixed top-16 right-4 flex flex-col gap-2 pointer-events-none" style="z-index:999"></div>
 
 <script>
 /* ===== Firebase Init ===== */
-var app, db, storageRef;
+var db = null, storageRef = null;
 try {
-    app = firebase.initializeApp({
+    firebase.initializeApp({
         apiKey: "AIzaSyBkLiqHrvTuFFpaVsmWT2H1wF5NzwgmuBQ",
         authDomain: "diklatppsdm-e7788.firebaseapp.com",
         databaseURL: "https://diklatppsdm-e7788-default-rtdb.firebaseio.com",
@@ -230,18 +279,23 @@ try {
     });
     db = firebase.database();
     storageRef = firebase.storage();
+    console.log("Firebase OK");
 } catch(e) { console.error("Firebase init error:", e); }
 
 var curId = "", curJudul = "", isAdmin = false, materiSelesai = false, kuisSelesai = false;
 var allMateriData = {};
+
+/* ===== MODAL: buka/tutup pakai style.display (bukan class hidden/flex) ===== */
+function bukaModal(id) { document.getElementById(id).style.display = 'flex'; }
+function tutupModal(id) { document.getElementById(id).style.display = 'none'; }
 
 /* ===== Toast ===== */
 function toast(msg, type) {
     type = type || 'info';
     var box = document.getElementById('toastBox');
     var el = document.createElement('div');
-    var c = {success:'bg-emerald-50 border-emerald-200 text-emerald-700', error:'bg-red-50 border-red-200 text-red-600', info:'bg-indigo-50 border-indigo-200 text-indigo-700'};
-    var ic = {success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle'};
+    var c = {success:'bg-emerald-50 border-emerald-200 text-emerald-700',error:'bg-red-50 border-red-200 text-red-600',info:'bg-indigo-50 border-indigo-200 text-indigo-700'};
+    var ic = {success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};
     el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in ' + (c[type]||c.info);
     el.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i>' + msg;
     box.appendChild(el);
@@ -254,34 +308,37 @@ function pindahMenu(role) {
     var v = {siswa:'view-siswa',live:'view-live',guru:'view-guru'};
     var b = {siswa:'nav-siswa',live:'nav-live',guru:'nav-guru'};
     var k = ['siswa','live','guru'];
-    for (var i=0;i<k.length;i++) { document.getElementById(v[k[i]]).classList.add('hidden'); var btn=document.getElementById(b[k[i]]); btn.className = k[i]===role ? "px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase flex items-center gap-1.5" : "px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase flex items-center gap-1.5"; if(k[i]!=='live') btn.innerHTML = k[i]==='guru'?'Trainer':'Siswa'; }
-    document.getElementById(v[role]).classList.remove('hidden');
+    for (var i = 0; i < k.length; i++) {
+        document.getElementById(v[k[i]]).style.display = 'none';
+        var btn = document.getElementById(b[k[i]]);
+        btn.className = k[i] === role ? "px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase flex items-center gap-1.5" : "px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase flex items-center gap-1.5";
+        if (k[i] !== 'live') btn.innerHTML = k[i] === 'guru' ? 'Trainer' : 'Siswa';
+    }
+    document.getElementById(v[role]).style.display = '';
 }
 
 /* ===== Toggle Visibilitas ===== */
 function toggleVisibilitas(id) {
-    var data = allMateriData[id]; if(!data) return;
-    var ns = !(data.isHidden===true);
-    if(!confirm((ns?'Sembunyikan':'Tampilkan')+' "'+data.judul+'"?')) return;
-    db.ref('materi/'+id).update({isHidden:ns}).then(function(){ toast('"'+data.judul+'" '+(ns?'disembunyikan':'ditampilkan'),ns?'error':'success'); }).catch(function(e){ toast('Gagal','error'); });
+    var data = allMateriData[id]; if (!data) return;
+    var ns = !(data.isHidden === true);
+    if (!confirm((ns ? 'Sembunyikan' : 'Tampilkan') + ' "' + data.judul + '"?')) return;
+    db.ref('materi/' + id).update({isHidden: ns}).then(function(){ toast('"' + data.judul + '" ' + (ns ? 'disembunyikan' : 'ditampilkan'), ns ? 'error' : 'success'); }).catch(function(){ toast('Gagal','error'); });
 }
 
-/* ===== Meeting State ===== */
+/* ===== Meeting ===== */
 var M = {pc:null,localStream:null,screenStream:null,remoteStream:null,roomCode:'',isHost:false,micOn:true,camOn:true,screenSharing:false,recording:false,timer:0,timerIv:null,sidePanelOpen:false,recorder:null,recChunks:[],recBlob:null,myName:'',peerName:'',roomUnsubs:[],iceQueue:[],camVideoTrack:null,camAudioTrack:null};
 var rtcCfg = {iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun3.l.google.com:19302'},{urls:'stun:stun4.l.google.com:19302'}]};
-
 function genCode(){ var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=''; for(var i=0;i<6;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; }
 function setConnStatus(t,c){ var el=document.getElementById('connStatus'); el.textContent=t; el.style.color=c||'#6b7280'; }
 function flushIceQueue(){ while(M.iceQueue.length>0){ try{M.pc.addIceCandidate(new RTCIceCandidate(M.iceQueue.shift()));}catch(e){} } }
 function addIceSafe(d){ var c=new RTCIceCandidate(d); if(M.pc&&M.pc.remoteDescription) M.pc.addIceCandidate(c).catch(function(){}); else M.iceQueue.push(d); }
-
 function setupPC(){
-    M.pc.ontrack=function(e){ if(e.streams&&e.streams.length>0) M.remoteStream=e.streams[0]; else { if(!M.remoteStream)M.remoteStream=new MediaStream(); if(e.track)M.remoteStream.addTrack(e.track); } document.getElementById('remoteVideo').srcObject=M.remoteStream; document.getElementById('remoteVideo').play().catch(function(){}); document.getElementById('remoteWaiting').style.display='none'; document.getElementById('remoteTile').classList.remove('hidden'); document.getElementById('videoGrid').style.gridTemplateColumns='1fr 1fr'; updateParticipantCount(2); setConnStatus('Terhubung','#22c55e'); };
+    M.pc.ontrack=function(e){ if(e.streams&&e.streams.length>0) M.remoteStream=e.streams[0]; else { if(!M.remoteStream)M.remoteStream=new MediaStream(); if(e.track)M.remoteStream.addTrack(e.track); } document.getElementById('remoteVideo').srcObject=M.remoteStream; document.getElementById('remoteVideo').play().catch(function(){}); document.getElementById('remoteWaiting').style.display='none'; document.getElementById('remoteTile').style.display=''; document.getElementById('videoGrid').style.gridTemplateColumns='1fr 1fr'; updateParticipantCount(2); setConnStatus('Terhubung','#22c55e'); };
     M.pc.onicecandidate=function(e){ if(e.candidate) db.ref('live_rooms/'+M.roomCode+'/candidates/'+(M.isHost?'host':'guest')).push(e.candidate.toJSON()).catch(function(){}); };
-    M.pc.onconnectionstatechange=function(){ var s=M.pc.connectionState; if(s==='connected'){setConnStatus('Terhubung','#22c55e');flushIceQueue();}else if(s==='disconnected'||s==='failed'){setConnStatus('Terputus','#ef4444');document.getElementById('remoteTile').classList.add('hidden');document.getElementById('remoteWaiting').style.display='flex';document.getElementById('videoGrid').style.gridTemplateColumns='1fr';updateParticipantCount(1);toast('Koneksi terputus','error');} };
+    M.pc.onconnectionstatechange=function(){ var s=M.pc.connectionState; if(s==='connected'){setConnStatus('Terhubung','#22c55e');flushIceQueue();}else if(s==='disconnected'||s==='failed'){setConnStatus('Terputus','#ef4444');document.getElementById('remoteTile').style.display='none';document.getElementById('remoteWaiting').style.display='flex';document.getElementById('videoGrid').style.gridTemplateColumns='1fr';updateParticipantCount(1);toast('Koneksi terputus','error');} };
 }
-
 function buatRuangan(){
+    if(!db) return toast('Firebase belum siap','error');
     var name=document.getElementById('hostName').value.trim()||localStorage.getItem('user_nama')||'Trainer';
     M.myName=name; M.isHost=true; M.roomCode=genCode();
     navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},facingMode:'user'},audio:true}).then(function(stream){
@@ -293,22 +350,27 @@ function buatRuangan(){
     }).then(function(offer){ return M.pc.setLocalDescription(offer); }).then(function(){
         return db.ref('live_rooms/'+M.roomCode).set({code:M.roomCode,hostName:M.myName,guestName:'',offer:{type:M.pc.localDescription.type,sdp:M.pc.localDescription.sdp},answer:null,materials:[],createdAt:Date.now()});
     }).then(function(){
-        var r1=db.ref('live_rooms/'+M.roomCode+'/answer'), cb1=function(s){var a=s.val();if(a&&!M.pc.currentRemoteDescription)M.pc.setRemoteDescription(new RTCSessionDescription(a)).catch(function(e){});}; r1.on('value',cb1); M.roomUnsubs.push(function(){r1.off('value',cb1);});
-        var r2=db.ref('live_rooms/'+M.roomCode+'/candidates/guest'), cb2=function(s){var c=s.val();if(c)addIceSafe(c);}; r2.on('child_added',cb2); M.roomUnsubs.push(function(){r2.off('child_added',cb2);});
-        var r3=db.ref('live_rooms/'+M.roomCode+'/materials'), cb3=function(s){renderMeetingMateri(s.val());}; r3.on('value',cb3); M.roomUnsubs.push(function(){r3.off('value',cb3);});
-        var r4=db.ref('live_rooms/'+M.roomCode+'/guestName'), cb4=function(s){var g=s.val();if(g){M.peerName=g;document.getElementById('remoteNameLabel').textContent=g+' (Peserta)';renderParticipantList();}}; r4.on('value',cb4); M.roomUnsubs.push(function(){r4.off('value',cb4);});
-        enterMeeting(); toast('Ruang dibuat! Kode: '+M.roomCode,'success');
+        var r1=db.ref('live_rooms/'+M.roomCode+'/answer'),cb1=function(s){var a=s.val();if(a&&!M.pc.currentRemoteDescription)M.pc.setRemoteDescription(new RTCSessionDescription(a)).catch(function(){});}; r1.on('value',cb1); M.roomUnsubs.push(function(){r1.off('value',cb1);});
+        var r2=db.ref('live_rooms/'+M.roomCode+'/candidates/guest'),cb2=function(s){var c=s.val();if(c)addIceSafe(c);}; r2.on('child_added',cb2); M.roomUnsubs.push(function(){r2.off('child_added',cb2);});
+        var r3=db.ref('live_rooms/'+M.roomCode+'/materials'),cb3=function(s){renderMeetingMateri(s.val());}; r3.on('value',cb3); M.roomUnsubs.push(function(){r3.off('value',cb3);});
+        var r4=db.ref('live_rooms/'+M.roomCode+'/guestName'),cb4=function(s){var g=s.val();if(g){M.peerName=g;document.getElementById('remoteNameLabel').textContent=g+' (Peserta)';renderParticipantList();}}; r4.on('value',cb4); M.roomUnsubs.push(function(){r4.off('value',cb4);});
+        document.getElementById('view-live').style.display='none';
+        document.getElementById('in-meeting').style.display='flex';
+        document.getElementById('meetingCodeDisplay').textContent=M.roomCode;
+        setConnStatus('Menghubungkan...','#f59e0b');
+        M.timer=0; M.timerIv=setInterval(function(){M.timer++;document.getElementById('meetingTimer').textContent=String(Math.floor(M.timer/60)).padStart(2,'0')+':'+String(M.timer%60).padStart(2,'0');},1000);
+        renderParticipantList(); listenMeetingChat();
+        toast('Ruang dibuat! Kode: '+M.roomCode,'success');
     }).catch(function(e){console.error(e);toast('Gagal: '+e.message,'error');});
 }
-
 function gabungRuangan(){
-    var code=document.getElementById('joinCode').value.trim().toUpperCase();
-    var name=document.getElementById('guestName').value.trim()||localStorage.getItem('user_nama')||'Peserta';
+    if(!db) return toast('Firebase belum siap','error');
+    var code=document.getElementById('joinCode').value.trim().toUpperCase(),name=document.getElementById('guestName').value.trim()||localStorage.getItem('user_nama')||'Peserta';
     if(code.length!==6) return toast('Masukkan 6 karakter kode','error');
     M.myName=name; M.isHost=false; M.roomCode=code;
     db.ref('live_rooms/'+M.roomCode).once('value').then(function(snap){
         var room=snap.val(); if(!room||!room.offer) return toast('Ruang tidak ditemukan','error');
-        M.peerName=room.hostName; document.getElementById('remoteTile').classList.remove('hidden'); document.getElementById('remoteWaiting').style.display='flex'; document.getElementById('remoteNameLabel').textContent=room.hostName+' (Trainer)'; document.getElementById('videoGrid').style.gridTemplateColumns='1fr 1fr'; updateParticipantCount(2);
+        M.peerName=room.hostName; document.getElementById('remoteTile').style.display=''; document.getElementById('remoteWaiting').style.display='flex'; document.getElementById('remoteNameLabel').textContent=room.hostName+' (Trainer)'; document.getElementById('videoGrid').style.gridTemplateColumns='1fr 1fr'; updateParticipantCount(2);
         return navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},audio:true});
     }).then(function(stream){
         M.localStream=stream; M.camVideoTrack=stream.getVideoTracks()[0]; M.camAudioTrack=stream.getAudioTracks()[0];
@@ -320,200 +382,185 @@ function gabungRuangan(){
         return db.ref('live_rooms/'+M.roomCode).update({answer:{type:M.pc.localDescription.type,sdp:M.pc.localDescription.sdp},guestName:M.myName});
     }).then(function(){
         flushIceQueue();
-        var r1=db.ref('live_rooms/'+M.roomCode+'/candidates/host'), cb1=function(s){var c=s.val();if(c)addIceSafe(c);}; r1.on('child_added',cb1); M.roomUnsubs.push(function(){r1.off('child_added',cb1);});
-        var r2=db.ref('live_rooms/'+M.roomCode+'/materials'), cb2=function(s){renderMeetingMateri(s.val());}; r2.on('value',cb2); M.roomUnsubs.push(function(){r2.off('value',cb2);});
-        document.getElementById('addMateriArea').classList.add('hidden'); enterMeeting(); toast('Bergabung ke ruangan!','success');
+        var r1=db.ref('live_rooms/'+M.roomCode+'/candidates/host'),cb1=function(s){var c=s.val();if(c)addIceSafe(c);}; r1.on('child_added',cb1); M.roomUnsubs.push(function(){r1.off('child_added',cb1);});
+        var r2=db.ref('live_rooms/'+M.roomCode+'/materials'),cb2=function(s){renderMeetingMateri(s.val());}; r2.on('value',cb2); M.roomUnsubs.push(function(){r2.off('value',cb2);});
+        document.getElementById('addMateriArea').style.display='none';
+        document.getElementById('view-live').style.display='none';
+        document.getElementById('in-meeting').style.display='flex';
+        document.getElementById('meetingCodeDisplay').textContent=M.roomCode;
+        setConnStatus('Menghubungkan...','#f59e0b');
+        M.timer=0; M.timerIv=setInterval(function(){M.timer++;document.getElementById('meetingTimer').textContent=String(Math.floor(M.timer/60)).padStart(2,'0')+':'+String(M.timer%60).padStart(2,'0');},1000);
+        renderParticipantList(); listenMeetingChat();
+        toast('Bergabung ke ruangan!','success');
     }).catch(function(e){console.error(e);toast('Gagal: '+e.message,'error');});
 }
-
-function enterMeeting(){ document.getElementById('pre-meeting').classList.add('hidden'); document.getElementById('post-meeting').classList.add('hidden'); document.getElementById('in-meeting').classList.remove('hidden'); document.getElementById('meetingCodeDisplay').textContent=M.roomCode; setConnStatus('Menghubungkan...','#f59e0b'); M.timer=0; M.timerIv=setInterval(function(){M.timer++;document.getElementById('meetingTimer').textContent=String(Math.floor(M.timer/60)).padStart(2,'0')+':'+String(M.timer%60).padStart(2,'0');},1000); renderParticipantList(); listenMeetingChat(); }
-
 function leaveMeeting(){
     stopRecording(); clearInterval(M.timerIv);
     for(var i=0;i<M.roomUnsubs.length;i++) M.roomUnsubs[i](); M.roomUnsubs=[];
     if(M.pc){M.pc.close();M.pc=null;} if(M.screenSharing) stopScreenShareInternal();
     if(M.localStream){M.localStream.getTracks().forEach(function(t){t.stop();});M.localStream=null;}
-    db.ref('live_rooms/'+M.roomCode).remove().catch(function(){});
-    document.getElementById('in-meeting').classList.add('hidden'); document.getElementById('remoteTile').classList.add('hidden'); document.getElementById('remoteWaiting').style.display='flex'; document.getElementById('videoGrid').style.gridTemplateColumns='1fr'; document.getElementById('localVideo').srcObject=null; document.getElementById('remoteVideo').srcObject=null; document.getElementById('sidePanel').classList.add('hidden');
+    if(db) db.ref('live_rooms/'+M.roomCode).remove().catch(function(){});
+    document.getElementById('in-meeting').style.display='none';
+    document.getElementById('remoteTile').style.display='none'; document.getElementById('remoteWaiting').style.display='flex'; document.getElementById('videoGrid').style.gridTemplateColumns='1fr'; document.getElementById('localVideo').srcObject=null; document.getElementById('remoteVideo').srcObject=null; document.getElementById('sidePanel').style.display='none';
     M.sidePanelOpen=false;M.micOn=true;M.camOn=true;M.screenSharing=false;M.recording=false;M.remoteStream=null;M.iceQueue=[]; updateControlButtons();
-    if(M.recBlob){ document.getElementById('post-meeting').classList.remove('hidden'); document.getElementById('postSummary').textContent='Durasi: '+String(Math.floor(M.timer/60)).padStart(2,'0')+':'+String(M.timer%60).padStart(2,'0')+' | '+(M.recBlob.size/1024/1024).toFixed(1)+' MB'; document.getElementById('recPreview').src=URL.createObjectURL(M.recBlob); document.getElementById('recPreviewBox').classList.remove('hidden'); } else { document.getElementById('pre-meeting').classList.remove('hidden'); }
+    if(M.recBlob){ document.getElementById('post-meeting').style.display=''; document.getElementById('postSummary').textContent='Durasi: '+String(Math.floor(M.timer/60)).padStart(2,'0')+':'+String(M.timer%60).padStart(2,'0')+' | '+(M.recBlob.size/1024/1024).toFixed(1)+' MB'; document.getElementById('recPreview').src=URL.createObjectURL(M.recBlob); document.getElementById('recPreviewBox').style.display=''; } else { document.getElementById('pre-meeting').style.display=''; }
 }
 function akhirkanSesi(){ if(confirm('Akhiri sesi pelatihan?')) leaveMeeting(); }
-function kembaliDariPost(){ M.recBlob=null; document.getElementById('post-meeting').classList.add('hidden'); document.getElementById('pre-meeting').classList.remove('hidden'); }
-
-function toggleMic(){ if(!M.localStream)return; M.micOn=!M.micOn; M.localStream.getAudioTracks().forEach(function(t){t.enabled=M.micOn;}); document.getElementById('localMicOff').classList.toggle('hidden',M.micOn); updateControlButtons(); }
+function kembaliDariPost(){ M.recBlob=null; document.getElementById('post-meeting').style.display='none'; document.getElementById('pre-meeting').style.display=''; }
+function toggleMic(){ if(!M.localStream)return; M.micOn=!M.micOn; M.localStream.getAudioTracks().forEach(function(t){t.enabled=M.micOn;}); document.getElementById('localMicOff').style.display=M.micOn?'none':'flex'; updateControlButtons(); }
 function toggleCam(){ if(!M.localStream)return; M.camOn=!M.camOn; M.localStream.getVideoTracks().forEach(function(t){t.enabled=M.camOn;}); updateControlButtons(); }
-
-function toggleScreenShare(){
-    if(M.screenSharing){stopScreenShare();return;} if(!M.isHost) return toast('Hanya Trainer','error');
-    navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920},height:{ideal:1080}},audio:true}).then(function(ss){
-        M.screenStream=ss; M.screenSharing=true; var vt=ss.getVideoTracks()[0],at=ss.getAudioTracks()[0];
-        var vs=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';}); if(vs&&vt) vs.replaceTrack(vt).catch(function(){});
-        if(at){var as=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='audio';}); if(as) as.replaceTrack(at).catch(function(){});}
-        document.getElementById('localVideo').srcObject=ss; document.getElementById('localVideo').classList.remove('mirror'); document.getElementById('localVideo').play().catch(function(){});
-        vt.onended=function(){stopScreenShare();}; updateControlButtons(); document.getElementById('screenShareBadge').classList.remove('hidden'); document.getElementById('screenShareBadge').classList.add('flex'); toast('Screen sharing aktif','info');
-    }).catch(function(e){if(e.name!=='AbortError')toast('Gagal share screen','error');});
-}
-function stopScreenShare(){ if(!M.screenSharing)return; stopScreenShareInternal(); updateControlButtons(); document.getElementById('screenShareBadge').classList.add('hidden'); document.getElementById('screenShareBadge').classList.remove('flex'); toast('Screen sharing dihentikan','info'); }
-function stopScreenShareInternal(){ if(M.screenStream) M.screenStream.getTracks().forEach(function(t){t.onended=null;t.stop();}); if(M.pc){var vs=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';}); if(vs&&M.camVideoTrack)vs.replaceTrack(M.camVideoTrack).catch(function(){});var as=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='audio';}); if(as&&M.camAudioTrack)as.replaceTrack(M.camAudioTrack).catch(function(){});} if(M.localStream){document.getElementById('localVideo').srcObject=M.localStream;document.getElementById('localVideo').play().catch(function(){});} document.getElementById('localVideo').classList.add('mirror'); M.screenSharing=false;M.screenStream=null; }
-
+function toggleScreenShare(){ if(M.screenSharing){stopScreenShare();return;} if(!M.isHost) return toast('Hanya Trainer','error'); navigator.mediaDevices.getDisplayMedia({video:{cursor:'always',width:{ideal:1920},height:{ideal:1080}},audio:true}).then(function(ss){ M.screenStream=ss;M.screenSharing=true; var vt=ss.getVideoTracks()[0],at=ss.getAudioTracks()[0]; var vs=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';}); if(vs&&vt) vs.replaceTrack(vt).catch(function(){}); if(at){var as=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='audio';}); if(as) as.replaceTrack(at).catch(function(){});} document.getElementById('localVideo').srcObject=ss; document.getElementById('localVideo').classList.remove('mirror'); document.getElementById('localVideo').play().catch(function(){}); vt.onended=function(){stopScreenShare();}; updateControlButtons(); document.getElementById('screenShareBadge').style.display='flex'; toast('Screen sharing aktif','info'); }).catch(function(e){if(e.name!=='AbortError')toast('Gagal share screen','error');}); }
+function stopScreenShare(){ if(!M.screenSharing)return; stopScreenShareInternal(); updateControlButtons(); document.getElementById('screenShareBadge').style.display='none'; toast('Screen sharing dihentikan','info'); }
+function stopScreenShareInternal(){ if(M.screenStream) M.screenStream.getTracks().forEach(function(t){t.onended=null;t.stop();}); if(M.pc){var vs=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='video';}); if(vs&&M.camVideoTrack)vs.replaceTrack(M.camVideoTrack).catch(function(){}); var as=M.pc.getSenders().find(function(s){return s.track&&s.track.kind==='audio';}); if(as&&M.camAudioTrack)as.replaceTrack(M.camAudioTrack).catch(function(){});} if(M.localStream){document.getElementById('localVideo').srcObject=M.localStream;document.getElementById('localVideo').play().catch(function(){});} document.getElementById('localVideo').classList.add('mirror'); M.screenSharing=false;M.screenStream=null; }
 function toggleRecording(){ if(M.recording) stopRecording(); else startRecording(); }
-function startRecording(){ var rs=document.getElementById('localVideo').captureStream?document.getElementById('localVideo').captureStream():M.localStream; if(!rs) return toast('Tidak ada stream','error'); try{M.recorder=new MediaRecorder(rs,MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')?{mimeType:'video/webm;codecs=vp9,opus'}:{mimeType:'video/webm'});}catch(e){M.recorder=new MediaRecorder(rs);} M.recChunks=[]; M.recorder.ondataavailable=function(e){if(e.data.size>0)M.recChunks.push(e.data);}; M.recorder.onstop=function(){M.recBlob=new Blob(M.recChunks,{type:'video/webm'});}; M.recorder.start(1000); M.recording=true; updateControlButtons(); document.getElementById('recBadge').classList.remove('hidden'); document.getElementById('recBadge').classList.add('flex'); toast('Mulai merekam...','info'); }
-function stopRecording(){ if(M.recorder&&M.recorder.state!=='inactive') M.recorder.stop(); M.recording=false; updateControlButtons(); document.getElementById('recBadge').classList.add('hidden'); document.getElementById('recBadge').classList.remove('flex'); }
+function startRecording(){ var rs=document.getElementById('localVideo').captureStream?document.getElementById('localVideo').captureStream():M.localStream; if(!rs) return toast('Tidak ada stream','error'); try{M.recorder=new MediaRecorder(rs,MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')?{mimeType:'video/webm;codecs=vp9,opus'}:{mimeType:'video/webm'});}catch(e){M.recorder=new MediaRecorder(rs);} M.recChunks=[]; M.recorder.ondataavailable=function(e){if(e.data.size>0)M.recChunks.push(e.data);}; M.recorder.onstop=function(){M.recBlob=new Blob(M.recChunks,{type:'video/webm'});}; M.recorder.start(1000); M.recording=true; updateControlButtons(); document.getElementById('recBadge').style.display='flex'; toast('Mulai merekam...','info'); }
+function stopRecording(){ if(M.recorder&&M.recorder.state!=='inactive') M.recorder.stop(); M.recording=false; updateControlButtons(); document.getElementById('recBadge').style.display='none'; }
 function downloadRekaman(){ if(!M.recBlob)return; var a=document.createElement('a'); a.href=URL.createObjectURL(M.recBlob); a.download='Rekaman_'+M.roomCode+'_'+new Date().toISOString().slice(0,10)+'.webm'; a.click(); }
-
 function updateControlButtons(){ var m=document.getElementById('btnMic'),c=document.getElementById('btnCam'),s=document.getElementById('btnShare'),r=document.getElementById('btnRec'); m.className='ctrl-btn '+(M.micOn?'on':'off'); m.innerHTML=M.micOn?'<i class="fas fa-microphone"></i>':'<i class="fas fa-microphone-slash"></i>'; c.className='ctrl-btn '+(M.camOn?'on':'off'); c.innerHTML=M.camOn?'<i class="fas fa-video"></i>':'<i class="fas fa-video-slash"></i>'; s.className='ctrl-btn '+(M.screenSharing?'off':'on'); r.className='ctrl-btn '+(M.recording?'off':'on'); }
 function copyCode(){ navigator.clipboard.writeText(M.roomCode).then(function(){toast('Kode: '+M.roomCode+' disalin!','success');}).catch(function(){}); }
-function toggleSidePanel(){ M.sidePanelOpen=!M.sidePanelOpen; document.getElementById('sidePanel').classList.toggle('hidden',!M.sidePanelOpen); }
-function switchMeetingTab(t){ var tabs=['chat','materi','peserta']; for(var i=0;i<tabs.length;i++){ document.getElementById('mcontent-'+tabs[i]).classList.toggle('hidden',tabs[i]!==t); document.getElementById('mtab-'+tabs[i]).className=tabs[i]===t?"flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-indigo-400 border-b-2 border-indigo-400":"flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500 border-b-2 border-transparent"; } }
-
+function toggleSidePanel(){ M.sidePanelOpen=!M.sidePanelOpen; document.getElementById('sidePanel').style.display=M.sidePanelOpen?'flex':'none'; }
+function switchMeetingTab(t){ var tabs=['chat','materi','peserta']; for(var i=0;i<tabs.length;i++){ document.getElementById('mcontent-'+tabs[i]).style.display=tabs[i]===t?'flex':'none'; document.getElementById('mtab-'+tabs[i]).className=tabs[i]===t?"flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-indigo-400 border-b-2 border-indigo-400":"flex-1 py-3 text-[10px] font-bold uppercase tracking-widest text-gray-500 border-b-2 border-transparent"; } }
 function listenMeetingChat(){ var r=db.ref('live_rooms/'+M.roomCode+'/chat'),cb=function(snap){var d=snap.val();if(!d)return;var box=document.getElementById('meetingChatBox'),isMe=d.name===M.myName; box.innerHTML+='<div class="flex flex-col '+(isMe?'items-end':'items-start')+' animate-fade-in"><span class="text-[9px] font-bold '+(isMe?'text-indigo-400':'text-gray-500')+' uppercase mb-0.5">'+d.name+' &bull; '+d.time+'</span><div class="'+(isMe?'bg-indigo-600 text-white':'bg-gray-700 text-gray-200')+' px-3 py-2 rounded-xl text-xs max-w-[85%] leading-relaxed">'+d.msg+'</div></div>'; box.scrollTop=box.scrollHeight;}; r.on('child_added',cb); M.roomUnsubs.push(function(){r.off('child_added',cb);}); }
 function kirimMeetingChat(){ var i=document.getElementById('meetingChatInput'),m=i.value.trim(); if(!m)return; db.ref('live_rooms/'+M.roomCode+'/chat').push({name:M.myName,msg:m,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}); i.value=''; }
 function shareMateriMeeting(){ var l=document.getElementById('materiLabelInput').value.trim(),u=document.getElementById('materiUrlInput').value.trim(); if(!l||!u) return toast('Isi label dan URL','error'); db.ref('live_rooms/'+M.roomCode+'/materials').once('value').then(function(snap){var ex=snap.val()||[];ex.push({label:l,url:u,by:M.myName,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});return db.ref('live_rooms/'+M.roomCode+'/materials').set(ex);}).then(function(){document.getElementById('materiLabelInput').value='';document.getElementById('materiUrlInput').value='';toast('Materi dibagikan!','success');}).catch(function(){toast('Gagal','error');}); }
-function renderMeetingMateri(data){ var el=document.getElementById('meetingMateriList'); if(!data||!Array.isArray(data)||data.length===0){el.innerHTML='<p class="text-gray-500 text-xs text-center italic py-8">Belum ada materi dibagikan</p>';return;} el.innerHTML=data.map(function(m){return '<a href="'+m.url+'" target="_blank" class="flex items-center gap-3 bg-gray-700/50 hover:bg-gray-700 p-3 rounded-xl transition-colors group"><div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-external-link-alt text-indigo-400 text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="text-xs font-bold text-gray-200 truncate">'+m.label+'</div><div class="text-[9px] text-gray-500">'+m.by+' &bull; '+m.time+'</div></div></a>';}).join(''); }
+function renderMeetingMateri(data){ var el=document.getElementById('meetingMateriList'); if(!data||!Array.isArray(data)||data.length===0){el.innerHTML='<p class="text-gray-500 text-xs text-center italic py-8">Belum ada materi</p>';return;} el.innerHTML=data.map(function(m){return '<a href="'+m.url+'" target="_blank" class="flex items-center gap-3 bg-gray-700/50 hover:bg-gray-700 p-3 rounded-xl transition-colors"><div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-external-link-alt text-indigo-400 text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="text-xs font-bold text-gray-200 truncate">'+m.label+'</div><div class="text-[9px] text-gray-500">'+m.by+' &bull; '+m.time+'</div></div></a>';}).join(''); }
 function renderParticipantList(){ var el=document.getElementById('participantList'),h='<div class="flex items-center gap-3 bg-gray-700/50 p-3 rounded-xl"><div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">'+M.myName.charAt(0).toUpperCase()+'</div><div class="flex-1"><div class="text-xs font-bold text-gray-200">'+M.myName+'</div><div class="text-[9px] text-indigo-400 uppercase">'+(M.isHost?'Trainer':'Peserta')+'</div></div>'+(M.isHost?'<i class="fas fa-crown text-amber-400 text-[10px]"></i>':'')+'</div>'; if(M.peerName) h+='<div class="flex items-center gap-3 bg-gray-700/50 p-3 rounded-xl"><div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">'+M.peerName.charAt(0).toUpperCase()+'</div><div class="flex-1"><div class="text-xs font-bold text-gray-200">'+M.peerName+'</div><div class="text-[9px] text-emerald-400 uppercase">'+(M.isHost?'Peserta':'Trainer')+'</div></div></div>'; el.innerHTML=h; }
 function updateParticipantCount(n){ document.getElementById('participantCount').textContent=n; renderParticipantList(); }
 
 /* ===== Image Preview ===== */
-function previewImage(input){ var f=input.files[0]; if(f){var r=new FileReader();r.onload=function(e){var i=document.getElementById('img-preview');i.src=e.target.result;i.classList.remove('hidden');document.getElementById('upload-placeholder').classList.add('hidden');};r.readAsDataURL(f);} }
-function previewImageEdit(input){ var f=input.files[0]; if(f){var r=new FileReader();r.onload=function(e){var i=document.getElementById('img-preview-edit');i.src=e.target.result;i.classList.remove('hidden');document.getElementById('upload-placeholder-edit').classList.add('hidden');};r.readAsDataURL(f);} }
+function previewImage(input){ var f=input.files[0]; if(f){var r=new FileReader();r.onload=function(e){var i=document.getElementById('img-preview');i.src=e.target.result;i.style.display='';document.getElementById('upload-placeholder').style.display='none';};r.readAsDataURL(f);} }
+function previewImageEdit(input){ var f=input.files[0]; if(f){var r=new FileReader();r.onload=function(e){var i=document.getElementById('img-preview-edit');i.src=e.target.result;i.style.display='';document.getElementById('upload-placeholder-edit').style.display='none';};r.readAsDataURL(f);} }
 
 /* ===== Link Rows ===== */
-function tambahBarisLink(){ var c=document.getElementById('dynamic-links-container'),d=document.createElement('div');d.className="link-row flex gap-2 items-center animate-fade-in";d.innerHTML='<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(d); }
-function tambahBarisLinkEdit(){ var c=document.getElementById('dynamic-links-container-edit'),d=document.createElement('div');d.className="link-row flex gap-2 items-center animate-fade-in";d.innerHTML='<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(d); }
+function tambahBarisLink(containerId){ var c=document.getElementById(containerId),d=document.createElement('div');d.className="link-row flex gap-2 items-center animate-fade-in";d.innerHTML='<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(d); }
 
-/* ===== Modal Tambah ===== */
-function bukaModalTambahMateri(){ document.getElementById('modal-tambah').classList.remove('hidden'); document.getElementById('input-judul').value=""; document.getElementById('input-kuis').value=""; document.getElementById('input-gambar').value=""; document.getElementById('img-preview').src=""; document.getElementById('img-preview').classList.add('hidden'); document.getElementById('upload-placeholder').classList.remove('hidden'); document.getElementById('dynamic-links-container').innerHTML='<div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>'; }
-function tutupModalTambah(){ document.getElementById('modal-tambah').classList.add('hidden'); }
+/* ===== Modal Tambah Materi ===== */
+function bukaModalTambahMateri(){
+    document.getElementById('input-judul').value="";
+    document.getElementById('input-kuis').value="";
+    document.getElementById('input-gambar').value="";
+    document.getElementById('img-preview').style.display='none';
+    document.getElementById('upload-placeholder').style.display='';
+    document.getElementById('dynamic-links-container').innerHTML='<div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>';
+    bukaModal('modal-tambah');
+}
 function simpanMateriBaru(){
+    if(!db) return toast('Firebase belum siap','error');
     var j=document.getElementById('input-judul').value,k=document.getElementById('input-kuis').value,fi=document.getElementById('input-gambar'),btn=document.getElementById('btn-simpan-materi'),la=[],hl=false;
     var rows=document.querySelectorAll('#dynamic-links-container .link-row');
     for(var i=0;i<rows.length;i++){var l=rows[i].querySelector('.input-label').value,u=rows[i].querySelector('.input-url').value;if(l&&u){la.push({label:l,url:u});hl=true;}}
     if(!j) return alert("Judul wajib!"); if(!hl) return alert("Minimal satu link!");
     var ob=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true;
-    var doSave=function(gu){ db.ref('materi/').push({judul:j,links:la,kuis:k||"",gambar:gu,isHidden:false,waktu:new Date().toLocaleDateString()}).then(function(){tutupModalTambah();toast('Materi berhasil ditambahkan!','success');}).catch(function(e){toast('Gagal menyimpan','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
+    var doSave=function(gu){ db.ref('materi/').push({judul:j,links:la,kuis:k||"",gambar:gu,isHidden:false,waktu:new Date().toLocaleDateString()}).then(function(){tutupModal('modal-tambah');toast('Materi berhasil ditambahkan!','success');}).catch(function(){toast('Gagal menyimpan','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
     if(fi.files.length>0){ var f=fi.files[0],sr=storageRef.ref('materi_images/'+Date.now()+'_'+f.name); sr.put(f).then(function(s){return s.ref.getDownloadURL();}).then(function(url){doSave(url);}).catch(function(){toast('Gagal upload gambar','error');btn.innerHTML=ob;btn.disabled=false;}); } else { doSave("https://picsum.photos/seed/"+j.replace(/\s/g,'')+"/800/400"); }
 }
 
-/* ===== Modal Edit ===== */
+/* ===== Modal Edit Materi ===== */
 function bukaModalEditMateri(id){
     var d=allMateriData[id]; if(!d) return;
-    document.getElementById('modal-edit').classList.remove('hidden'); document.getElementById('edit-id').value=id; document.getElementById('input-edit-judul').value=d.judul||""; document.getElementById('input-edit-kuis').value=d.kuis||""; document.getElementById('input-edit-hidden').checked=d.isHidden===true; document.getElementById('input-edit-gambar').value=""; document.getElementById('img-preview-edit').src=""; document.getElementById('img-preview-edit').classList.add('hidden'); document.getElementById('upload-placeholder-edit').classList.remove('hidden');
-    var c=document.getElementById('dynamic-links-container-edit'); c.innerHTML=""; var cl=Array.isArray(d.links)?d.links:[];
-    if(cl.length===0) tambahBarisLinkEdit(); else { for(var i=0;i<cl.length;i++){var div=document.createElement('div');div.className="link-row flex gap-2 items-center animate-fade-in";div.innerHTML='<input type="text" value="'+(cl[i].label||'')+'" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" value="'+(cl[i].url||'')+'" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(div);} }
+    document.getElementById('edit-id').value=id;
+    document.getElementById('input-edit-judul').value=d.judul||"";
+    document.getElementById('input-edit-kuis').value=d.kuis||"";
+    document.getElementById('input-edit-hidden').checked=d.isHidden===true;
+    document.getElementById('input-edit-gambar').value="";
+    document.getElementById('img-preview-edit').style.display='none';
+    document.getElementById('upload-placeholder-edit').style.display='';
+    var c=document.getElementById('dynamic-links-container-edit'); c.innerHTML="";
+    var cl=Array.isArray(d.links)?d.links:[];
+    if(cl.length===0) tambahBarisLink('dynamic-links-container-edit');
+    else { for(var i=0;i<cl.length;i++){var div=document.createElement('div');div.className="link-row flex gap-2 items-center animate-fade-in";div.innerHTML='<input type="text" value="'+(cl[i].label||'')+'" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" value="'+(cl[i].url||'')+'" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(div);} }
+    bukaModal('modal-edit');
 }
-function tutupModalEdit(){ document.getElementById('modal-edit').classList.add('hidden'); }
 function updateMateri(){
+    if(!db) return toast('Firebase belum siap','error');
     var id=document.getElementById('edit-id').value,j=document.getElementById('input-edit-judul').value,k=document.getElementById('input-edit-kuis').value,h=document.getElementById('input-edit-hidden').checked,fi=document.getElementById('input-edit-gambar'),btn=document.getElementById('btn-update-materi'),old=allMateriData[id],la=[];
     var rows=document.querySelectorAll('#dynamic-links-container-edit .link-row');
     for(var i=0;i<rows.length;i++){var l=rows[i].querySelector('.input-label').value,u=rows[i].querySelector('.input-url').value;if(l&&u)la.push({label:l,url:u});}
     if(!j) return alert("Judul wajib!");
     var ob=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true;
-    var doUpdate=function(gu){ db.ref('materi/'+id).update({judul:j,links:la,kuis:k||"",isHidden:h,gambar:gu}).then(function(){tutupModalEdit();toast('Materi berhasil diupdate!','success');}).catch(function(){toast('Gagal update','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
+    var doUpdate=function(gu){ db.ref('materi/'+id).update({judul:j,links:la,kuis:k||"",isHidden:h,gambar:gu}).then(function(){tutupModal('modal-edit');toast('Materi berhasil diupdate!','success');}).catch(function(){toast('Gagal update','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
     if(fi.files.length>0){ var f=fi.files[0],sr=storageRef.ref('materi_images/'+Date.now()+'_'+f.name); sr.put(f).then(function(s){return s.ref.getDownloadURL();}).then(function(url){doUpdate(url);}).catch(function(){toast('Gagal upload','error');btn.innerHTML=ob;btn.disabled=false;}); } else { doUpdate(old&&old.gambar?old.gambar:"https://picsum.photos/seed/"+j.replace(/\s/g,'')+"/800/400"); }
 }
 
 /* ===== Logika Siswa ===== */
-function tandaiProgres(t){
-    if(t==='materi') materiSelesai=true; if(t==='kuis') kuisSelesai=true;
-    var bl=document.getElementById('btn-lapor'),st=document.getElementById('status-belajar'),hk=document.getElementById('link-kuis-aktif').style.display!=='none';
-    if(materiSelesai&&(hk?kuisSelesai:true)){ bl.disabled=false;bl.className="w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90";bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai'; st.innerHTML='<i class="fas fa-unlock text-emerald-500"></i> Materi selesai!'; st.className="text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit"; }
-}
-function backToHome(){ document.getElementById('siswa-home').classList.remove('hidden'); document.getElementById('siswa-belajar').classList.add('hidden'); }
-function tutupModalAbsen(){ document.getElementById('modal-absen').classList.add('hidden'); }
+function tandaiProgres(t){ if(t==='materi') materiSelesai=true; if(t==='kuis') kuisSelesai=true; var bl=document.getElementById('btn-lapor'),st=document.getElementById('status-belajar'),hk=document.getElementById('link-kuis-aktif').style.display!=='none'; if(materiSelesai&&(hk?kuisSelesai:true)){ bl.disabled=false;bl.className="w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90";bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai'; st.innerHTML='<i class="fas fa-unlock text-emerald-500"></i> Materi selesai!'; st.className="text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit"; } }
+function backToHome(){ document.getElementById('siswa-home').style.display=''; document.getElementById('siswa-belajar').style.display='none'; }
 
 function bukaMateriSiswa(id){
     var d=allMateriData[id]; if(!d) return toast("Materi tidak ditemukan!","error");
     curId=id; curJudul=d.judul;
     var h=JSON.parse(localStorage.getItem('absensi_history')||"[]");
     if(h.indexOf(id)!==-1){
-        document.getElementById('siswa-home').classList.add('hidden'); document.getElementById('siswa-belajar').classList.remove('hidden');
+        document.getElementById('siswa-home').style.display='none';
+        document.getElementById('siswa-belajar').style.display='';
         document.getElementById('judul-aktif').innerText=d.judul;
         var hi=document.getElementById('img-header-belajar'); if(d.gambar){hi.src=d.gambar;hi.style.display='';}else{hi.style.display='none';}
         var lc=document.getElementById('container-links-materi'); lc.innerHTML="";
         var lr=Array.isArray(d.links)?d.links:(typeof d.links==='string'&&d.links?[{label:"Buka Materi",url:d.links}]:[]);
-        for(var idx=0;idx<lr.length;idx++){ var it=lr[idx]; lc.innerHTML+='<a href="'+it.url+'" target="_blank" onclick="tandaiProgres(\'materi\')" class="bg-[#5851db] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-between group transition-all border-2 border-transparent hover:border-indigo-400"><span class="flex items-center gap-3 uppercase italic text-xs"><i class="fas fa-play-circle text-xl group-hover:scale-110 transition-transform"></i> '+(it.label||'Materi '+(idx+1))+'</span><i class="fas fa-external-link-alt opacity-50 text-xs"></i></a>'; }
+        for(var idx=0;idx<lr.length;idx++){ var it=lr[idx]; lc.innerHTML+='<a href="'+it.url+'" target="_blank" onclick="tandaiProgres(\'materi\')" class="bg-[#5851db] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-between group transition-all border-2 border-transparent hover:border-indigo-400" style="text-decoration:none;"><span class="flex items-center gap-3 uppercase italic text-xs"><i class="fas fa-play-circle text-xl group-hover:scale-110 transition-transform"></i> '+(it.label||'Materi '+(idx+1))+'</span><i class="fas fa-external-link-alt opacity-50 text-xs"></i></a>'; }
         var kb=document.getElementById('link-kuis-aktif'); if(kb){if(d.kuis&&d.kuis!=="undefined"&&d.kuis!==""){kb.href=d.kuis;kb.style.display='flex';}else{kb.style.display='none';}}
         materiSelesai=false; kuisSelesai=false;
         var bl=document.getElementById('btn-lapor'); bl.disabled=true; bl.className="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"; bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
         var st=document.getElementById('status-belajar'); st.innerHTML='<i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan'; st.className="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit";
         loadChat();
-    } else { document.getElementById('modal-absen').classList.remove('hidden'); }
+    } else { bukaModal('modal-absen'); }
 }
 
-function kirimChat(){ var n=localStorage.getItem('user_nama')||"Anonim",p=document.getElementById('chat-pesan').value; if(p){db.ref('chat/').push({nama:n,pesan:p,materiId:curId,judulMateri:curJudul,waktu:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});document.getElementById('chat-pesan').value="";} }
-
-function loadChat(){
-    db.ref('chat/').on('value',function(snap){
-        var box=document.getElementById('chat-box'); box.innerHTML=""; var has=false;
-        snap.forEach(function(c){ var d=c.val(); if(d.materiId===curId){ has=true; var isC=d.nama.toLowerCase().indexOf('admin')!==-1||d.nama.toLowerCase().indexOf('cs')!==-1; box.innerHTML+='<div class="flex flex-col '+(isC?'items-start':'items-end')+' animate-fade-in"><span class="text-[9px] font-black uppercase text-gray-400 mb-1 px-2">'+(isC?'<i class="fas fa-headset text-indigo-600"></i> CS - ':'')+d.nama+' &bull; '+d.waktu+'</span><div class="'+(isC?'bg-indigo-600 text-white':'bg-white border-2 border-gray-100 text-gray-800')+' p-3 rounded-2xl text-sm shadow-sm max-w-[85%] font-medium leading-relaxed">'+d.pesan+'</div></div>'; } });
-        if(!has) box.innerHTML='<div class="text-center text-xs text-gray-400 my-4 italic">Belum ada diskusi.</div>';
-        box.scrollTop=box.scrollHeight;
-    });
-}
-
-/* ===== Listener Admin Chat ===== */
-db.ref('chat/').on('value',function(snap){
-    var l=document.getElementById('admin-chat-list'); l.innerHTML="";
-    snap.forEach(function(c){ var d=c.val(); l.innerHTML+='<div class="flex justify-between items-start bg-gray-50 p-3 rounded-xl border text-xs group"><div><span class="block text-[9px] font-bold text-indigo-500 uppercase mb-0.5"><i class="fas fa-folder"></i> '+(d.judulMateri||'?')+'</span><span class="font-bold text-gray-800"><b class="text-indigo-700">'+d.nama+':</b> '+d.pesan+'</span></div><button onclick="hapusRecord(\'chat/'+c.key+'\')" type="button" class="text-red-300 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button></div>'; });
-});
-
-/* ===== Listener Materi (Render Siswa + Admin) ===== */
-db.ref('materi/').on('value',function(snap){
-    var ls=document.getElementById('list-materi-siswa'),la=document.getElementById('list-materi-admin'),lh=document.getElementById('list-materi-hidden'),eh=document.getElementById('emptyHidden'),hc=document.getElementById('hiddenCount');
-    ls.innerHTML=""; la.innerHTML=""; lh.innerHTML=""; var hiddenCount=0;
-    snap.forEach(function(c){
-        var m=c.val(),id=c.key; allMateriData[id]=m;
-        var imgU=m.gambar||"https://picsum.photos/seed/"+(m.judul||'x')+"/400/200";
-        var isH=m.isHidden===true;
-        if(isH) hiddenCount++;
-
-        /* --- Siswa: hanya yang tidak hidden --- */
-        if(!isH){
-            var hasK=m.kuis&&m.kuis!==""&&m.kuis!=="undefined";
-            var lab=hasK?'<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> Materi & Kuis</span>':'<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> Materi</span>';
-            var ml=''; if(Array.isArray(m.links)){ml='<div class="mt-2 space-y-1">';var cnt=Math.min(m.links.length,3);for(var ii=0;ii<cnt;ii++){ml+='<div class="flex items-center gap-2 text-[10px] text-white/90 truncate"><i class="fas fa-check-circle text-indigo-300"></i> '+(m.links[ii].label||'Materi '+(ii+1))+'</div>';}if(m.links.length>3)ml+='<div class="text-[9px] text-white/60 italic ml-5">+'+(m.links.length-3)+' lainnya</div>';ml+='</div>';}
-            ls.innerHTML+='<div onclick="bukaMateriSiswa(\''+id+'\')" class="group relative bg-white h-64 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end"><div class="absolute inset-0 bg-gray-200"><img src="'+imgU+'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"></div><div class="absolute top-4 left-4 z-20">'+lab+'</div><div class="absolute inset-0 card-gradient"></div><div class="relative z-10 p-5 text-white"><div class="flex items-center gap-2 mb-2"><i class="fas fa-layer-group text-indigo-300 text-[9px]"></i><span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">'+(Array.isArray(m.links)?m.links.length+' Resource':'1 Link')+'</span></div><h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight drop-shadow-md mb-1">'+m.judul+'</h3>'+ml+'</div></div>';
-        }
-
-        /* --- Admin: Materi Aktif --- */
-        if(!isH){
-            la.innerHTML+='<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full group hover:shadow-md transition-all"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover"><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye show bg-white/90 hover:bg-white p-2 rounded-lg shadow" title="Sembunyikan"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200 mb-2"><i class="fas fa-eye mr-1"></i>AKTIF</span><p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+m.judul+'</p><p class="text-[10px] text-gray-500"><i class="fas fa-link"></i> '+(Array.isArray(m.links)?m.links.length+' Links':'1 Link')+'</p></div><div class="text-[10px] text-gray-300 font-mono">'+(m.waktu||'')+'</div></div></div>';
-        }
-
-        /* --- Admin: Materi Tersembunyi --- */
-        if(isH){
-            lh.innerHTML+='<div class="bg-white rounded-2xl border-2 border-dashed border-red-200 flex flex-col overflow-hidden h-full opacity-80 hover:opacity-100 transition-opacity"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover grayscale"><div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-center px-3"><i class="fas fa-eye-slash text-lg mb-1"></i><span class="text-[10px] font-black uppercase">Tersembunyi</span></div><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye hide bg-white/90 hover:bg-white p-2 rounded-lg shadow" title="Tampilkan"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow hover:bg-white"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-red-100 text-red-700 border border-red-200 mb-2"><i class="fas fa-eye-slash mr-1"></i>TERSEMBUNYI</span><p class="font-black text-gray-500 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+m.judul+'</p><p class="text-[10px] text-gray-400"><i class="fas fa-link"></i> '+(Array.isArray(m.links)?m.links.length+' Links':'1 Link')+'</p></div><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="mt-3 w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-2 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1.5 transition-colors"><i class="fas fa-eye"></i> Tampilkan ke Siswa</button><div class="text-[10px] text-gray-300 font-mono mt-2">'+(m.waktu||'')+'</div></div></div>';
-        }
-    });
-    if(hiddenCount>0){hc.classList.remove('hidden');hc.textContent=hiddenCount;}else{hc.classList.add('hidden');}
-    if(hiddenCount===0){eh.classList.remove('hidden');}else{eh.classList.add('hidden');}
-});
+function kirimChat(){ var n=localStorage.getItem('user_nama')||"Anonim",p=document.getElementById('chat-pesan').value; if(p&&db){db.ref('chat/').push({nama:n,pesan:p,materiId:curId,judulMateri:curJudul,waktu:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});document.getElementById('chat-pesan').value="";} }
+function loadChat(){ if(!db) return; db.ref('chat/').on('value',function(snap){ var box=document.getElementById('chat-box'); box.innerHTML=""; var has=false; snap.forEach(function(c){ var d=c.val(); if(d.materiId===curId){ has=true; var isC=d.nama.toLowerCase().indexOf('admin')!==-1||d.nama.toLowerCase().indexOf('cs')!==-1; box.innerHTML+='<div class="flex flex-col '+(isC?'items-start':'items-end')+' animate-fade-in"><span class="text-[9px] font-black uppercase text-gray-400 mb-1 px-2">'+(isC?'<i class="fas fa-headset text-indigo-600"></i> CS - ':'')+d.nama+' &bull; '+d.waktu+'</span><div class="'+(isC?'bg-indigo-600 text-white':'bg-white border-2 border-gray-100 text-gray-800')+' p-3 rounded-2xl text-sm shadow-sm max-w-[85%] font-medium leading-relaxed">'+d.pesan+'</div></div>'; } }); if(!has) box.innerHTML='<div class="text-center text-xs text-gray-400 my-4 italic">Belum ada diskusi.</div>'; box.scrollTop=box.scrollHeight; }); }
 
 /* ===== Tab Guru ===== */
-function switchTabGuru(t){ var tabs=['materi','hidden','nilai','absen','chat']; for(var i=0;i<tabs.length;i++){ document.getElementById('g-content-'+tabs[i]).classList.toggle('hidden',tabs[i]!==t); document.getElementById('tab-g-'+tabs[i]).className=tabs[i]===t?"flex-1 min-w-[100px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5":"flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"; } }
-
-/* ===== Listener Laporan/Nilai ===== */
-db.ref('laporan/').on('value',function(snap){
-    var t=document.getElementById('tabel-laporan'); if(!t) return; t.innerHTML="";
-    snap.forEach(function(c){ var d=c.val(),id=c.key; t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-indigo-900 uppercase text-[10px]">'+d.nama+'</td><td class="p-3 text-gray-500 text-[10px]">'+d.nup+'</td><td class="p-3 text-gray-700 text-[10px]">'+(d.unit||'-')+'</td><td class="p-3 text-center"><span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">'+(d.pelatihan||d.materi)+'</span></td><td class="p-3 text-center font-black text-indigo-700 text-[11px]">'+(d.nilai||'0')+'</td><td class="p-3 text-right"><div class="flex items-center justify-end gap-1"><button onclick="beriNilai(\''+id+'\')" type="button" class="bg-indigo-50 text-indigo-600 h-7 px-2 rounded-md font-bold text-[9px] uppercase hover:bg-indigo-600 hover:text-white transition-all"><i class="fas fa-edit"></i></button><a href="https://generatorsertifikat.netlify.app/" target="_blank" class="bg-amber-500 text-white h-7 px-2 rounded-md font-bold text-[9px] uppercase flex items-center gap-1 shadow-sm" style="text-decoration:none"><i class="fas fa-certificate"></i></a><button onclick="hapusRecord(\'laporan/'+id+'\')" type="button" class="text-red-300 hover:text-red-600 px-1"><i class="fas fa-trash-alt"></i></button></div></td></tr>'; });
-});
-
-/* ===== Listener Absensi ===== */
-db.ref('absensi/').on('value',function(snap){
-    var t=document.getElementById('tabel-absensi'); t.innerHTML="";
-    snap.forEach(function(c){ var d=c.val(); t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-[11px] uppercase">'+d.nama+'</td><td class="p-3 text-[11px]">'+d.nup+'</td><td class="p-3 text-[11px]">'+d.unit+'</td><td class="p-3 text-[11px]">'+d.materi+'</td><td class="p-3 text-gray-400 text-[10px]">'+d.waktu+'</td><td class="p-3 text-right"><button onclick="hapusRecord(\'absensi/'+c.key+'\')" type="button" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>'; });
-});
+function switchTabGuru(t){ var tabs=['materi','hidden','nilai','absen','chat']; for(var i=0;i<tabs.length;i++){ document.getElementById('g-content-'+tabs[i]).style.display=tabs[i]===t?'':'none'; document.getElementById('tab-g-'+tabs[i]).className=tabs[i]===t?"flex-1 min-w-[100px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5":"flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"; } }
 
 /* ===== Aksi Lainnya ===== */
-function prosesLaporSelesai(){ if(confirm("Lapor selesai?")){ db.ref('laporan/').push({nama:localStorage.getItem('user_nama'),nup:localStorage.getItem('user_nup'),unit:localStorage.getItem('user_unit'),pelatihan:curJudul,nilai:"-",waktu:new Date().toLocaleString()}).then(function(){toast("Terkirim!","success");backToHome();}).catch(function(){toast("Gagal mengirim","error");}); } }
-function beriNilai(id){ var n=prompt("Nilai (0-100):"); if(n) db.ref('laporan/'+id).update({nilai:n}); }
-function hapusRecord(path){ if(confirm("Hapus permanen?")) db.ref(path).remove(); }
-function prosesAbsen(){
-    var n=document.getElementById('abs-nama').value,u=document.getElementById('abs-nup').value,k=document.getElementById('abs-unit').value;
-    if(n&&u&&k){ db.ref('absensi/').push({nama:n,nup:u,unit:k,materi:curJudul,waktu:new Date().toLocaleString()}).then(function(){ var h=JSON.parse(localStorage.getItem('absensi_history')||"[]"); h.push(curId); localStorage.setItem('absensi_history',JSON.stringify(h)); localStorage.setItem('user_nama',n); localStorage.setItem('user_nup',u); localStorage.setItem('user_unit',k); tutupModalAbsen(); bukaMateriSiswa(curId); }).catch(function(){alert("Gagal menyimpan absensi!");}); } else { alert("Harap diisi semua!"); }
-}
+function prosesLaporSelesai(){ if(!db) return; if(confirm("Lapor selesai?")){ db.ref('laporan/').push({nama:localStorage.getItem('user_nama'),nup:localStorage.getItem('user_nup'),unit:localStorage.getItem('user_unit'),pelatihan:curJudul,nilai:"-",waktu:new Date().toLocaleString()}).then(function(){toast("Terkirim!","success");backToHome();}).catch(function(){toast("Gagal","error");}); } }
+function beriNilai(id){ if(!db) return; var n=prompt("Nilai (0-100):"); if(n) db.ref('laporan/'+id).update({nilai:n}); }
+function hapusRecord(path){ if(!db) return; if(confirm("Hapus permanen?")) db.ref(path).remove(); }
+function prosesAbsen(){ if(!db) return; var n=document.getElementById('abs-nama').value,u=document.getElementById('abs-nup').value,k=document.getElementById('abs-unit').value; if(n&&u&&k){ db.ref('absensi/').push({nama:n,nup:u,unit:k,materi:curJudul,waktu:new Date().toLocaleString()}).then(function(){ var h=JSON.parse(localStorage.getItem('absensi_history')||"[]"); h.push(curId); localStorage.setItem('absensi_history',JSON.stringify(h)); localStorage.setItem('user_nama',n); localStorage.setItem('user_nup',u); localStorage.setItem('user_unit',k); tutupModal('modal-absen'); bukaMateriSiswa(curId); }).catch(function(){alert("Gagal menyimpan!");}); } else { alert("Harap diisi semua!"); } }
 function downloadExcel(){ var t=document.getElementById('tabel-laporan'),data=[["Nama","NUP","Unit","Materi","Nilai"]]; var rows=t.querySelectorAll('tr'); for(var i=0;i<rows.length;i++){var cells=rows[i].querySelectorAll('td');if(cells.length>0)data.push([cells[0].innerText.trim(),cells[1].innerText.trim(),cells[2].innerText.trim(),cells[3].innerText.trim(),cells[4].innerText.trim()]);} var ws=XLSX.utils.aoa_to_sheet(data),wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Rekap"); XLSX.writeFile(wb,"Rekap_"+new Date().toLocaleDateString('id-ID').replace(/\//g,'-')+".xlsx"); }
+
+/* ===== FIREBASE LISTENERS (dibungkus if(db) agar tidak crash) ===== */
+if (db) {
+    db.ref('chat/').on('value',function(snap){
+        var l=document.getElementById('admin-chat-list'); l.innerHTML="";
+        snap.forEach(function(c){ var d=c.val(); l.innerHTML+='<div class="flex justify-between items-start bg-gray-50 p-3 rounded-xl border text-xs"><div><span class="block text-[9px] font-bold text-indigo-500 uppercase mb-0.5"><i class="fas fa-folder"></i> '+(d.judulMateri||'?')+'</span><span class="font-bold text-gray-800"><b class="text-indigo-700">'+d.nama+':</b> '+d.pesan+'</span></div><button onclick="hapusRecord(\'chat/'+c.key+'\')" type="button" class="text-red-300 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button></div>'; });
+    });
+
+    db.ref('materi/').on('value',function(snap){
+        var ls=document.getElementById('list-materi-siswa'),la=document.getElementById('list-materi-admin'),lh=document.getElementById('list-materi-hidden'),eh=document.getElementById('emptyHidden'),hc=document.getElementById('hiddenCount');
+        ls.innerHTML=""; la.innerHTML=""; lh.innerHTML=""; var hiddenCount=0;
+        snap.forEach(function(c){
+            var m=c.val(),id=c.key; allMateriData[id]=m;
+            var imgU=m.gambar||"https://picsum.photos/seed/"+(m.judul||'x')+"/400/200";
+            var isH=m.isHidden===true;
+            if(isH) hiddenCount++;
+            if(!isH){
+                var hasK=m.kuis&&m.kuis!==""&&m.kuis!=="undefined";
+                var lab=hasK?'<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> Materi & Kuis</span>':'<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> Materi</span>';
+                var ml=''; if(Array.isArray(m.links)){ml='<div class="mt-2 space-y-1">';var cnt=Math.min(m.links.length,3);for(var ii=0;ii<cnt;ii++){ml+='<div class="flex items-center gap-2 text-[10px] text-white/90 truncate"><i class="fas fa-check-circle text-indigo-300"></i> '+(m.links[ii].label||'Materi '+(ii+1))+'</div>';}if(m.links.length>3)ml+='<div class="text-[9px] text-white/60 italic ml-5">+'+(m.links.length-3)+' lainnya</div>';ml+='</div>';}
+                ls.innerHTML+='<div onclick="bukaMateriSiswa(\''+id+'\')" class="group relative bg-white h-64 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end"><div class="absolute inset-0 bg-gray-200"><img src="'+imgU+'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"></div><div class="absolute top-4 left-4 z-20">'+lab+'</div><div class="absolute inset-0 card-gradient"></div><div class="relative z-10 p-5 text-white"><div class="flex items-center gap-2 mb-2"><i class="fas fa-layer-group text-indigo-300 text-[9px]"></i><span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">'+(Array.isArray(m.links)?m.links.length+' Resource':'1 Link')+'</span></div><h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight drop-shadow-md mb-1">'+m.judul+'</h3>'+ml+'</div></div>';
+            }
+            if(!isH){
+                la.innerHTML+='<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full group hover:shadow-md transition-all"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover"><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye show bg-white/90 p-2 rounded-lg shadow" title="Sembunyikan"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200 mb-2"><i class="fas fa-eye mr-1"></i>AKTIF</span><p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+m.judul+'</p><p class="text-[10px] text-gray-500"><i class="fas fa-link"></i> '+(Array.isArray(m.links)?m.links.length+' Links':'1 Link')+'</p></div><div class="text-[10px] text-gray-300 font-mono">'+(m.waktu||'')+'</div></div></div>';
+            }
+            if(isH){
+                lh.innerHTML+='<div class="bg-white rounded-2xl border-2 border-dashed border-red-200 flex flex-col overflow-hidden h-full opacity-80 hover:opacity-100 transition-opacity"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover grayscale"><div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-center px-3"><i class="fas fa-eye-slash text-lg mb-1"></i><span class="text-[10px] font-black uppercase">Tersembunyi</span></div><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye hide bg-white/90 p-2 rounded-lg shadow"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-red-100 text-red-700 border border-red-200 mb-2"><i class="fas fa-eye-slash mr-1"></i>TERSEMBUNYI</span><p class="font-black text-gray-500 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+m.judul+'</p></div><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="mt-3 w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-2 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1.5"><i class="fas fa-eye"></i> Tampilkan ke Siswa</button><div class="text-[10px] text-gray-300 font-mono mt-2">'+(m.waktu||'')+'</div></div></div>';
+            }
+        });
+        if(hiddenCount>0){hc.style.display='';hc.textContent=hiddenCount;}else{hc.style.display='none';}
+        eh.style.display=hiddenCount===0?'':'none';
+    });
+
+    db.ref('laporan/').on('value',function(snap){
+        var t=document.getElementById('tabel-laporan'); if(!t) return; t.innerHTML="";
+        snap.forEach(function(c){ var d=c.val(),id=c.key; t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-indigo-900 uppercase text-[10px]">'+d.nama+'</td><td class="p-3 text-gray-500 text-[10px]">'+d.nup+'</td><td class="p-3 text-gray-700 text-[10px]">'+(d.unit||'-')+'</td><td class="p-3 text-center"><span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">'+(d.pelatihan||d.materi)+'</span></td><td class="p-3 text-center font-black text-indigo-700 text-[11px]">'+(d.nilai||'0')+'</td><td class="p-3 text-right"><div class="flex items-center justify-end gap-1"><button onclick="beriNilai(\''+id+'\')" type="button" class="bg-indigo-50 text-indigo-600 h-7 px-2 rounded-md font-bold text-[9px] uppercase hover:bg-indigo-600 hover:text-white"><i class="fas fa-edit"></i></button><a href="https://generatorsertifikat.netlify.app/" target="_blank" class="bg-amber-500 text-white h-7 px-2 rounded-md font-bold text-[9px] uppercase flex items-center gap-1 shadow-sm" style="text-decoration:none"><i class="fas fa-certificate"></i></a><button onclick="hapusRecord(\'laporan/'+id+'\')" type="button" class="text-red-300 hover:text-red-600 px-1"><i class="fas fa-trash-alt"></i></button></div></td></tr>'; });
+    });
+
+    db.ref('absensi/').on('value',function(snap){
+        var t=document.getElementById('tabel-absensi'); t.innerHTML="";
+        snap.forEach(function(c){ var d=c.val(); t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-[11px] uppercase">'+d.nama+'</td><td class="p-3 text-[11px]">'+d.nup+'</td><td class="p-3 text-[11px]">'+d.unit+'</td><td class="p-3 text-[11px]">'+d.materi+'</td><td class="p-3 text-gray-400 text-[10px]">'+d.waktu+'</td><td class="p-3 text-right"><button onclick="hapusRecord(\'absensi/'+c.key+'\')" type="button" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>'; });
+    });
+}
 </script>
 </body>
 </html>
