@@ -35,7 +35,6 @@
         .toggle-eye:hover{transform:scale(1.15)}
         .toggle-eye.show{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
         .toggle-eye.hide{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
-        /* Modal overlay - pakai style.display, bukan class hidden/flex */
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
     </style>
 </head>
@@ -59,7 +58,7 @@
 <main id="view-siswa" class="max-w-6xl mx-auto px-4 py-8">
     <div id="siswa-home">
         <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
-        <p class="text-gray-500 text-center text-sm mb-8">Pilih materi dan isi absensi untuk melihat detail materi dan kuis.</p>
+        <p class="text-gray-500 text-center text-sm mb-8">Masukkan NUP Anda untuk verifikasi data sebelum mengakses materi.</p>
         <div id="list-materi-siswa" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
     <div id="siswa-belajar" style="display:none">
@@ -204,18 +203,30 @@
     </div>
 </div>
 
-<!-- MODAL ABSEN -->
+<!-- MODAL ABSEN (Updated with Object Key Lookup) -->
 <div id="modal-absen" class="modal-overlay">
-    <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl">
-        <h3 class="font-bold text-xl text-indigo-900 mb-6 uppercase tracking-tighter italic">Konfirmasi Absensi</h3>
+    <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-fade-in">
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-id-badge text-indigo-600 text-xl"></i>
+            </div>
+            <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Verifikasi Data</h3>
+            <p class="text-xs text-gray-500 mt-1">Masukkan NUP Anda Tekan Enter. Sistem akan otomatis mengambil data.</p>
+        </div>
         <div class="space-y-3 mb-8">
-            <input id="abs-nama" type="text" placeholder="Nama Lengkap" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
-            <input id="abs-nup" type="number" placeholder="NUP" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm">
-            <input id="abs-unit" type="text" placeholder="Unit Kerja" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none focus:border-indigo-500 bg-gray-50 uppercase font-bold text-sm">
+            <!-- NUP Input -->
+            <input id="abs-nup" type="text" placeholder="Masukkan NUP Anda" class="w-full border-2 border-indigo-200 rounded-xl px-5 py-4 outline-none focus:border-indigo-600 bg-indigo-50 font-black text-sm transition-colors text-center uppercase tracking-widest" onchange="cekNUPDatabase()" onkeyup="this.value=this.value.toUpperCase()">
+            
+            <!-- Input Nama & Unit (Otomatis terisi & Readonly) -->
+            <div class="grid grid-cols-1 gap-3 opacity-60 pointer-events-none transition-opacity" id="absen-data-container">
+                <input id="abs-nama" type="text" placeholder="Nama (Otomatis)" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none bg-gray-50 uppercase font-bold text-sm" readonly>
+                <input id="abs-unit" type="text" placeholder="Unit (Otomatis)" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none bg-gray-50 uppercase font-bold text-sm" readonly>
+            </div>
+            <p id="nup-error-msg" class="text-xs text-red-500 text-center font-bold h-4"></p>
         </div>
         <div class="flex gap-2">
-            <button onclick="tutupModal('modal-absen')" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs">Batal</button>
-            <button onclick="prosesAbsen()" type="button" class="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs">Kirim & Buka</button>
+            <button onclick="tutupModal('modal-absen')" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs hover:bg-gray-50 rounded-xl transition-colors">Batal</button>
+            <button id="btn-submit-absen" onclick="prosesAbsen()" type="button" class="flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed" disabled>Kirim & Buka</button>
         </div>
     </div>
 </div>
@@ -265,6 +276,859 @@
 <div id="toastBox" class="fixed top-16 right-4 flex flex-col gap-2 pointer-events-none" style="z-index:999"></div>
 
 <script>
+/* =======================================================
+   DATABASE PEGAWAI (KEY-VALUE OBJECT)
+   Format: "NUP": { nama: "...", unit: "..." }
+   ======================================================= */
+const databasePegawai = {
+  "104116": { nama: "IBNU NAFIS", unit: "CABANG UTAMA KLAS BATAM" },
+   "49500": { nama: "ARIEF SULISTIYONO", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "49199": { nama: "BAMBANG WARDOJO", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "92314": { nama: "EKA NANDA PRATAMA SUNARJO", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "63206": { nama: "KOKO HARIANTO", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "95115": { nama: "MOH. HERBRAM ARYA PRANATA", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "92014": { nama: "AMIR HAMZAH", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "69508": { nama: "NINA SRI INDAH YANI", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "118024": { nama: "MUH. NURFADHIL M.", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "43196": { nama: "AZHAR", unit: "CABANG MADYA KLAS PALEMBANG" },
+    "58604": { nama: "DIAN ENDANG WAHYUNI", unit: "CABANG MADYA KLAS PALEMBANG" },
+    "80910": { nama: "MOH. FURQON", unit: "CABANG MADYA KLAS PALEMBANG" },
+    "92514": { nama: "FUAD UMAR PAISAL", unit: "CABANG MADYA KLAS PALEMBANG" },
+    "63306": { nama: "IRZAN AZIS", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "105216": { nama: "PURWOKO WIDHYANTO WIRAWAN", unit: "CABANG UTAMA KLAS BANTEN" },
+    "78010": { nama: "FERIZA YUSFI", unit: "CABANG MADYA KLAS PEKANBARU" },
+    "78410": { nama: "LISA", unit: "CABANG MADYA KLAS PEKANBARU" },
+    "91814": { nama: "ALFAN FADHLI", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "45197": { nama: "DONY TRI SUSILO", unit: "CABANG MADYA KLAS PEKANBARU" },
+    "76110": { nama: "ANDI ARMAN", unit: "CABANG MADYA KLAS PEKANBARU" },
+    "105516": { nama: "RISKY HARI PRASETYO", unit: "CABANG PRATAMA KLAS JAMBI" },
+    "110816": { nama: "FITRIANI", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "48199": { nama: "MUHSON NURROCHMAT SLAMET", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "95515": { nama: "SEPTIAN AJI DEWANGKARA", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "91914": { nama: "ALFIAN BONE PUTRA", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "88312": { nama: "ANDRE GUNTUR TEGUH WIJAKSANA SILAEN", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "61305": { nama: "DEDY HERYADI", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "107816": { nama: "SUDIRMAN", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "110116": { nama: "MUKHAMAD ZUL ASIP", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "112018": { nama: "PAJARUDDIN", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "80010": { nama: "ZULFADLI", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "84312": { nama: "HELPI TORONG", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "86712": { nama: "BERMAN SARAGIH", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "96615": { nama: "RUSDY WANGSA", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "97215": { nama: "AHDIYAR", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "97315": { nama: "IRVAN DESIADININGRAT ISKANDAR", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "97715": { nama: "MUHAMMAD RYAN ANDHIKA", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "98515": { nama: "HENDRA ADY SAPUTRA M", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "108316": { nama: "ANDI MULIADI", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "97615": { nama: "MARISANDI", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "98015": { nama: "ANDI IKBAR", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "98215": { nama: "KADAR PATTONRA", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "76710": { nama: "ARIF BIJAKSANA SATRIA NEGARA", unit: "CABANG MADYA KOMERSIAL BATAM" },
+    "102016": { nama: "AHMAD YUSRAN", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "109116": { nama: "ACHSAN", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "113219": { nama: "AWALUDDIN", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "100315": { nama: "M. IRFAN", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "69108": { nama: "GUNAWAN SUNRE", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "65908": { nama: "IRWAN", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "76610": { nama: "ANDI ARDI ABDULLAH", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "84112": { nama: "HAZAIRIN", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "112118": { nama: "FERI ANTONI", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "119625": { nama: "RAFIUDDIN HAFID", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "120025": { nama: "ARDIYAN EKA SAPUTRA", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "85312": { nama: "MUTTAQIN", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "107716": { nama: "M. HATTA BACO B", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "108116": { nama: "RAHMAT S", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "108416": { nama: "EKONDRO", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "111116": { nama: "INDAH PETRICIA SARI", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "112718": { nama: "ROZI DELFEMI IRAWATI", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "112818": { nama: "ZULFAENI", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "68208": { nama: "ABDILAH", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "77810": { nama: "ADI ISMANTO", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "77910": { nama: "BARI", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "84812": { nama: "KAMARUDDIN", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "84912": { nama: "SAID TAUFIQ", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "96415": { nama: "MUH ALI HASAN", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "120325": { nama: "IRMA ESMERALDA", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "107216": { nama: "GUNTUR CAHYO NUGROHO", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "108716": { nama: "KHOIRUL ASNAWI", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "111516": { nama: "RISKITA NOVITA SARI", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "111818": { nama: "NOVAN ARDYANSYAH", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "67608": { nama: "A'AN AGUS FIRMANSYAH", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "72308": { nama: "MUH. NASIR", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "97815": { nama: "RUDOLF EDWARD DUPUY", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "77110": { nama: "SUDIBYO", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "116223": { nama: "BOBBY RAMADHAN", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "120925": { nama: "ADIL ASMARA YUDHA", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "106616": { nama: "YOHANES ARDIANTO NUGROHO", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "92914": { nama: "MUSTAKIM", unit: "CABANG PRATAMA KLAS AMBON" },
+    "69908": { nama: "PETRUS TIPAWAEL", unit: "CABANG PRATAMA KLAS AMBON" },
+    "71008": { nama: "MUHAMMAD FAJRIN M. SAID", unit: "CABANG PRATAMA KLAS AMBON" },
+    "104016": { nama: "HARIS HENDRATMOKO", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "56503": { nama: "ADI KURNIAWAN", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "73909": { nama: "ANDI P. SIAGIAN", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "82311": { nama: "FAUZI AKBAR NASUTION", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "86012": { nama: "RURI APRIDAH", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "118924": { nama: "YOSEP PUTERA MARULAM", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "57804": { nama: "HASIDHIAN PRAYUDHI", unit: "CABANG PRATAMA KLAS BITUNG" },
+    "88212": { nama: "AGRIS SETYAWAN", unit: "CABANG PRATAMA KLAS BITUNG" },
+    "110516": { nama: "ZUL FAJRIN AZDIN", unit: "CABANG PRATAMA KLAS BITUNG" },
+    "81911": { nama: "ARYO SINGGIH", unit: "CABANG PRATAMA KLAS BITUNG" },
+    "63006": { nama: "AKHMAD WAHYUDI", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "103416": { nama: "DWI ARYANTO", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "99115": { nama: "RICKY YULIANTO", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "103016": { nama: "CHOIRUN CAHYOABDI", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "119525": { nama: "ANDI FIRMANSYAH", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "105016": { nama: "MUHAMMAD IDAM YON ARIF", unit: "CABANG UTAMA KLAS BATAM" },
+    "56603": { nama: "YULIAN ARPIANTO", unit: "CABANG PRATAMA KLAS JAMBI" },
+    "58404": { nama: "SULASMAN", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "88812": { nama: "MUH. ASQAR", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "102616": { nama: "ARDIANSYAH DAHLAN", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "69008": { nama: "HAMSAH", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "74609": { nama: "ILHAM SYAHRIR", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "103816": { nama: "FAJAR NUGRAHA", unit: "CABANG PRATAMA KLAS SEMARANG" },
+    "102516": { nama: "ANDREW CRISTIANT PRAMUSINTA", unit: "CABANG PRATAMA KLAS SEMARANG" },
+    "110316": { nama: "RINTO YANUAR WIJANARKO", unit: "CABANG PRATAMA KLAS SEMARANG" },
+    "69308": { nama: "SUPRIYANTO", unit: "CABANG PRATAMA KLAS SEMARANG" },
+    "98715": { nama: "REVIOLITA", unit: "CABANG PRATAMA KLAS SEMARANG" },
+    "63706": { nama: "HANIEF RIDHWAN ALMASSAWA", unit: "CABANG PRATAMA KLAS SEMARANG" },
+    "109316": { nama: "BAMBANG SAPRIANTO", unit: "CABANG PRATAMA KLAS SORONG" },
+    "77310": { nama: "MUHAMMAD YUSUF", unit: "CABANG PRATAMA KLAS SORONG" },
+    "77410": { nama: "MUHAMMAD HATTA", unit: "CABANG PRATAMA KLAS SORONG" },
+    "88912": { nama: "NOAH CAHYASASMITA", unit: "DIVISI SURVEY" },
+    "74809": { nama: "MUHAMMAD ICHSAN", unit: "CABANG PRATAMA KLAS SORONG" },
+    "64006": { nama: "IWAN KARUNIA SIRINGORINGO", unit: "CABANG PRATAMA KLAS SORONG" },
+    "121225": { nama: "MUH. MUSYFINUL AKRAAM", unit: "CABANG PRATAMA KOMERSIAL SORONG" },
+    "100015": { nama: "RYAN HANGGA SRI WIJIHARTO", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "108816": { nama: "MUHAMMAD ADAM FUDHOLI", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "84612": { nama: "MOH. QOMARUZ ZAMAN", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "85412": { nama: "BAMBANG TRI NUGROHO", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "109718": { nama: "NANCY OCTAVIA L. TORUAN", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "98115": { nama: "BOYNI FITHALOKA", unit: "CABANG PRATAMA KOMERSIAL BANTEN" },
+    "85212": { nama: "MOH. NOOR KHOLIS", unit: "CABANG PRATAMA KOMERSIAL BANTEN" },
+    "86812": { nama: "MUHAMMAD ARAFAH", unit: "CABANG PRATAMA KOMERSIAL BANTEN" },
+    "108916": { nama: "OKI DWI ANGGORO", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "94315": { nama: "YUSRI TOMBANG", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "52200": { nama: "HERI WIRAWAN", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "85112": { nama: "SYARI DODI AHMAD YANI", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "96515": { nama: "SUDARMA EDY SARAGIH JAWAK", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "120525": { nama: "GANDA TUA LEONARDUS LUMBAN GAOL", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "121125": { nama: "MUHAMMAD RIZKI", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "51500": { nama: "DARMA TODING", unit: "CABANG PRATAMA KOMERSIAL BITUNG" },
+    "101515": { nama: "EDY SANTOSO SARIALLO M", unit: "CABANG PRATAMA KOMERSIAL BITUNG" },
+    "107516": { nama: "IKHSAN ISMAIL", unit: "CABANG PRATAMA KOMERSIAL CIREBON" },
+    "79610": { nama: "BERNADUS BAYUAJI WIRABUANA", unit: "CABANG PRATAMA KOMERSIAL CIREBON" },
+    "107916": { nama: "SULTAN ABBAS DANGKENG", unit: "CABANG PRATAMA KOMERSIAL JAMBI" },
+    "96915": { nama: "EDI ZULKARNAIN", unit: "CABANG PRATAMA KOMERSIAL JAMBI" },
+    "76510": { nama: "MARZUKI DG LALLO", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "52700": { nama: "WIDODO", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "96815": { nama: "AKHMAD MULIADDIN", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "108216": { nama: "ZAINAL", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "97015": { nama: "KHAERUL AKBAR", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "99915": { nama: "MOKHAMMAD YUFIAN RIDHANANDA", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "116123": { nama: "M. AZWAR", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "120725": { nama: "AZIB MUZANI", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "121025": { nama: "RIAN ARISTIANTO", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "94615": { nama: "MUHAMMAD RIZKY PURNAMA", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "98815": { nama: "MIFTAKHUL QOMAR", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "98915": { nama: "ISKANDAR PURNOMO SIDI", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "99015": { nama: "TEGUH TRIWIYADI", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "77210": { nama: "SUCIBTA JABELSIR P", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "120825": { nama: "TRI KUNCORO RIYADI", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "69408": { nama: "YOHANIS", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "58004": { nama: "DJOKO WAHYUDI", unit: "CABANG UTAMA KLAS BANTEN" },
+    "109216": { nama: "WISNU WAHYU WARDHINI", unit: "CABANG UTAMA KLAS BANTEN" },
+    "38491": { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN" },
+    "98615": { nama: "INDRA KUSUMA MUHAMMAD", unit: "CABANG UTAMA KLAS BANTEN" },
+    "80510": { nama: "BAWA PRASETYO", unit: "CABANG UTAMA KLAS BANTEN" },
+    "92414": { nama: "FERRY FADLI", unit: "CABANG UTAMA KLAS BANTEN" },
+    "74209": { nama: "EDWIN OLAF JULIAN DAMANIK", unit: "CABANG UTAMA KLAS BANTEN" },
+    "103516": { nama: "EKO HARYANTO", unit: "CABANG UTAMA KLAS BANTEN" },
+    "118224": { nama: "IBNUL QAYYIM", unit: "CABANG UTAMA KLAS BANTEN" },
+    "57704": { nama: "MOH. BASARUDIN ASFAHANI", unit: "CABANG UTAMA KLAS BATAM" },
+    "104816": { nama: "MUHAMMAD ASRUL LA SARIPI", unit: "CABANG MADYA KLAS PEKANBARU" },
+    "81711": { nama: "ANTONG GOLI", unit: "CABANG UTAMA KLAS BATAM" },
+    "106516": { nama: "YHOGA SUSILA WARDANU", unit: "CABANG UTAMA KLAS BATAM" },
+    "70008": { nama: "LINDA MURNI", unit: "CABANG UTAMA KLAS BATAM" },
+    "74009": { nama: "BOGI AKHMAD SUENDAR", unit: "CABANG UTAMA KLAS BATAM" },
+    "81611": { nama: "AGUSTANG", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "82911": { nama: "MUHIBBUDDIN", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "55201": { nama: "LUKMAN HAKIM", unit: "CABANG UTAMA KLAS BATAM" },
+    "88512": { nama: "I GUSTI NGURAH WIRA PRATAMA", unit: "CABANG UTAMA KLAS BATAM" },
+    "90713": { nama: "WULANDARI", unit: "CABANG UTAMA KLAS BATAM" },
+    "96715": { nama: "MONAF MASSE", unit: "CABANG UTAMA KLAS BATAM" },
+    "97115": { nama: "ARDIANSYAH", unit: "CABANG UTAMA KLAS BATAM" },
+    "97915": { nama: "ISHAK NOERPARA", unit: "CABANG UTAMA KLAS BATAM" },
+    "68708": { nama: "HENI LESTARI", unit: "CABANG UTAMA KLAS BATAM" },
+    "95915": { nama: "ANDY WIBOWO", unit: "CABANG MADYA KLAS PEKANBARU" },
+    "109816": { nama: "DWI MARYANTI PITER PATALO", unit: "CABANG UTAMA KLAS BATAM" },
+    "110216": { nama: "MUSTAQIM", unit: "CABANG UTAMA KLAS BATAM" },
+    "45497": { nama: "BUDI ISROFI", unit: "CABANG UTAMA KLAS BATAM" },
+    "95015": { nama: "M. BAGUS PRIMA SETIAWAN", unit: "CABANG UTAMA KLAS BATAM" },
+    "104316": { nama: "JIADAN", unit: "CABANG UTAMA KLAS BATAM" },
+    "71208": { nama: "YULID ANJI FIRMANSYAH", unit: "CABANG UTAMA KLAS BATAM" },
+    "81010": { nama: "TRIYONO SEMUEL", unit: "CABANG UTAMA KLAS BATAM" },
+    "118424": { nama: "MUHAMMAD RIZQI ADITYA VEVA", unit: "CABANG UTAMA KLAS BATAM" },
+    "118824": { nama: "HARAL LINTANG MEDIKA", unit: "CABANG UTAMA KLAS BATAM" },
+    "118724": { nama: "FARIZ RACHMAN DANIYAL", unit: "CABANG UTAMA KLAS BATAM" },
+    "118624": { nama: "ADE KHANTARI", unit: "CABANG UTAMA KLAS BATAM" },
+    "117624": { nama: "MUHAMMAD SADDAM HUSSEIN", unit: "CABANG UTAMA KLAS BATAM" },
+    "44997": { nama: "BENNI HERMAWAN", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "60405": { nama: "DAVID NOER SYUHADA", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "105816": { nama: "STEFFY HERMAN", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "111316": { nama: "RIZKA PRASETYA", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "45597": { nama: "SYARIF NUHUNG", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "66408": { nama: "AGUSTINI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "66708": { nama: "DANI ISKANDAR", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "95315": { nama: "RANGSANG KUSUMADILAGA", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "88612": { nama: "LA ODE ABDUL RAHMAN FIRU", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "91614": { nama: "ABDUL KHOLICK", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "91714": { nama: "AGUS ERICSON SIANIPAR", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "62406": { nama: "RIDWAN", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "66808": { nama: "ANA RAHMAWATI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "112618": { nama: "DARMAWAN", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "118524": { nama: "HANIF KURNIAWAN", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "43496": { nama: "MISBAHUDIN AIDY", unit: "CABANG UTAMA KLAS SINGAPORE" },
+    "89212": { nama: "SUWANDY", unit: "CABANG UTAMA KLAS SINGAPORE" },
+    "92114": { nama: "ANUGRAH EKO BUDI SUSANTO", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "47799": { nama: "BAMBANG RIYANTO", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "71908": { nama: "BAKTI NUGROHO DWI KUSHADIANTO", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "47699": { nama: "AGUNG WICAKSONO", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "66508": { nama: "TAMUJI HARI WARTONO", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "60905": { nama: "IKA DIAN ARIANY", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "109217": { nama: "FITRIA", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "62606": { nama: "ABUKASIM USMAN", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "78210": { nama: "SILVIA KARULITA", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "79510": { nama: "NURUL HUDA", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "57503": { nama: "TEGUH BUDI SANTOSO", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "80410": { nama: "ARIF KURNIAWAN", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "89012": { nama: "RIDWAN AHMAD FAUZI", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "102816": { nama: "BAYU RISTA", unit: "CABANG MADYA KLAS PALEMBANG" },
+    "93714": { nama: "YOGIA RIVALDHI", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "86112": { nama: "AHMAD SAIFULLOH", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "74909": { nama: "SAMSUL ARIF", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "117724": { nama: "ABDUL HAKIM LILLAH", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "117924": { nama: "ADITYA ARIAWAN", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "117824": { nama: "ALIF YUDHA ASHARI", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "122325": { nama: "LINTANG BODRORINI KUSUMANINGRUM", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "104216": { nama: "JANU HARI MURTITAKA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "95215": { nama: "MUHAMAD BAQI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "101915": { nama: "FAUZI", unit: "CABANG UTAMA KLAS BATAM" },
+    "102316": { nama: "AKBAR RAKANDA PRAKASA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "51400": { nama: "SOLEH ABIDIN", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "52300": { nama: "KARMILA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "61706": { nama: "RM KURNAEFI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "72708": { nama: "TONI SYARIF HIDAYAH", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "74309": { nama: "HARDI E. P. SIAGIAN", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "55301": { nama: "TAUFIK ARIE WIJAYA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "77510": { nama: "INDRA PERMANA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "107116": { nama: "RONY WIRANTO SETIAWAN", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "45297": { nama: "MUHAMMAD IDI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "44797": { nama: "DIDI KURNIADI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "87712": { nama: "EKO MAJA PRIYANTO", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "48799": { nama: "SHINDU PURWANTO", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "83111": { nama: "NARSO", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "117123": { nama: "WILDANIS MIFTAHUL ABROR", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "118124": { nama: "FARHAN ABDUL KARIM", unit: "DIVISI SURVEY" },
+    "88112": { nama: "ADI YUDHO WIJAYANTO", unit: "CABANG UTAMA KLAS TG. PRIOK - BAGIAN PEMASARAN OFFSHORE" },
+    "105916": { nama: "SUTRISNO", unit: "DIVISI SURVEY" },
+    "80610": { nama: "DEDE NANDA SETYADIN", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "80210": { nama: "A. RASYID ALIMUDDIN", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "85512": { nama: "JOKO UTOMO", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "100515": { nama: "SULIADI ARI", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "100615": { nama: "LOESTHPEDI PARORRONGAN", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "100815": { nama: "MUHAMMAD ALIYAS", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "101115": { nama: "FANDI AKBAR", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "101215": { nama: "ZAINAL ABIDIN", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "107316": { nama: "HARIMULYO", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "109516": { nama: "SAMUEL JOHAN SOSELISA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "109616": { nama: "SAUR ELI TUA SIRAIT", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "111618": { nama: "ABDUL SARPAN", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "111918": { nama: "YAURI LINGKAR PARAENG", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "112518": { nama: "SUBARI", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "66008": { nama: "MUHAMMAD ALI MURTADHO", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "66208": { nama: "YOPPY SURYANTO", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "66308": { nama: "RATNA DAMAYANTI", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "66608": { nama: "TRI WAHYUNI", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "83411": { nama: "SUDARYONO", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "83511": { nama: "ADNAN", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "90513": { nama: "IKBAL KADIR", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "100715": { nama: "ANDI AGUNG MAPPANGILE", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "100915": { nama: "SYAHRANI SUMAILA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "101315": { nama: "BASORI", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "84212": { nama: "AKBAR EDY", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "65408": { nama: "ROHMAN NAHDIANTO", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "85712": { nama: "UMI MAISYAROH", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "99715": { nama: "BRAMANTI PRAMAWEDHA SATRIANTO PUTRA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "119925": { nama: "NUR FAUZAN AZIM", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "120225": { nama: "LA ODE ABDUL SAHID MUNIFA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "115523": { nama: "DAVID HARYANTO", unit: "DEPARTEMEN MANAJEMEN PORTOFOLIO" },
+    "113419": { nama: "ALDICIO WILLIAM SCHUURMAN", unit: "DEPARTEMEN MANAJEMEN PORTOFOLIO" },
+    "102416": { nama: "ALWI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "114319": { nama: "FAISHAL ABDURRAHMAN LABIB", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "90112": { nama: "HENRY KURNIAWAN", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "74409": { nama: "HARDIKA RATDITYA ARDYANTO", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "50300": { nama: "PUJATMANTO BASTRIADI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "48099": { nama: "BAMBANG SUTOMO", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "74509": { nama: "HERDIMAN MUSTARI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "103716": { nama: "FAJAR LUTFIALAYUBI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "106416": { nama: "YASIN BESARI MUSTOFA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "49900": { nama: "HERBERT SIMON HUTAJULU", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "79110": { nama: "HIMAWAN", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "83011": { nama: "MUNIR MURADI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "87512": { nama: "EDO DODY HANDRADI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "42996": { nama: "ARIEF NURTJAHJO", unit: "GROUP BISNIS KLASIFIKASI NUSANTARA" },
+    "60005": { nama: "ROYNALD MATAHELUMUAL", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "56803": { nama: "TOGAP HIDAYAT SIAGIAN", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "71808": { nama: "ROCHMANSYAH", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "67308": { nama: "N. HERAWATI MELDA S", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "63606": { nama: "MAMIN RIFFIA KUSNANDAR", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "66908": { nama: "ACHMAD TAWAKKAL RAMPA", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "75410": { nama: "LILAH KURNIA SARI", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "124125": { nama: "MUHAMMAD DAFA'ANH MURYA TSANI", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "48399": { nama: "BUDI PRAKOSO", unit: "DIVISI OPERASI DIGITAL TIC" },
+    "89712": { nama: "TRIYAN INDRAWAN", unit: "DIVISI OPERASI DIGITAL TIC" },
+    "58306": { nama: "MAT HASAN", unit: "DIVISI OPERASI DIGITAL TIC" },
+    "115219": { nama: "RIANA PATRICIA", unit: "GROUP STRATEGI DAN TRANSFORMASI KORPORAT" },
+    "114719": { nama: "MEGAWATI ROSALIO PUTRI", unit: "GROUP STRATEGI DAN TRANSFORMASI KORPORAT" },
+    "91314": { nama: "IRAWATI", unit: "GROUP STRATEGI DAN TRANSFORMASI KORPORAT" },
+    "117423": { nama: "ABDUL RIFANI PRAJA NURRAHMAN", unit: "DIVISI AKUNTANSI KEUANGAN DAN PAJAK" },
+    "113619": { nama: "ADESTA MUNAS LATIEF", unit: "DIVISI HUMAN CAPITAL" },
+    "116823": { nama: "RATIH TRI HARTANTI", unit: "DIVISI AKUNTANSI KEUANGAN DAN PAJAK" },
+    "113819": { nama: "ANNISYAH FAZRIN", unit: "DIVISI AKUNTANSI KEUANGAN DAN PAJAK" },
+    "116523": { nama: "AGIYANI PERMANA PUTRA", unit: "DIVISI AKUNTANSI KEUANGAN DAN PAJAK" },
+    "72008": { nama: "RINO YAN CAHYONO", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "58504": { nama: "SUMARTINI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "58704": { nama: "LILY PANDANSARI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "79210": { nama: "RISKA TRI HANDINI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "86512": { nama: "RATNA DEWI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "70408": { nama: "PUTRI NUR LAKSMI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "111416": { nama: "NENNY YUNIARTI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "99215": { nama: "TRI JANUAR PRATAMA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "93814": { nama: "AZIZA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "116323": { nama: "ELISHA MUTHIA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "116623": { nama: "ZULFIKAR MA'RIFATULLAH", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "73609": { nama: "KURNIA FIRMANSYAH", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "121625": { nama: "YULIA FAJRI KINANTI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "121725": { nama: "MUHAMMAD ABDURRAHMAN ALI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "124325": { nama: "MARITSA HADANA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "124625": { nama: "ANNISA FITRI AMALIA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "110616": { nama: "AJI ABDUL AZIZ", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "69208": { nama: "PANDU WIJANARKO", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "109317": { nama: "SAMSUL MUSLIM", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "83711": { nama: "ROMILLO LIBRA SETIADI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "88012": { nama: "BAYU MAHARDIKA WICAKSONO", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "94914": { nama: "MUCHLIS RACHMAN", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "41594": { nama: "DIDING SUWANDI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "86412": { nama: "MARINA ARIFIANTI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "115119": { nama: "NURKUMALA SAKTI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "55401": { nama: "KOMARIAH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "70208": { nama: "YULIA DIAN ANGGRAINI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "70308": { nama: "MIA MARTINA INDAH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "40393": { nama: "SALVINUS PATANGKE", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "67508": { nama: "MARDINI EMBUN SARI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "68808": { nama: "DESI HARDIANAWATI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "79810": { nama: "RIDWAN ARIFIN", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "72208": { nama: "EVA SINTAULI SARAGIH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "116423": { nama: "APRIANSYAH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "83812": { nama: "RATIH PUTRI ARIFIANTI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "62006": { nama: "RACHMAD KURNIAWAN", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50500": { nama: "IRWANTO", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "52900": { nama: "WAWAN PRIYA WIDYANTA", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "68608": { nama: "MANIAH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "40793": { nama: "ROSALINA AMRAN", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "70908": { nama: "MUHAMAD SODIK", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "85912": { nama: "YUSFI NOER ARYANI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "116723": { nama: "SAHDAT FAMA RIDHO", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "121925": { nama: "FREDY NURMAN SALEH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "124825": { nama: "ELMY MUFIDAH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "113319": { nama: "MOHAMMAD RIZKI SATRIO", unit: "DIVISI HUMAN CAPITAL" },
+    "99315": { nama: "FIKRAH WATHANI", unit: "DIVISI HUMAN CAPITAL" },
+    "114419": { nama: "IRMARINDA SHEYNA CHANDRASAFIRA", unit: "DIVISI HUMAN CAPITAL" },
+    "122025": { nama: "DIANA PINASTHIKA", unit: "DIVISI HUMAN CAPITAL" },
+    "49600": { nama: "FAJAR NUGRAHA", unit: "DIVISI INTEGRASI SISTEM DAN PROSES BISNIS" },
+    "115823": { nama: "AGUS SYARIF MAOLANA", unit: "DIVISI INTEGRASI SISTEM DAN PROSES BISNIS" },
+    "119725": { nama: "IRMA YUNIATI", unit: "DIVISI INTEGRASI SISTEM DAN PROSES BISNIS" },
+    "85612": { nama: "BUSROL KARIM", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "65308": { nama: "DIDIET EDITHIA FIRMAN", unit: "UNIT HSE" },
+    "58304": { nama: "AGUNG BUDI ARNANTO", unit: "UNIT HSE" },
+    "53000": { nama: "RIMA NOVEDIA BANGUN", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "94715": { nama: "WARINI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "53300": { nama: "ANOGI AKBAR ALI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "104616": { nama: "MOKHAMMAD FAKHRUR RIZAL", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "114919": { nama: "MUHAMMAD ADITYO NUGROHO", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "94214": { nama: "DWI CAHYA KURNIAWANI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "46198": { nama: "DEDE MA'MUN SUMANTRI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "121825": { nama: "REGIYAN DRININ KAWASUGI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "124025": { nama: "MUHAMMAD RAFI AMRULLAH", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "124425": { nama: "ELVIRA ANGGRAINI KUSUMAPUTRI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "114019": { nama: "CHRISANTYA DIAN EKA WIHARTI", unit: "DIVISI MANAJEMEN RISIKO DAN KEBERLANJUTAN" },
+    "71308": { nama: "SURIATY PARAMINTA PUTRI", unit: "DIVISI MANAJEMEN RISIKO DAN KEBERLANJUTAN" },
+    "113519": { nama: "ABDIL HAFIIZH ZHAFRAN", unit: "DIVISI PEMASARAN KORPORAT" },
+    "81210": { nama: "SUKMA MAHARANI", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "41093": { nama: "DWIYANA", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "121325": { nama: "RAKA DWITA SETYANEGARA", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "111216": { nama: "MARISA THERESIA SIHOMBING", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "50700": { nama: "RATNA NURCAHYA", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "56002": { nama: "ILYAS", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "62306": { nama: "BAMBANG IRWAN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "61906": { nama: "TEGUH ANDANI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "44897": { nama: "MOHAMMAD HASAN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "62906": { nama: "SRI MULYANTI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "99415": { nama: "KOSIM BIN MARI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "99515": { nama: "SARIDI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "113719": { nama: "ADITYA PUTRI ANGGRAINI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "72608": { nama: "UNTUNG PRASETYO", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "39792": { nama: "NASARUDDIN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "117223": { nama: "MUSLIM DERMAWAN BARUS", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "121425": { nama: "RIAN EKA SAPUTRA", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "124725": { nama: "RAFIF BINTANG RAMADHAN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "46298": { nama: "SUKADI REDJI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "115422": { nama: "NADIA LISTIYANI", unit: "DIVISI PENGEMBANGAN KORPORAT" },
+    "115319": { nama: "SALMA FADHILAH WIDITYANI", unit: "DIVISI PENGEMBANGAN KORPORAT" },
+    "46398": { nama: "RAHMADANI", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "89512": { nama: "BUDI FITRIAWAN", unit: "DIVISI PERENCANAAN DAN KEUANGAN KORPORAT" },
+    "58804": { nama: "SYAHLIR", unit: "DIVISI PERENCANAAN DAN KEUANGAN KORPORAT" },
+    "121525": { nama: "THOMAS MAHENDRA", unit: "DIVISI PERENCANAAN DAN KEUANGAN KORPORAT" },
+    "116923": { nama: "AGUNG PRASETYO", unit: "DIVISI PERENCANAAN DAN KEUANGAN KORPORAT" },
+    "114119": { nama: "DENY HARDIANSYAH", unit: "DIVISI PERENCANAAN DAN KEUANGAN KORPORAT" },
+    "87212": { nama: "ADHI KHOLIDDIN", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "63406": { nama: "LYZA YUNI SETIAWATI", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "60505": { nama: "SYAFIUDDIN", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "93214": { nama: "SIGIT PAMUNGKAS", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "70708": { nama: "KARTIKA WIJAYANTI KUSUMAWARDHANI", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "70508": { nama: "MUKTI BRAVITA", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "62706": { nama: "ANDI LAMAPPASESSU", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "117323": { nama: "TUNJUNG WIDYATMO HANDOYO", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "87012": { nama: "ANGGA SANTOSO", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "102216": { nama: "AHMAD RIADUS SHOLIHIN", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "47899": { nama: "ROMY LESMANA", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "71408": { nama: "AHMAD ZAKKY", unit: "DIVISI HUMAN CAPITAL" },
+    "64106": { nama: "FATHONI KUSUMAHADI", unit: "CABANG UTAMA KLAS BATAM" },
+    "90012": { nama: "ANGGA YUSTIAWAN", unit: "CABANG UTAMA KLAS BATAM" },
+    "93314": { nama: "I GUSTI PUTU SUANTARA", unit: "CABANG UTAMA KLAS BATAM" },
+    "103316": { nama: "DENY CAHYO NUGROHO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "103616": { nama: "FAHRUL NUR HIDAYAT", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "73209": { nama: "NUR HASAN SIDIQ", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "91114": { nama: "HATRI NINRA DAUD", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "57904": { nama: "HERU SUSILO BUDIMAN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "79710": { nama: "SEFIA HELMINA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "90613": { nama: "RIYANTO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "63906": { nama: "ARMINDARY ARIEF", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "87312": { nama: "FACHRUDDIN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "97515": { nama: "BUDI SANTOSO", unit: "CABANG UTAMA KLAS BATAM" },
+    "65008": { nama: "SISWANTO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "49700": { nama: "WASITO ABDUL MUKIT", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "79010": { nama: "ARIF SYARIFUDIN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "123625": { nama: "ZULFIKAR BISMA WICAKSANA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "123725": { nama: "M FAHMI AULIARAHMAN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "123825": { nama: "MUHAMMAD IQRA RAMADHAN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN NUSANTARA" },
+    "64607": { nama: "MOCHAMMAD ZAKY", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "110416": { nama: "RIZAL FEBRIANTO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "103916": { nama: "FIVID RIVANTORO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "89812": { nama: "ADAM PERDANA PUTERA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "93614": { nama: "BAMBANG FIRDIANSYAH HADI KUSUMA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "56903": { nama: "KRISHNA WIJAYADI", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "71608": { nama: "HIJRAWATI MUHTAR", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "73009": { nama: "DWIANA GALUH LISTIYARINI", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "76810": { nama: "LIDYA SALIM", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "81110": { nama: "AKHMAD SYARIFUL ANWAR", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "95815": { nama: "FAULINCIA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "96215": { nama: "DIAN FEBRIAN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "46698": { nama: "BAMBANG SUGIONO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "73409": { nama: "ANDI NURALIM KAMAL", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "81511": { nama: "HERI SISWANTO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "64206": { nama: "FAHMI", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "105716": { nama: "SONY ANGGARA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "61806": { nama: "WAHIDIN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "91014": { nama: "TAUFIK AKBAR", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "102116": { nama: "ADE NURSAL", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "106216": { nama: "TULUS SETIYAWAN WASI KUNTORO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "91414": { nama: "NOMO PRIHASTA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "123325": { nama: "MUHAMMAD RIKY ADHITAMA NUGRAHA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "123425": { nama: "AFDHAL ALFENDRY", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "78610": { nama: "FARRAH MUTIA NURFADILAH", unit: "DIVISI RISET DAN PENGEMBANGAN PRODUK" },
+    "73509": { nama: "TOPAN FIRMANDHA", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "57403": { nama: "FREDHI AGUNG PRASETYO", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "65108": { nama: "MOHAMMAD ARIF KURNIAWAN", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "103216": { nama: "DEFI RIZKI MAULIANI", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "60205": { nama: "SITI KOMARIYAH", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "64907": { nama: "SUKRON MAKMUN", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "79910": { nama: "MOHAMMAD ABDUL MALIK", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "87612": { nama: "ANGJUANG ADI PANJI PRATAMA", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "87912": { nama: "WANGININGASTUTI MUTMAINNAH", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "89912": { nama: "RISKA DERIANI MASKAR", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "105116": { nama: "MUHAMAD RIZQI FITRA HARIADI", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "87812": { nama: "MUHAMMAD IRFAN", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "82211": { nama: "DEFRI SUMARWAN", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "90212": { nama: "MUHAMMAD YUDI OKTOVIANTO", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "91514": { nama: "WAWAN WIDIATMOKO", unit: "DIVISI MANAJEMEN RISIKO DAN KEBERLANJUTAN" },
+    "123125": { nama: "ROLAS YOGA MANIK", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "123225": { nama: "MUHAMMAD FUAD RASYAD", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "85812": { nama: "NOVIANSYAH PAMUNGKAS", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "115019": { nama: "N. KARINDITA EKIBDWI PUTRI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "101415": { nama: "WILLEM GERRIT PIETER REHATTA", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "110016": { nama: "MICHELLE CHANTAL MUSTAMU", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "113919": { nama: "BONOR SAMUEL CHARLES", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "105316": { nama: "RAGA DICKLIES PURWANTO", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "59504": { nama: "LINDA KURNIATY", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "78710": { nama: "HAERUDIN", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "90914": { nama: "GDE SANDHYANA PRADHITA", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "93914": { nama: "DEBORAH NINDYA PAWESTRI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "67908": { nama: "ERRY SANJAYA DJAYUS", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "94014": { nama: "WILLY ADI NUGROHO", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "114519": { nama: "KEVIN IQBAL RIZALDI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "122125": { nama: "FARIZ ABDILLAH", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "124525": { nama: "IBNU AL MUAFI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "47198": { nama: "TRI LAKSONO JOENIAWAN", unit: "DIVISI STATUTORIA" },
+    "64807": { nama: "EFA ROSIDA DWI ADITIRTA", unit: "DIVISI STATUTORIA" },
+    "57203": { nama: "DOAN OSCAR DEWANDARU", unit: "DIVISI STATUTORIA" },
+    "75009": { nama: "TRI BUANA GALAXY", unit: "DIVISI STATUTORIA" },
+    "101715": { nama: "BRAMS FIRNANDES", unit: "DIVISI STATUTORIA" },
+    "104416": { nama: "LA ODE MUHAMMAD ICHSAN", unit: "DIVISI STATUTORIA" },
+    "109916": { nama: "JAKARIA", unit: "DIVISI STATUTORIA" },
+    "62206": { nama: "ASEP SUPRIATNA", unit: "DIVISI STATUTORIA" },
+    "63106": { nama: "SOFYAN HADI", unit: "DIVISI STATUTORIA" },
+    "71108": { nama: "ADITYA TRISANDHYA PRAMANA", unit: "DIVISI STATUTORIA" },
+    "86312": { nama: "PURWANTYA", unit: "DIVISI STATUTORIA" },
+    "93514": { nama: "ANDIK EKO SAPUTRO", unit: "DIVISI STATUTORIA" },
+    "49800": { nama: "RAHMAT KURNIAWAN", unit: "DIVISI STATUTORIA" },
+    "78910": { nama: "FIRMANSYAH", unit: "DIVISI STATUTORIA" },
+    "93414": { nama: "AFIF AMRULLAH", unit: "DIVISI STATUTORIA" },
+    "89412": { nama: "BAYU WINDA ANANTAKA", unit: "DIVISI STATUTORIA" },
+    "123525": { nama: "SALSABILLA AULIA FITRI", unit: "DIVISI STATUTORIA" },
+    "57003": { nama: "DIDIK PURWOSUSILO", unit: "DIVISI SURVEY" },
+    "57604": { nama: "ARIF YUNAEDI", unit: "DIVISI SURVEY" },
+    "43696": { nama: "SIGIT PRASTOWO", unit: "DIVISI SURVEY" },
+    "89312": { nama: "SYARIFUL MAHSYAR", unit: "DIVISI SURVEY" },
+    "81811": { nama: "ALI AKBAR BASO", unit: "DIVISI SURVEY" },
+    "94915": { nama: "LUTFI PALIAM PARAYA", unit: "DIVISI SURVEY" },
+    "95615": { nama: "SETIONO PRABOWO", unit: "DIVISI SURVEY" },
+    "88412": { nama: "FIRMANSYAH PUTRA AGUNG MA'ARIF", unit: "CABANG UTAMA KLAS BANTEN" },
+    "71508": { nama: "ARIFUDDIN", unit: "CABANG UTAMA KLAS BANTEN" },
+    "45397": { nama: "ANDI SOLIHIN RIZAL", unit: "CABANG UTAMA KLAS BATAM" },
+    "74709": { nama: "KOKO ANDY SAPUTRO", unit: "CABANG UTAMA KLAS BATAM" },
+    "92214": { nama: "ARIFIN GUSTIAN PRAMOKO", unit: "CABANG UTAMA KLAS BATAM" },
+    "106116": { nama: "TIO ANTONI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "102716": { nama: "BACHTIAR YUSUF HABIBI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "82611": { nama: "KOKOK YUDHA CAHYONO", unit: "DIVISI SURVEY" },
+    "88712": { nama: "MAHESA SAGA", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "94815": { nama: "HAFIDS DICKY KHARISMA", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "82711": { nama: "M. ARIEF MAULANA WIRANEGARA", unit: "DIVISI SURVEY" },
+    "106016": { nama: "SYARIFUDDIN YAMIN", unit: "CABANG UTAMA KLAS BATAM" },
+    "48299": { nama: "WIYONO", unit: "DIVISI SURVEY" },
+    "110916": { nama: "HAMBALI WAHID", unit: "DIVISI SURVEY" },
+    "90813": { nama: "YUSUF", unit: "DIVISI SURVEY" },
+    "93014": { nama: "SANDI NANDARIANTO", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "82811": { nama: "MIFTAH FARIDY", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "68908": { nama: "ADHITAMA RAMA M", unit: "DIVISI SURVEY" },
+    "48499": { nama: "MUHAMMAD ARFAH", unit: "DIVISI SURVEY" },
+    "46898": { nama: "YUDI WASIANTO", unit: "DIVISI SURVEY" },
+    "92614": { nama: "GARY SIMON", unit: "DIVISI SURVEY" },
+    "82511": { nama: "IRWAN EKO SANTOSO", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "122425": { nama: "PAOJI PATRIA", unit: "CABANG PRATAMA KLAS SORONG" },
+    "123025": { nama: "TRI ASTUTI SUDARMINTO", unit: "DIVISI SURVEY" },
+    "122625": { nama: "EDITYA ANGGAWIJAYA", unit: "CABANG UTAMA KLAS BATAM" },
+    "122825": { nama: "MUHAMMAD AZMI NAUFAL MUNIF", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "122925": { nama: "MUHAMMAD FADHILAL MURSYID", unit: "CABANG UTAMA KLAS SURABAYA" },
+    "122725": { nama: "JERI AGERISTA SEMBIRING", unit: "CABANG UTAMA KLAS BATAM" },
+    "122525": { nama: "YEHESKIEL HUBERT PARLUHUTAN", unit: "CABANG PRATAMA KLAS AMBON" },
+    "83211": { nama: "NUR RAHMAD HIDAYAT", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "73709": { nama: "AJI PRABOWO", unit: "CABANG UTAMA KLAS BATAM" },
+    "63806": { nama: "CATUR ACHIRYANTO ANWARUDIN", unit: "CABANG UTAMA KLAS BANTEN" },
+    "83311": { nama: "SUHAR CHANDRA KURNIAWAN", unit: "CABANG UTAMA KLAS BANTEN" },
+    "74109": { nama: "DANI MAULANA", unit: "CABANG UTAMA KLAS BATAM" },
+    "80710": { nama: "JOUSTRA BILLY", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "47598": { nama: "TANTYO PRAJOGO", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "56403": { nama: "APRIANTO HANI WIBOWO", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "82011": { nama: "AWALUDDIN PAINGNGI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "60605": { nama: "MUSHAWWIR RAZAK", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "93114": { nama: "SANG LANANG SADDAMULLAH", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "104916": { nama: "MUHAMMAD AULIA", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "104716": { nama: "MUHAMMAD ARIS SULTAN", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "123925": { nama: "RAKADITYA PANDU WASKITO", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "124225": { nama: "JASMINE PRATIWI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "57103": { nama: "PRASETYO", unit: "DIVISI TEKNOLOGI INFORMASI" },
+    "114219": { nama: "DICKY ALDOKO", unit: "DIVISI TEKNOLOGI INFORMASI" },
+    "105616": { nama: "RIZKY PRASETYA ADE N", unit: "DIVISI TEKNOLOGI INFORMASI" },
+    "109818": { nama: "M RAHMAT AKBAR RAMADHAN", unit: "DIVISI TEKNOLOGI INFORMASI" },
+    "89612": { nama: "FACHRUDIN NUR", unit: "DIVISI TEKNOLOGI INFORMASI" },
+    "94814": { nama: "HARDIAN", unit: "DIVISI TEKNOLOGI INFORMASI" },
+    "117523": { nama: "I MADE ANDHIKA DARMA PERKASA", unit: "LEGAL COUNSEL" },
+    "60805": { nama: "ANDRI SURYAWAN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "114819": { nama: "MUHAMMAD IRVAN WIDYA", unit: "SATUAN PENGAWASAN INTERN" },
+    "53200": { nama: "RAHMAN SUSILO", unit: "SATUAN PENGAWASAN INTERN" },
+    "72408": { nama: "ANITA MAGDALENA", unit: "SATUAN PENGAWASAN INTERN" },
+    "114619": { nama: "LUTHFI SETIA MARDANI", unit: "SATUAN PENGAWASAN INTERN" },
+    "58204": { nama: "ABDUR RAHMAN", unit: "SATUAN PENGAWASAN INTERN" },
+    "94114": { nama: "SARI GITA TANTINIS", unit: "SATUAN PENGAWASAN INTERN" },
+    "47999": { nama: "ARIEF HENDRO RUKMINTO", unit: "SATUAN PENGAWASAN INTERN" },
+    "59705": { nama: "BUDIMAN JOHANSYAH", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "72909": { nama: "HARRYS PAHALA MANALU", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "65208": { nama: "ELVA MOCHAMAD RAMDHANI", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "72108": { nama: "MUH. ASPAR", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "103116": { nama: "DANIEL MAHARDHIKA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "67108": { nama: "BAMBANG WIJANARKO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "75210": { nama: "FERNANDO S", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "72508": { nama: "MERDIANSAH", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "70608": { nama: "SUSETYO WIJANARKO BUDIARDHI", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "96115": { nama: "AZHAR GHIPARI", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "84012": { nama: "CATUR WIBOWO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "96015": { nama: "EDIT HASTA PRIHANTIKA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "112418": { nama: "YUSRIADY BOROALLO RUGA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "84712": { nama: "SUDIRO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "120125": { nama: "ARIF RAHMAN HAKIM", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "119225": { nama: "DIMAS PUTRA PRASETYO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "108516": { nama: "FATKHURROHMAN", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "115923": { nama: "KENNEDI PANGARIBUAN", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "113019": { nama: "NOVELLA MUSYA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "75610": { nama: "RAHADI SIGIT WICAKSONO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "95715": { nama: "RIZKI ALDILLA TAMTURA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "116023": { nama: "SATRIA ADI SUKMA NEGARA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "119425": { nama: "DIMAS ALIF YUNAS", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "75810": { nama: "DINO VITA LARASANTO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "119125": { nama: "EVAN EGA RIZKIARSA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "120425": { nama: "MUGHNI COKROBASWORO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "109016": { nama: "SIGIT SUHAKSO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "75510": { nama: "SYAFRIL", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "98415": { nama: "HENDI ZULFAN", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "100115": { nama: "MUHAMMAD SOFIAN", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "75310": { nama: "FEBRIANSYAH", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "94415": { nama: "ABD. RAHMAN", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "106916": { nama: "ISMAIL", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "60705": { nama: "NERLAN PASARIBU", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "112318": { nama: "R. ADE WARDOYO WINOTO PUTRO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "98315": { nama: "ARY FIRMANSYAH FIRLI", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "107416": { nama: "HEDIAR HAPRI BANGABUA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "55501": { nama: "FERRY HARFIANTO EFFENDY", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "64306": { nama: "MUHDAR", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "87112": { nama: "BOBBY ADI NOVPRIANTO", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "79310": { nama: "DANDY RUKMANA", unit: "CABANG UTAMA KOMERSIAL JAKARTA" },
+    "59905": { nama: "R. SAPTO AGUNG PRAMUSINTO", unit: "CoE ENERGY" },
+    "76210": { nama: "AGAH DIRGAPATRIA DJAJASUDARMA", unit: "CoE ENERGY" },
+    "77010": { nama: "YUDI PRAWOTO", unit: "CoE ENERGY" },
+    "69608": { nama: "MUHAMAD YUSRAN ALOAHIIT", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "76310": { nama: "AGUS SUNARTO", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "70108": { nama: "RUDY SUNARYADI", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "119325": { nama: "AFANI ROMA ARISA", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "112918": { nama: "BURHANUDDIN", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "101615": { nama: "EFRY TALLAMMA", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "100215": { nama: "ELVINO YUSKA PUTRA", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "111016": { nama: "HELDA YULISTIANI", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "53400": { nama: "WAHJOE ARIO TEDJO", unit: "CoE ENERGY - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "67008": { nama: "WINARTO", unit: "CoE ENERGY - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "107616": { nama: "JOKO SUSILO", unit: "CoE ENERGY - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "78110": { nama: "WAHYU PRIAMBODO", unit: "CoE ENERGY - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "75710": { nama: "ARIF RACHMAN", unit: "CoE ENERGY - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "120625": { nama: "WAHYU RAHMA PUTRI", unit: "CoE ENERGY - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "117023": { nama: "TANTRY OCTAVIANI", unit: "CoE ENERGY - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "83611": { nama: "DR  KARTIKA KUS HENDRATNA", unit: "CoE TRANSPORT & LOGISTIC" },
+    "78510": { nama: "ARDHIAN BUDI SULISTIYO", unit: "CoE TRANSPORT & LOGISTIC" },
+    "81411": { nama: "ARIF PURWONO", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "99815": { nama: "MUHAMMAD TEGUH WIDODO", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "87412": { nama: "NEVI EKO YULIANANTO", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN RISET, PENGEMBANGAN BISNIS DAN PEMASARAN" },
+    "113119": { nama: "FARIED", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "112218": { nama: "HERY ALWIS", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "95415": { nama: "SATRIA ALDI PERMANA", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "119825": { nama: "M. ARDWIANSYAH", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "122225": { nama: "RANDY YOLANDA ANNOFCI PRATAMA", unit: "CoE TRANSPORT & LOGISTIC - BAGIAN DUKUNGAN TEKNIS DAN SUMBER DAYA" },
+    "58904": { nama: "ENDAH MUSTIKA NINGTIAS", unit: "UNIT TANGGUNG JAWAB SOSIAL DAN LINGKUNGAN" },
+    "110716": { nama: "ALWIN RIDWAN", unit: "UNIT TANGGUNG JAWAB SOSIAL DAN LINGKUNGAN" },
+    "48899": { nama: "ARIF BIJAKSANA PRAWIRA NEGARA", unit: "UNIT TANGGUNG JAWAB SOSIAL DAN LINGKUNGAN" },
+    "50793": { nama: "ABU YAZID", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "50806": { nama: "CHELTIS CHARLES KEHEK", unit: "CABANG MADYA KLAS BANJARMASIN" },
+    "50792": { nama: "FERLIANSYAH", unit: "CABANG MADYA KLAS PALEMBANG" },
+    "50382": { nama: "RENZA MUHARAM", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "50761": { nama: "ARIFIN NUR", unit: "CABANG MADYA KLAS PONTIANAK" },
+    "50670": { nama: "RUDI ARFIANSYAH", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "50868": { nama: "MARIHAT RIDHO SINAGA", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "50858": { nama: "SITI IQLIMA", unit: "CABANG PRATAMA KLAS BELAWAN" },
+    "50698": { nama: "LADY AGUSTINE AMALIYA", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "50977": { nama: "IZZUDDIN AKBAR AL FARABI", unit: "CABANG PRATAMA KLAS CIREBON" },
+    "50744": { nama: "M IBNU ROHIM", unit: "CABANG PRATAMA KLAS JAMBI" },
+    "50772": { nama: "NORA OKTAVIA", unit: "CABANG PRATAMA KLAS JAMBI" },
+    "50767": { nama: "ANGGRAENI DWI RIYANTI", unit: "CABANG PRATAMA KLAS MAKASSAR" },
+    "50686": { nama: "AGUS SALIM", unit: "CABANG UTAMA KLAS BATAM" },
+    "50688": { nama: "TINA AKSARINI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "50689": { nama: "AJENG KURNIA IMANSARI", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "50690": { nama: "MUHAMMAD FADLI AMIR", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "50691": { nama: "TOMMY NUR ADITYA", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "50692": { nama: "TAMZIL FADILLAH HARDONO", unit: "CABANG UTAMA KLAS SAMARINDA" },
+    "50388": { nama: "MOHAMED FAZLI BIN MAHABUT", unit: "CABANG UTAMA KLAS SINGAPORE" },
+    "50473": { nama: "RITA TIO", unit: "CABANG UTAMA KLAS SINGAPORE" },
+    "50417": { nama: "SUWATI BUN", unit: "CABANG UTAMA KLAS SINGAPORE" },
+    "50137": { nama: "SYED MOHAMED ISMAIL", unit: "CABANG UTAMA KLAS SINGAPORE" },
+    "50703": { nama: "EFI LISTIA YUNI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50865": { nama: "HAFIZH MUHAMMAD NAUFAL SHIDQI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50873": { nama: "MIRZA OTTOSENNA SYAILENDRA", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50831": { nama: "ARY DEWANTO", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50899": { nama: "AYU PADMASANTI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50862": { nama: "DHIA ADLINA FAJARIN GHAISANI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50699": { nama: "FAHMI ALDY", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50932": { nama: "NADA NISRINA MARAHAINI", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "50914": { nama: "SEPTIANTI LAILI SOFIANA", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "50823": { nama: "IBRAHIM AD'HA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "50966": { nama: "RAHMAT SIREGAR", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "50981": { nama: "RAMADHINA DEA ANANDA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "50983": { nama: "CHAIRANI MAULINA UTAMI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "50987": { nama: "ARUM CAHAYA SARI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "50874": { nama: "RATNA TRI HARDINI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50835": { nama: "PERY RINANDAR", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50836": { nama: "RIZKI DAMAR SATRIA", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50780": { nama: "MUHTAR", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50837": { nama: "ELVINO ADI PUTRA", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50825": { nama: "ARIEF SYAHTRIAN", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50934": { nama: "KHOLID ANAS AMRULLOH", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50972": { nama: "ARIEF ADHITYA PERDANA", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50937": { nama: "ADITYA ILHAM SAPTIAWAN", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "50941": { nama: "IZZAFAJRI SYAFIRA", unit: "SATUAN PENGAWASAN INTERN" },
+    "50959": { nama: "FARHAND ALLY FAHMI", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "50949": { nama: "HAFEZ AHMAD TAURY", unit: "DIVISI STATUTORIA" },
+    "50830": { nama: "TARIZA BRILIANTI", unit: "UNIT HSE" },
+    "50926": { nama: "ICHSAN AHRIL AUZAN", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50930": { nama: "RIZKY GUSTI ANDIKA", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50773": { nama: "MARIYANA ASTRI FANDANI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "50816": { nama: "ARDHIANTI NOVIANDITA", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "50791": { nama: "AGNES RENITA OKTAVIANI", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "50797": { nama: "MOCHAMAD FAUZY", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "50801": { nama: "DHITYA PUTRA RAMADHAN", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50819": { nama: "WITA KUSUMA WARDANI", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "50984": { nama: "THAZA FEBRIANTI", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "50777": { nama: "AHMAD YUNUS", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "50929": { nama: "NAILA IZNA DZAKIA", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "50948": { nama: "PUTRI KANA TAQIYYA", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
+    "50912": { nama: "GOFUR SIDDIQ RINO HADI", unit: "DIVISI PERENCANAAN KORPORAT DAN MANAJEMEN RISIKO" },
+    "50866": { nama: "DYAH ANGGRAENI AYUNINGTYAS", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "50973": { nama: "LUTHFI AFRIZAL", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "50845": { nama: "AYUMI PUTRI VARADITA", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "50847": { nama: "VICKY JULIAN PRAYOGA", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "50935": { nama: "ENDAH NOVITA", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "50783": { nama: "ADE SINTYA KUSUMAWARDANI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50802": { nama: "NAUFAL FARRAS BASUKI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50864": { nama: "NIRMALA LUTHFIYA ATYANTA", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50860": { nama: "AURA AZZAHRA", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50861": { nama: "MUHAMMAD RAHUL", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50827": { nama: "VERONICA TJHINTIA", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50922": { nama: "JEIHAN FAJAR KUSAENI", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50933": { nama: "ALLARIC AVICENNA RENANDA", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50974": { nama: "ELLIZARTAMA TAUFIK HADIMULYO", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50826": { nama: "MUHAMAD HASYIM RASIDI", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50936": { nama: "I MADE VIDYA PRAWIRA SATRIO", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50931": { nama: "MUTIARA PUTRI AMELIA", unit: "0" },
+    "50811": { nama: "DINDA PRATIWI", unit: "UNIT TANGGUNG JAWAB SOSIAL DAN LINGKUNGAN" },
+    "50989": { nama: "ARINDA DWI KUSUMASTUTI", unit: "CABANG PRATAMA KLAS SORONG" },
+    "50995": { nama: "MUHAMMAD FACHRI RAMADHAN", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "50997": { nama: "RICARDO SANTOS", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "50999": { nama: "MUHAMMAD RIZKY FAUZY FERNANDA", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "51001": { nama: "RIZA ZAKARIA HELMI", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "51008": { nama: "M. FAUZAN FIKRI", unit: "DIVISI OPERASI DIGITAL TIC" },
+    "51007": { nama: "MOCHAMAD FASHA FIRDAUS", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "51009": { nama: "FEIRUZ RACHMITA ALAMSYAH", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "51011": { nama: "VINCENTIUS ARDEN AVIANDA PRADITA", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "51012": { nama: "RAGIL WICAKSONO PUTRA PAMUNGKAS", unit: "DIVISI OPERASI DIGITAL TIC" },
+    "51013": { nama: "NURSYIFA RAMADHANI", unit: "PT. Inspeksi Sertifikasi dan Survey Indonesia" },
+    "51014": { nama: "BRIAN FIRMANSYAH PUTRA SULMI", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "51015": { nama: "MUHAMAD RAMA ALFANDI", unit: "CABANG UTAMA KLAS BATAM" },
+    "51016": { nama: "ILHAM HANAMI", unit: "DIVISI OPERASI BISNIS KLASIFIKASI" },
+    "51017": { nama: "DINA NUR AULIANA", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "51018": { nama: "SYAHRUL IRMANSYAH", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "51019": { nama: "ANGGA RAMADHANI SAPUTRA", unit: "DIVISI RISET DAN PENGEMBANGAN BISNIS KLASIFIKASI & STATUTORIA" },
+    "51020": { nama: "JUSAK SONANG FERRARI SIAHAAN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "51021": { nama: "AWANG SYUKRIANSAH DIRGANTORO", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "51022": { nama: "SITI UKHFIYA", unit: "DIVISI SISTEM MANAJEMEN DAN AUDIT" },
+    "51023": { nama: "PENNI DIAN", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "51024": { nama: "RAMRAY ANANDA AMIR", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "51025": { nama: "MUHAMMAD HANIF IRSYAD", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "51026": { nama: "SYAHRIZAL NUR ARFANI", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "51027": { nama: "DEVI RAHMA FAUZIA", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
+    "51028": { nama: "NAZWA AHSYANI FAATIHA", unit: "DIVISI OPERASI DIGITAL TIC" },
+    "50967": { nama: "IFAN SYAHPUTRA", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "51029": { nama: "DINAR RASTA FARA", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "51030": { nama: "HANDARBENI DWI PRASETYO", unit: "CABANG UTAMA KLAS TG. PRIOK" },
+    "51031": { nama: "CHELSYA MANIK", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "51032": { nama: "RUTH ALFONSINA WORABAY", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
+    "51033": { nama: "KUSUMA WARDANA BAGUS DWI KUNCORO", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "51039": { nama: "ANANDA NURAFIFAH ANGRAENI", unit: "CABANG PRATAMA KLAS SORONG" },
+    "51040": { nama: "KHANSA DAFFA ZULHAZMI", unit: "DIVISI HUMAN CAPITAL DAN TEKNOLOGI INFORMASI" },
+    "51041": { nama: "YOGA ARY LEKSONO", unit: "DIVISI PERSETUJUAN RANCANG BANGUN" },
+    "51043": { nama: "TANRI SYAHREZA DIARSA", unit: "DIVISI SEKRETARIS PERUSAHAAN" },
+    "50468": { nama: "SULUNG FAJAR SAMUDRA, S.T.", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50434": { nama: "MURDIYANTA", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50407": { nama: "DIAN M. JANUAR A.", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50464": { nama: "ERWIN SURYANTHO", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50601": { nama: "ANANG YUNIAWAN", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50634": { nama: "NOVA TORANTORO P.", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50728": { nama: "SALI SARTIKA", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50729": { nama: "HARYANTI", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50838": { nama: "ALYA VELIA VERDYANA ARMANDA", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50839": { nama: "ATIFAH NUR PRILIA", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50840": { nama: "MUHAMMAD ARUNG MAKKAWARU", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50841": { nama: "MUHAMMAD FARHAN NURDIANSYAH", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50842": { nama: "RISKY AULIA ULFA", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50849": { nama: "OKTA VIANI", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50850": { nama: "DEVI ANA", unit: "SBU ENERGI DAN INDUSTRI" },
+    "50624": { nama: "LA ODE SUHARYO JAYA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "50854": { nama: "GHUFRAN PRATAMA SYAPUTRA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "50855": { nama: "MAGHFIRA ANGGINA PATTA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "50856": { nama: "ZULKARNAIN NURHARUN BASKARA", unit: "CABANG UTAMA KOMERSIAL BALIKPAPAN" },
+    "50663": { nama: "FAJAR SYUHADA, S.T.", unit: "CABANG MADYA KOMERSIAL PEKANBARU" },
+    "50765": { nama: "DIDIK SUWARNO", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "50766": { nama: "SIDIK SUWATNO", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "50623": { nama: "ANDI ASWANDI", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "50622": { nama: "ADAM AHMAD LEBANG", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "50731": { nama: "NOVIA IZMI KASIH ISMAIL", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "50732": { nama: "YOSEP SURANTA", unit: "CABANG MADYA KOMERSIAL MAKASSAR" },
+    "50715": { nama: "FAUZIYAH MAULANI", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "50717": { nama: "KARTININGSIH", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "50714": { nama: "ERI KUSUMAWARDANI", unit: "CABANG PRATAMA KOMERSIAL SEMARANG" },
+    "50733": { nama: "YANTI TRI UTAMI", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "50586": { nama: "DEDY SETIADI", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "50734": { nama: "M. RANDI RUSDIN JAYA", unit: "CABANG PRATAMA KOMERSIAL BANJARMASIN" },
+    "50736": { nama: "BAMBANG WAHYONO", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "50824": { nama: "YUNITA MAHARANI", unit: "CABANG PRATAMA KOMERSIAL BELAWAN" },
+    "50682": { nama: "JEFRI PRIHADI, S.T.", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "50739": { nama: "ADE IRMA SURYANI", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "50741": { nama: "TIA FEBRIANTI", unit: "CABANG PRATAMA KOMERSIAL PONTIANAK" },
+    "50480": { nama: "LIMO DIAMOND YUSUF", unit: "CABANG PRATAMA KOMERSIAL JAMBI" },
+    "50547": { nama: "TAUFIQ ABDURRAHMAN WAHID", unit: "SBU MARINE SERVICES" },
+    "50756": { nama: "FEBRI TAUFANI", unit: "SBU MARINE SERVICES" },
+    "50757": { nama: "JEFRY KURNIAWAN", unit: "SBU MARINE SERVICES" },
+    "50876": { nama: "ADITYA PRAKOSA", unit: "SBU MARINE SERVICES" },
+    "50877": { nama: "AHMAD GUFRAN M", unit: "SBU MARINE SERVICES" },
+    "50878": { nama: "ZEID RISALDY", unit: "SBU MARINE SERVICES" },
+    "50879": { nama: "M. ARIEF FANANI", unit: "SBU MARINE SERVICES" },
+    "50880": { nama: "KERIN NOVA DIANTI", unit: "SBU MARINE SERVICES" },
+    "50883": { nama: "WINDI MEIZURA", unit: "SBU MARINE SERVICES" },
+    "50885": { nama: "SALWA JIHAN AULIYA", unit: "SBU MARINE SERVICES" },
+    "50886": { nama: "ADE AYU GANISYAH", unit: "SBU MARINE SERVICES" },
+    "50784": { nama: "ANI MUNAWAROH", unit: "BKI ACADEMY" },
+    "50794": { nama: "MELVIANA WASTRAWATI", unit: "BKI ACADEMY" },
+    "50832": { nama: "EKKY BAGUS PUTRA", unit: "BKI ACADEMY" },
+    "50833": { nama: "MUHAMMAD SHIDDIQ", unit: "BKI ACADEMY" },
+    "50786": { nama: "PINGKAN PRISCILIA UKUS", unit: "CABANG PRATAMA KOMERSIAL BITUNG" },
+    "50712": { nama: "YANDRY WILLIAMS FERDINANDUS", unit: "CABANG PRATAMA KOMERSIAL AMBON" },
+    "50617": { nama: "ANDRE R. LATUIHAMALLO", unit: "CABANG PRATAMA KOMERSIAL AMBON" },
+    "50616": { nama: "M. APRIADI NUR", unit: "CABANG PRATAMA KOMERSIAL AMBON" },
+    "50769": { nama: "YUSRIN DASSI", unit: "CABANG PRATAMA KOMERSIAL SORONG" },
+    "50781": { nama: "MAK KUMESER HOLANDIA KAPISA", unit: "CABANG PRATAMA KOMERSIAL SORONG" },
+    "50834": { nama: "HELDEGAR TAPILOUW", unit: "CABANG PRATAMA KOMERSIAL SORONG" },
+    "50763": { nama: "ERIKA NURDHAJMI LAELA", unit: "CABANG PRATAMA KOMERSIAL CIREBON" },
+    "51006": { nama: "MUHAMMAD AKBAR", unit: "CABANG PRATAMA KOMERSIAL SORONG" },
+    "50927": { nama: "NICHOLAS FEBRIANTO", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "50928": { nama: "ADELIA RAHMAWATI", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "50925": { nama: "ESSA SABILLAH SHOHIBAH", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "50890": { nama: "ARIF NURHAKIM", unit: "DIVISI MANAJEMEN CABANG KOMERSIAL" },
+    "50846": { nama: "WIWIN ROHMAWATI", unit: "SBU MARINE SERVICES" },
+    "51003": { nama: "AHMAD WASHLUL LATIEF", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "51004": { nama: "BRASTA APRYLEO CAESAR", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "51005": { nama: "MUHAMMAD SOEKARNO HATTA", unit: "CABANG MADYA KOMERSIAL SURABAYA" },
+    "51034": { nama: "DEDI IRWANSYAH ARHAM", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "51035": { nama: "MUHAMMAD ZIDDAN", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "51036": { nama: "ANSHARULLAH AHMAD", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "51037": { nama: "MUHAMMAD ZULKARNAIN", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" },
+    "51038": { nama: "SABRINA HARIYANI", unit: "CABANG PRATAMA KOMERSIAL PALEMBANG" }
+  // ... Tambahkan data lainnya di sini dengan format yang sama
+};
+
 /* ===== Firebase Init ===== */
 var db = null, storageRef = null;
 try {
@@ -284,9 +1148,13 @@ try {
 
 var curId = "", curJudul = "", isAdmin = false, materiSelesai = false, kuisSelesai = false;
 var allMateriData = {};
+var currentKaryawanData = null;
 
-/* ===== MODAL: buka/tutup pakai style.display (bukan class hidden/flex) ===== */
-function bukaModal(id) { document.getElementById(id).style.display = 'flex'; }
+/* ===== MODAL: buka/tutup pakai style.display ===== */
+function bukaModal(id) { 
+    document.getElementById(id).style.display = 'flex';
+    if(id === 'modal-absen') resetModalAbsen();
+}
 function tutupModal(id) { document.getElementById(id).style.display = 'none'; }
 
 /* ===== Toast ===== */
@@ -423,7 +1291,7 @@ function switchMeetingTab(t){ var tabs=['chat','materi','peserta']; for(var i=0;
 function listenMeetingChat(){ var r=db.ref('live_rooms/'+M.roomCode+'/chat'),cb=function(snap){var d=snap.val();if(!d)return;var box=document.getElementById('meetingChatBox'),isMe=d.name===M.myName; box.innerHTML+='<div class="flex flex-col '+(isMe?'items-end':'items-start')+' animate-fade-in"><span class="text-[9px] font-bold '+(isMe?'text-indigo-400':'text-gray-500')+' uppercase mb-0.5">'+d.name+' &bull; '+d.time+'</span><div class="'+(isMe?'bg-indigo-600 text-white':'bg-gray-700 text-gray-200')+' px-3 py-2 rounded-xl text-xs max-w-[85%] leading-relaxed">'+d.msg+'</div></div>'; box.scrollTop=box.scrollHeight;}; r.on('child_added',cb); M.roomUnsubs.push(function(){r.off('child_added',cb);}); }
 function kirimMeetingChat(){ var i=document.getElementById('meetingChatInput'),m=i.value.trim(); if(!m)return; db.ref('live_rooms/'+M.roomCode+'/chat').push({name:M.myName,msg:m,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}); i.value=''; }
 function shareMateriMeeting(){ var l=document.getElementById('materiLabelInput').value.trim(),u=document.getElementById('materiUrlInput').value.trim(); if(!l||!u) return toast('Isi label dan URL','error'); db.ref('live_rooms/'+M.roomCode+'/materials').once('value').then(function(snap){var ex=snap.val()||[];ex.push({label:l,url:u,by:M.myName,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});return db.ref('live_rooms/'+M.roomCode+'/materials').set(ex);}).then(function(){document.getElementById('materiLabelInput').value='';document.getElementById('materiUrlInput').value='';toast('Materi dibagikan!','success');}).catch(function(){toast('Gagal','error');}); }
-function renderMeetingMateri(data){ var el=document.getElementById('meetingMateriList'); if(!data||!Array.isArray(data)||data.length===0){el.innerHTML='<p class="text-gray-500 text-xs text-center italic py-8">Belum ada materi</p>';return;} el.innerHTML=data.map(function(m){return '<a href="'+m.url+'" target="_blank" class="flex items-center gap-3 bg-gray-700/50 hover:bg-gray-700 p-3 rounded-xl transition-colors"><div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-external-link-alt text-indigo-400 text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="text-xs font-bold text-gray-200 truncate">'+m.label+'</div><div class="text-[9px] text-gray-500">'+m.by+' &bull; '+m.time+'</div></div></a>';}).join(''); }
+function renderMeetingMateri(data){ var el=document.getElementById('meetingMateriList'); if(!data||!Array.isArray(data)||data.length===0){el.innerHTML='<p class="text-gray-500 text-xs text-center italic py-8">Belum ada materi</p>';return;} el.innerHTML=data.map(function(m){return '<a href="'+m.url+'" target="_blank" class="flex items-center gap-3 bg-gray-700/50 hover:bg-gray-700 p-3 rounded-xl transition-colors"><div class="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0"><i class="fas fa-external-link-alt text-indigo-400 text-[10px]"></i></div><div class="flex-1 min-w-0"><div class="text-xs font-bold text-gray-200 truncate">'+m.label+'</div><div class="text-[9px] text-gray-500">'+m.by+' &bull; '+m.time+'</div></div></a>'; }).join(''); }
 function renderParticipantList(){ var el=document.getElementById('participantList'),h='<div class="flex items-center gap-3 bg-gray-700/50 p-3 rounded-xl"><div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">'+M.myName.charAt(0).toUpperCase()+'</div><div class="flex-1"><div class="text-xs font-bold text-gray-200">'+M.myName+'</div><div class="text-[9px] text-indigo-400 uppercase">'+(M.isHost?'Trainer':'Peserta')+'</div></div>'+(M.isHost?'<i class="fas fa-crown text-amber-400 text-[10px]"></i>':'')+'</div>'; if(M.peerName) h+='<div class="flex items-center gap-3 bg-gray-700/50 p-3 rounded-xl"><div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold">'+M.peerName.charAt(0).toUpperCase()+'</div><div class="flex-1"><div class="text-xs font-bold text-gray-200">'+M.peerName+'</div><div class="text-[9px] text-emerald-400 uppercase">'+(M.isHost?'Peserta':'Trainer')+'</div></div></div>'; el.innerHTML=h; }
 function updateParticipantCount(n){ document.getElementById('participantCount').textContent=n; renderParticipantList(); }
 
@@ -486,24 +1354,162 @@ function updateMateri(){
 function tandaiProgres(t){ if(t==='materi') materiSelesai=true; if(t==='kuis') kuisSelesai=true; var bl=document.getElementById('btn-lapor'),st=document.getElementById('status-belajar'),hk=document.getElementById('link-kuis-aktif').style.display!=='none'; if(materiSelesai&&(hk?kuisSelesai:true)){ bl.disabled=false;bl.className="w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90";bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai'; st.innerHTML='<i class="fas fa-unlock text-emerald-500"></i> Materi selesai!'; st.className="text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit"; } }
 function backToHome(){ document.getElementById('siswa-home').style.display=''; document.getElementById('siswa-belajar').style.display='none'; }
 
+/* --- UPDATED: Validasi NUP Object Key-Value --- */
+function resetModalAbsen() {
+    document.getElementById('abs-nup').value = "";
+    document.getElementById('abs-nama').value = "";
+    document.getElementById('abs-unit').value = "";
+    document.getElementById('nup-error-msg').textContent = "";
+    document.getElementById('absen-data-container').style.opacity = "0.6";
+    document.getElementById('absen-data-container').style.pointerEvents = "none";
+    document.getElementById('btn-submit-absen').disabled = true;
+    document.getElementById('btn-submit-absen').className = "flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+    currentKaryawanData = null;
+}
+
+function cekNUPDatabase() {
+    var nupInput = document.getElementById('abs-nup').value.trim(); // Trim whitespace
+    var namaInput = document.getElementById('abs-nama');
+    var unitInput = document.getElementById('abs-unit');
+    var container = document.getElementById('absen-data-container');
+    var errorMsg = document.getElementById('nup-error-msg');
+    var btnSubmit = document.getElementById('btn-submit-absen');
+
+    // Reset UI
+    namaInput.value = "";
+    unitInput.value = "";
+    errorMsg.textContent = "";
+    currentKaryawanData = null;
+
+    if (!nupInput) return;
+
+    // Cari di database menggunakan KEY (NUP)
+    // Karena databasePegawai adalah object, kita akses langsung: databasePegawai["NUP"]
+    var dataKaryawan = databasePegawai[nupInput];
+
+    if (dataKaryawan) {
+        // NUP Ditemukan
+        namaInput.value = dataKaryawan.nama;
+        unitInput.value = dataKaryawan.unit;
+        
+        // Aktifkan UI
+        container.style.opacity = "1";
+        container.style.pointerEvents = "auto";
+        
+        // Aktifkan Tombol
+        btnSubmit.disabled = false;
+        btnSubmit.className = "flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700";
+        
+        toast("Data Pegawai Ditemukan!", "success");
+        
+        // Simpan data lengkap untuk proses submit
+        currentKaryawanData = {
+            nup: nupInput,
+            nama: dataKaryawan.nama,
+            unit: dataKaryawan.unit
+        };
+    } else {
+        // NUP Tidak Ditemukan
+        container.style.opacity = "0.6";
+        container.style.pointerEvents = "none";
+        
+        btnSubmit.disabled = true;
+        btnSubmit.className = "flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+        
+        errorMsg.textContent = "NUP tidak terdaftar di database.";
+        toast("NUP Tidak Valid", "error");
+    }
+}
+
 function bukaMateriSiswa(id){
     var d=allMateriData[id]; if(!d) return toast("Materi tidak ditemukan!","error");
     curId=id; curJudul=d.judul;
+    
     var h=JSON.parse(localStorage.getItem('absensi_history')||"[]");
+    
     if(h.indexOf(id)!==-1){
-        document.getElementById('siswa-home').style.display='none';
-        document.getElementById('siswa-belajar').style.display='';
-        document.getElementById('judul-aktif').innerText=d.judul;
-        var hi=document.getElementById('img-header-belajar'); if(d.gambar){hi.src=d.gambar;hi.style.display='';}else{hi.style.display='none';}
-        var lc=document.getElementById('container-links-materi'); lc.innerHTML="";
-        var lr=Array.isArray(d.links)?d.links:(typeof d.links==='string'&&d.links?[{label:"Buka Materi",url:d.links}]:[]);
-        for(var idx=0;idx<lr.length;idx++){ var it=lr[idx]; lc.innerHTML+='<a href="'+it.url+'" target="_blank" onclick="tandaiProgres(\'materi\')" class="bg-[#5851db] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-between group transition-all border-2 border-transparent hover:border-indigo-400" style="text-decoration:none;"><span class="flex items-center gap-3 uppercase italic text-xs"><i class="fas fa-play-circle text-xl group-hover:scale-110 transition-transform"></i> '+(it.label||'Materi '+(idx+1))+'</span><i class="fas fa-external-link-alt opacity-50 text-xs"></i></a>'; }
-        var kb=document.getElementById('link-kuis-aktif'); if(kb){if(d.kuis&&d.kuis!=="undefined"&&d.kuis!==""){kb.href=d.kuis;kb.style.display='flex';}else{kb.style.display='none';}}
-        materiSelesai=false; kuisSelesai=false;
-        var bl=document.getElementById('btn-lapor'); bl.disabled=true; bl.className="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"; bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
-        var st=document.getElementById('status-belajar'); st.innerHTML='<i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan'; st.className="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit";
-        loadChat();
-    } else { bukaModal('modal-absen'); }
+        renderMateriContent(d);
+    } else {
+        bukaModal('modal-absen');
+    }
+}
+
+function prosesAbsen(){
+    if(!db) return;
+    
+    if(!currentKaryawanData){
+        toast("NUP tidak valid. Mohon cek ulang.","error");
+        return;
+    }
+
+    // Gunakan data dari Database (Hardcoded) untuk akurasi
+    var n = currentKaryawanData.nama;
+    var u = currentKaryawanData.nup; 
+    var k = currentKaryawanData.unit;
+
+    db.ref('absensi/').push({
+        nama:n,
+        nup:u,
+        unit:k,
+        materi:curJudul,
+        waktu:new Date().toLocaleString()
+    }).then(function(){
+        var h=JSON.parse(localStorage.getItem('absensi_history')||"[]");
+        h.push(curId);
+        localStorage.setItem('absensi_history', JSON.stringify(h));
+        
+        localStorage.setItem('user_nama', n);
+        localStorage.setItem('user_nup', u);
+        localStorage.setItem('user_unit', k);
+
+        tutupModal('modal-absen');
+        toast('Absensi Berhasil! Materi dibuka.','success');
+        
+        var d = allMateriData[curId];
+        if(d) renderMateriContent(d);
+    }).catch(function(){
+        toast("Gagal menyimpan absensi. Cek koneksi.","error");
+    });
+}
+
+/* --- Helper: Render Konten Materi --- */
+function renderMateriContent(d){
+    document.getElementById('siswa-home').style.display='none';
+    document.getElementById('siswa-belajar').style.display='';
+    document.getElementById('judul-aktif').innerText=d.judul;
+    var hi=document.getElementById('img-header-belajar'); 
+    if(d.gambar){
+        hi.src=d.gambar;
+        hi.style.display='';
+    }else{
+        hi.style.display='none';
+    }
+    var lc=document.getElementById('container-links-materi'); 
+    lc.innerHTML="";
+    var lr=Array.isArray(d.links)?d.links:(typeof d.links==='string'&&d.links?[{label:"Buka Materi",url:d.links}]:[]);
+    for(var idx=0;idx<lr.length;idx++){ 
+        var it=lr[idx]; 
+        lc.innerHTML+='<a href="'+it.url+'" target="_blank" onclick="tandaiProgres(\'materi\')" class="bg-[#5851db] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-between group transition-all border-2 border-transparent hover:border-indigo-400" style="text-decoration:none;"><span class="flex items-center gap-3 uppercase italic text-xs"><i class="fas fa-play-circle text-xl group-hover:scale-110 transition-transform"></i> '+(it.label||'Materi '+(idx+1))+'</span><i class="fas fa-external-link-alt opacity-50 text-xs"></i></a>'; 
+    }
+    var kb=document.getElementById('link-kuis-aktif'); 
+    if(kb){
+        if(d.kuis&&d.kuis!=="undefined"&&d.kuis!==""){
+            kb.href=d.kuis;
+            kb.style.display='flex';
+        }else{
+            kb.style.display='none';
+        }
+    }
+    materiSelesai=false; 
+    kuisSelesai=false;
+    var bl=document.getElementById('btn-lapor'); 
+    bl.disabled=true; 
+    bl.className="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"; 
+    bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
+    var st=document.getElementById('status-belajar'); 
+    st.innerHTML='<i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan'; 
+    st.className="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit";
+    loadChat();
 }
 
 function kirimChat(){ var n=localStorage.getItem('user_nama')||"Anonim",p=document.getElementById('chat-pesan').value; if(p&&db){db.ref('chat/').push({nama:n,pesan:p,materiId:curId,judulMateri:curJudul,waktu:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});document.getElementById('chat-pesan').value="";} }
@@ -516,10 +1522,9 @@ function switchTabGuru(t){ var tabs=['materi','hidden','nilai','absen','chat']; 
 function prosesLaporSelesai(){ if(!db) return; if(confirm("Lapor selesai?")){ db.ref('laporan/').push({nama:localStorage.getItem('user_nama'),nup:localStorage.getItem('user_nup'),unit:localStorage.getItem('user_unit'),pelatihan:curJudul,nilai:"-",waktu:new Date().toLocaleString()}).then(function(){toast("Terkirim!","success");backToHome();}).catch(function(){toast("Gagal","error");}); } }
 function beriNilai(id){ if(!db) return; var n=prompt("Nilai (0-100):"); if(n) db.ref('laporan/'+id).update({nilai:n}); }
 function hapusRecord(path){ if(!db) return; if(confirm("Hapus permanen?")) db.ref(path).remove(); }
-function prosesAbsen(){ if(!db) return; var n=document.getElementById('abs-nama').value,u=document.getElementById('abs-nup').value,k=document.getElementById('abs-unit').value; if(n&&u&&k){ db.ref('absensi/').push({nama:n,nup:u,unit:k,materi:curJudul,waktu:new Date().toLocaleString()}).then(function(){ var h=JSON.parse(localStorage.getItem('absensi_history')||"[]"); h.push(curId); localStorage.setItem('absensi_history',JSON.stringify(h)); localStorage.setItem('user_nama',n); localStorage.setItem('user_nup',u); localStorage.setItem('user_unit',k); tutupModal('modal-absen'); bukaMateriSiswa(curId); }).catch(function(){alert("Gagal menyimpan!");}); } else { alert("Harap diisi semua!"); } }
 function downloadExcel(){ var t=document.getElementById('tabel-laporan'),data=[["Nama","NUP","Unit","Materi","Nilai"]]; var rows=t.querySelectorAll('tr'); for(var i=0;i<rows.length;i++){var cells=rows[i].querySelectorAll('td');if(cells.length>0)data.push([cells[0].innerText.trim(),cells[1].innerText.trim(),cells[2].innerText.trim(),cells[3].innerText.trim(),cells[4].innerText.trim()]);} var ws=XLSX.utils.aoa_to_sheet(data),wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Rekap"); XLSX.writeFile(wb,"Rekap_"+new Date().toLocaleDateString('id-ID').replace(/\//g,'-')+".xlsx"); }
 
-/* ===== FIREBASE LISTENERS (dibungkus if(db) agar tidak crash) ===== */
+/* ===== FIREBASE LISTENERS ===== */
 if (db) {
     db.ref('chat/').on('value',function(snap){
         var l=document.getElementById('admin-chat-list'); l.innerHTML="";
