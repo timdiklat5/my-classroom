@@ -23,6 +23,12 @@
         .toggle-eye.show{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
         .toggle-eye.hide{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
+        .session-card{border:2px solid #e0e7ff;border-radius:16px;overflow:hidden;background:#fff;transition:all .2s}
+        .session-card:hover{box-shadow:0 4px 12px rgba(99,102,241,.08)}
+        .sesi-header{background:#eef2ff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e7ff}
+        .sesi-complete{border-left:4px solid #22c55e;background:linear-gradient(135deg,rgba(34,197,94,.04),rgba(34,197,94,.01))}
+        .sesi-progress{border-left:4px solid #f59e0b;background:#fff}
+        .sesi-pending{border-left:4px solid #e5e7eb;background:#fff}
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
@@ -41,6 +47,7 @@
     </div>
 </nav>
 
+<!-- ==================== VIEW SISWA ==================== -->
 <main id="view-siswa" class="max-w-6xl mx-auto px-4 py-8">
     <div id="siswa-home">
         <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
@@ -54,10 +61,22 @@
                 <div class="absolute inset-0 bg-black/40 flex items-end p-6 md:p-10"><div class="text-white w-full"><h2 id="judul-aktif" class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none drop-shadow-md">JUDUL</h2><p class="text-indigo-200 text-xs font-bold uppercase tracking-widest mt-2">Discussion Group Active</p></div></div>
             </div>
             <div class="p-6 md:p-8">
-                <p id="status-belajar" class="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit"><i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan</p>
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Resource Materi:</h3>
-                <div id="container-links-materi" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6"></div>
-                <a id="link-kuis-aktif" onclick="tandaiProgres('kuis')" target="_blank" class="bg-[#f58020] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-center gap-3 transition-all uppercase italic mb-6 border-2 border-transparent hover:border-orange-400 cursor-pointer" style="display:none;text-decoration:none;"><i class="fas fa-edit text-xl"></i> Kerjakan Kuis</a>
+                <!-- Progress Bar -->
+                <div class="bg-gray-50 rounded-2xl border border-gray-100 p-4 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-gray-500 uppercase flex items-center gap-2"><i class="fas fa-chart-pie text-indigo-500"></i> Progress Pembelajaran</span>
+                        <span id="progress-text" class="text-xs font-black text-indigo-600">0/0 Sesi (0%)</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                        <div id="progress-bar" class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-700" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <p id="status-belajar" class="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit"><i class="fas fa-lock"></i> Selesaikan semua sesi untuk membuka laporan</p>
+
+                <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Daftar Sesi:</h3>
+                <div id="container-sesi" class="space-y-4 mb-6"></div>
+
                 <button id="btn-lapor" onclick="prosesLaporSelesai()" type="button" disabled class="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"><i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)</button>
                 <hr class="mb-6 border-gray-200 border-dashed">
                 <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest"><i class="fas fa-comments text-lg"></i> Diskusi Kelas</h3>
@@ -72,6 +91,7 @@
     </div>
 </main>
 
+<!-- ==================== VIEW GURU ==================== -->
 <main id="view-guru" style="display:none" class="max-w-7xl mx-auto px-4 py-8">
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 class="text-2xl font-black text-indigo-900 uppercase">Panel Administrator</h1>
@@ -100,21 +120,16 @@
     </div>
 </main>
 
-<!-- MODAL ABSEN (Updated with Object Key Lookup) -->
+<!-- ==================== MODAL ABSEN ==================== -->
 <div id="modal-absen" class="modal-overlay">
     <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-fade-in">
         <div class="text-center mb-6">
-            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fas fa-id-badge text-indigo-600 text-xl"></i>
-            </div>
+            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-id-badge text-indigo-600 text-xl"></i></div>
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Verifikasi Data</h3>
-            <p class="text-xs text-gray-500 mt-1">Masukkan NUP Anda Tekan Enter. Sistem akan otomatis mengambil data.</p>
+            <p class="text-xs text-gray-500 mt-1">Masukkan NUP Anda. Sistem akan otomatis mengambil data.</p>
         </div>
         <div class="space-y-3 mb-8">
-            <!-- NUP Input -->
             <input id="abs-nup" type="text" placeholder="Masukkan NUP Anda" class="w-full border-2 border-indigo-200 rounded-xl px-5 py-4 outline-none focus:border-indigo-600 bg-indigo-50 font-black text-sm transition-colors text-center uppercase tracking-widest" onchange="cekNUPDatabase()" onkeyup="this.value=this.value.toUpperCase()">
-            
-            <!-- Input Nama & Unit (Otomatis terisi & Readonly) -->
             <div class="grid grid-cols-1 gap-3 opacity-60 pointer-events-none transition-opacity" id="absen-data-container">
                 <input id="abs-nama" type="text" placeholder="Nama (Otomatis)" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none bg-gray-50 uppercase font-bold text-sm" readonly>
                 <input id="abs-unit" type="text" placeholder="Unit (Otomatis)" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none bg-gray-50 uppercase font-bold text-sm" readonly>
@@ -128,17 +143,22 @@
     </div>
 </div>
 
-<!-- MODAL TAMBAH MATERI -->
+<!-- ==================== MODAL TAMBAH MATERI ==================== -->
 <div id="modal-tambah" class="modal-overlay">
-    <div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl">
+    <div class="bg-white w-full max-w-3xl rounded-3xl p-8 shadow-2xl">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Tambah Materi</h3>
             <button onclick="tutupModal('modal-tambah')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
         </div>
         <div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2">
             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul Kategori</label><input id="input-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm" placeholder="Modul 1 - K3 Dasar"></div>
-            <div><div class="flex justify-between items-center mb-2"><label class="block text-xs font-bold text-gray-500 uppercase">Daftar Link</label><button onclick="tambahBarisLink('dynamic-links-container')" type="button" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold">+ Tambah</button></div><div id="dynamic-links-container" class="space-y-2"><div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></div></div>
-            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis (Opsional)</label><input id="input-kuis" type="text" placeholder="https://..." class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm"></div>
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-xs font-bold text-gray-500 uppercase">Daftar Sesi</label>
+                    <button onclick="tambahSesi('add-sessions-container')" type="button" class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 hover:bg-indigo-700 transition-colors"><i class="fas fa-plus text-[9px]"></i> Tambah Sesi</button>
+                </div>
+                <div id="add-sessions-container" class="space-y-3"></div>
+            </div>
             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Cover Gambar</label><div class="relative w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 cursor-pointer overflow-hidden"><input type="file" id="input-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this)"><img id="img-preview" src="" class="absolute inset-0 w-full h-full object-cover z-0" style="display:none"><div id="upload-placeholder" class="text-center pointer-events-none z-0"><i class="fas fa-cloud-upload-alt text-xl text-indigo-400 mb-1"></i><p class="text-[10px] font-bold text-indigo-500">Klik upload</p></div></div></div>
         </div>
         <div class="flex gap-2 border-t pt-4">
@@ -148,9 +168,9 @@
     </div>
 </div>
 
-<!-- MODAL EDIT MATERI -->
+<!-- ==================== MODAL EDIT MATERI ==================== -->
 <div id="modal-edit" class="modal-overlay">
-    <div class="bg-white w-full max-w-2xl rounded-3xl p-8 shadow-2xl">
+    <div class="bg-white w-full max-w-3xl rounded-3xl p-8 shadow-2xl">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Edit Materi</h3>
             <button onclick="tutupModal('modal-edit')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
@@ -158,8 +178,13 @@
         <div class="space-y-4 mb-6 max-h-[60vh] overflow-y-auto custom-scroll pr-2">
             <input type="hidden" id="edit-id">
             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Judul</label><input id="input-edit-judul" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 font-bold text-sm"></div>
-            <div><div class="flex justify-between items-center mb-2"><label class="block text-xs font-bold text-gray-500 uppercase">Links</label><button onclick="tambahBarisLink('dynamic-links-container-edit')" type="button" class="text-xs bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg font-bold">+ Tambah</button></div><div id="dynamic-links-container-edit" class="space-y-2"></div></div>
-            <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link Kuis</label><input id="input-edit-kuis" type="text" class="w-full border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 bg-gray-50 text-sm"></div>
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block text-xs font-bold text-gray-500 uppercase">Daftar Sesi</label>
+                    <button onclick="tambahSesi('edit-sessions-container')" type="button" class="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 hover:bg-indigo-700 transition-colors"><i class="fas fa-plus text-[9px]"></i> Tambah Sesi</button>
+                </div>
+                <div id="edit-sessions-container" class="space-y-3"></div>
+            </div>
             <div class="bg-red-50 p-3 rounded-xl border border-red-100 flex items-center justify-between"><div><label for="input-edit-hidden" class="block text-xs font-bold text-red-800 uppercase cursor-pointer">Status</label><span class="text-[9px] text-red-600">Centang = sembunyikan dari siswa</span></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="input-edit-hidden" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div></label></div>
             <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Ganti Cover</label><div class="relative w-full h-28 border-2 border-dashed border-indigo-200 rounded-xl flex flex-col items-center justify-center bg-indigo-50/30 cursor-pointer overflow-hidden"><input type="file" id="input-edit-gambar" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImageEdit(this)"><img id="img-preview-edit" src="" class="absolute inset-0 w-full h-full object-cover z-0" style="display:none"><div id="upload-placeholder-edit" class="text-center pointer-events-none z-0"><i class="fas fa-cloud-upload-alt text-xl text-indigo-400 mb-1"></i><p class="text-[10px] font-bold text-indigo-500">Klik ganti</p></div></div></div>
         </div>
@@ -174,11 +199,10 @@
 
 <script>
 /* =======================================================
-   DATABASE PEGAWAI (KEY-VALUE OBJECT)
-   Format: "NUP": { nama: "...", unit: "..." }
+   DATABASE PEGAWAI
    ======================================================= */
 const databasePegawai = {
-  "38491": { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN" },
+	"38491": { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN" },
     "39792": { nama: "NASARUDDIN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
     "40793": { nama: "ROSALINA AMRAN", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
     "41093": { nama: "DWIYANA", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
@@ -1030,7 +1054,6 @@ const databasePegawai = {
     "124725": { nama: "RAFIF BINTANG RAMADHAN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
     "124825": { nama: "ELMY MUFIDAH", unit: "DIVISI HUMAN CAPITAL" }
 };
-  // ... Tambahkan data lainnya di sini dengan format yang sama
 
 /* ===== Firebase Init ===== */
 var db = null, storageRef = null;
@@ -1046,39 +1069,63 @@ try {
     });
     db = firebase.database();
     storageRef = firebase.storage();
-    console.log("Firebase OK");
 } catch(e) { console.error("Firebase init error:", e); }
 
-var curId = "", curJudul = "", isAdmin = false, materiSelesai = false, kuisSelesai = false;
+var curId = "", curJudul = "", isAdmin = false;
 var allMateriData = {};
 var currentKaryawanData = null;
 
-/* ===== MODAL: buka/tutup pakai style.display ===== */
-function bukaModal(id) { 
-    document.getElementById(id).style.display = 'flex';
-    if(id === 'modal-absen') resetModalAbsen();
-}
-function tutupModal(id) { document.getElementById(id).style.display = 'none'; }
+/* ===== Utility ===== */
+function bukaModal(id) { document.getElementById(id).style.display='flex'; if(id==='modal-absen') resetModalAbsen(); }
+function tutupModal(id) { document.getElementById(id).style.display='none'; }
 
-/* ===== Toast ===== */
 function toast(msg, type) {
     type = type || 'info';
-    var box = document.getElementById('toastBox');
-    var el = document.createElement('div');
+    var box = document.getElementById('toastBox'), el = document.createElement('div');
     var c = {success:'bg-emerald-50 border-emerald-200 text-emerald-700',error:'bg-red-50 border-red-200 text-red-600',info:'bg-indigo-50 border-indigo-200 text-indigo-700'};
     var ic = {success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};
-    el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in ' + (c[type]||c.info);
-    el.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i>' + msg;
+    el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in '+(c[type]||c.info);
+    el.innerHTML = '<i class="fas '+(ic[type]||ic.info)+'"></i>'+msg;
     box.appendChild(el);
     setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all .3s'; setTimeout(function(){ el.remove(); },300); },3500);
+}
+
+/* ===== Normalize Materi (backward compat) ===== */
+function normalizeMateri(m) {
+    if (!m) return { sesi: [] };
+    if (m.sesi && Array.isArray(m.sesi) && m.sesi.length > 0) return m;
+    var links = [];
+    if (Array.isArray(m.links)) links = m.links;
+    else if (m.links && typeof m.links === 'string') links = [{label:"Materi", url:m.links}];
+    var result = { judul: m.judul, gambar: m.gambar, isHidden: m.isHidden, waktu: m.waktu };
+    result.sesi = [{ nama: "Sesi 1", links: links, kuis: m.kuis || "" }];
+    return result;
+}
+
+/* ===== Progress Tracking ===== */
+function getSesiProgress(materiId) {
+    try { return JSON.parse(localStorage.getItem('progres_'+materiId) || '{}'); } catch(e) { return {}; }
+}
+function isSesiComplete(materiId, sesiIndex, sesiData) {
+    var prog = getSesiProgress(materiId), sp = prog[sesiIndex] || {};
+    var hasLinks = sesiData.links && sesiData.links.length > 0;
+    var hasKuis = sesiData.kuis && sesiData.kuis !== '' && sesiData.kuis !== 'undefined';
+    var materiDone = !hasLinks || sp.materi === true;
+    var kuisDone = !hasKuis || sp.kuis === true;
+    return materiDone && kuisDone;
+}
+function isAllSesiComplete(materiId, nm) {
+    if (!nm.sesi || nm.sesi.length === 0) return false;
+    for (var i = 0; i < nm.sesi.length; i++) {
+        if (!isSesiComplete(materiId, i, nm.sesi[i])) return false;
+    }
+    return true;
 }
 
 /* ===== Navigasi ===== */
 function pindahMenu(role) {
     if (role === 'guru') { if (prompt("PIN Admin:") !== "0") { toast("Akses gagal!","error"); return; } isAdmin = true; } else { isAdmin = false; }
-    var v = {siswa:'view-siswa',guru:'view-guru'};
-    var b = {siswa:'nav-siswa',guru:'nav-guru'};
-    var k = ['siswa','guru'];
+    var v = {siswa:'view-siswa',guru:'view-guru'}, b = {siswa:'nav-siswa',guru:'nav-guru'}, k = ['siswa','guru'];
     for (var i = 0; i < k.length; i++) {
         document.getElementById(v[k[i]]).style.display = 'none';
         var btn = document.getElementById(b[k[i]]);
@@ -1092,218 +1139,338 @@ function pindahMenu(role) {
 function toggleVisibilitas(id) {
     var data = allMateriData[id]; if (!data) return;
     var ns = !(data.isHidden === true);
-    if (!confirm((ns ? 'Sembunyikan' : 'Tampilkan') + ' "' + data.judul + '"?')) return;
-    db.ref('materi/' + id).update({isHidden: ns}).then(function(){ toast('"' + data.judul + '" ' + (ns ? 'disembunyikan' : 'ditampilkan'), ns ? 'error' : 'success'); }).catch(function(){ toast('Gagal','error'); });
+    if (!confirm((ns?'Sembunyikan':'Tampilkan')+' "'+(data.judul||'')+'"?')) return;
+    db.ref('materi/'+id).update({isHidden:ns}).then(function(){ toast('"'+(data.judul||'')+'" '+(ns?'disembunyikan':'ditampilkan'), ns?'error':'success'); }).catch(function(){ toast('Gagal','error'); });
+}
+
+/* =====================================================
+   SESSION MANAGEMENT (Admin Modals)
+   ===================================================== */
+function createSessionCardHTML() {
+    return '<div class="session-card animate-fade-in">' +
+        '<div class="sesi-header">' +
+            '<span class="sesi-number text-[10px] font-black text-indigo-600 uppercase tracking-widest">Sesi 1</span>' +
+            '<button onclick="this.closest(\'.session-card\').remove();renumberSesi(this.closest(\'.session-card\').parentElement.id)" type="button" class="text-red-400 hover:text-red-600 text-[10px] font-bold flex items-center gap-1 transition-colors"><i class="fas fa-trash"></i> Hapus</button>' +
+        '</div>' +
+        '<div class="p-4 space-y-3">' +
+            '<input type="text" placeholder="Nama Sesi (contoh: Pengenalan K3)" class="sesi-nama w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 bg-gray-50 font-bold">' +
+            '<div>' +
+                '<div class="flex justify-between items-center mb-2">' +
+                    '<label class="text-[10px] font-bold text-gray-400 uppercase">Links Materi</label>' +
+                    '<button onclick="tambahBarisLinkInSesi(this)" type="button" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-lg font-bold hover:bg-gray-200 transition-colors">+ Link</button>' +
+                '</div>' +
+                '<div class="sesi-links space-y-2">' +
+                    '<div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>' +
+                '</div>' +
+            '</div>' +
+            '<input type="text" placeholder="Link Kuis Sesi Ini (opsional)" class="sesi-kuis w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 bg-white">' +
+        '</div>' +
+    '</div>';
+}
+
+function tambahSesi(containerId) {
+    var container = document.getElementById(containerId);
+    var div = document.createElement('div');
+    div.innerHTML = createSessionCardHTML();
+    container.appendChild(div.firstElementChild);
+    renumberSesi(containerId);
+}
+
+function renumberSesi(containerId) {
+    var cards = document.querySelectorAll('#'+containerId+' .session-card');
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].querySelector('.sesi-number').textContent = 'Sesi ' + (i + 1);
+    }
+}
+
+function tambahBarisLinkInSesi(btn) {
+    var linksContainer = btn.closest('.session-card').querySelector('.sesi-links');
+    var div = document.createElement('div');
+    div.className = 'link-row flex gap-2 items-center animate-fade-in';
+    div.innerHTML = '<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
+    linksContainer.appendChild(div);
+}
+
+function collectSessions(containerId) {
+    var sessions = [], cards = document.querySelectorAll('#'+containerId+' .session-card');
+    for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        var nama = card.querySelector('.sesi-nama').value.trim();
+        var links = [], linkRows = card.querySelectorAll('.sesi-links .link-row');
+        for (var j = 0; j < linkRows.length; j++) {
+            var label = linkRows[j].querySelector('.input-label').value.trim();
+            var url = linkRows[j].querySelector('.input-url').value.trim();
+            if (label && url) links.push({label:label, url:url});
+        }
+        var kuis = card.querySelector('.sesi-kuis').value.trim();
+        sessions.push({nama: nama||('Sesi '+(i+1)), links:links, kuis:kuis||''});
+    }
+    return sessions;
+}
+
+function populateSessions(containerId, sesiData) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = '';
+    if (!sesiData || !Array.isArray(sesiData) || sesiData.length === 0) { tambahSesi(containerId); return; }
+    for (var i = 0; i < sesiData.length; i++) {
+        tambahSesi(containerId);
+        var card = container.querySelectorAll('.session-card')[i];
+        card.querySelector('.sesi-nama').value = sesiData[i].nama || '';
+        card.querySelector('.sesi-kuis').value = sesiData[i].kuis || '';
+        var linksContainer = card.querySelector('.sesi-links');
+        linksContainer.innerHTML = '';
+        var links = sesiData[i].links || [];
+        if (links.length === 0) {
+            var div = document.createElement('div');
+            div.className = 'link-row flex gap-2 items-center animate-fade-in';
+            div.innerHTML = '<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
+            linksContainer.appendChild(div);
+        } else {
+            for (var j = 0; j < links.length; j++) {
+                var div = document.createElement('div');
+                div.className = 'link-row flex gap-2 items-center animate-fade-in';
+                div.innerHTML = '<input type="text" value="'+(links[j].label||'')+'" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" value="'+(links[j].url||'')+'" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
+                linksContainer.appendChild(div);
+            }
+        }
+    }
+    renumberSesi(containerId);
 }
 
 /* ===== Image Preview ===== */
 function previewImage(input){ var f=input.files[0]; if(f){var r=new FileReader();r.onload=function(e){var i=document.getElementById('img-preview');i.src=e.target.result;i.style.display='';document.getElementById('upload-placeholder').style.display='none';};r.readAsDataURL(f);} }
 function previewImageEdit(input){ var f=input.files[0]; if(f){var r=new FileReader();r.onload=function(e){var i=document.getElementById('img-preview-edit');i.src=e.target.result;i.style.display='';document.getElementById('upload-placeholder-edit').style.display='none';};r.readAsDataURL(f);} }
 
-/* ===== Link Rows ===== */
-function tambahBarisLink(containerId){ var c=document.getElementById(containerId),d=document.createElement('div');d.className="link-row flex gap-2 items-center animate-fade-in";d.innerHTML='<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(d); }
-
 /* ===== Modal Tambah Materi ===== */
 function bukaModalTambahMateri(){
     document.getElementById('input-judul').value="";
-    document.getElementById('input-kuis').value="";
     document.getElementById('input-gambar').value="";
     document.getElementById('img-preview').style.display='none';
     document.getElementById('upload-placeholder').style.display='';
-    document.getElementById('dynamic-links-container').innerHTML='<div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>';
+    document.getElementById('add-sessions-container').innerHTML='';
+    tambahSesi('add-sessions-container');
     bukaModal('modal-tambah');
 }
 function simpanMateriBaru(){
     if(!db) return toast('Firebase belum siap','error');
-    var j=document.getElementById('input-judul').value,k=document.getElementById('input-kuis').value,fi=document.getElementById('input-gambar'),btn=document.getElementById('btn-simpan-materi'),la=[],hl=false;
-    var rows=document.querySelectorAll('#dynamic-links-container .link-row');
-    for(var i=0;i<rows.length;i++){var l=rows[i].querySelector('.input-label').value,u=rows[i].querySelector('.input-url').value;if(l&&u){la.push({label:l,url:u});hl=true;}}
-    if(!j) return alert("Judul wajib!"); if(!hl) return alert("Minimal satu link!");
+    var j=document.getElementById('input-judul').value.trim(), fi=document.getElementById('input-gambar'), btn=document.getElementById('btn-simpan-materi');
+    var sesi = collectSessions('add-sessions-container');
+    if(!j) return alert("Judul wajib!");
+    if(sesi.length===0) return alert("Minimal satu sesi!");
+    for(var i=0;i<sesi.length;i++){ if(sesi[i].links.length===0) return alert("Sesi "+(i+1)+" minimal punya satu link!"); }
     var ob=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true;
-    var doSave=function(gu){ db.ref('materi/').push({judul:j,links:la,kuis:k||"",gambar:gu,isHidden:false,waktu:new Date().toLocaleDateString()}).then(function(){tutupModal('modal-tambah');toast('Materi berhasil ditambahkan!','success');}).catch(function(){toast('Gagal menyimpan','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
+    var doSave=function(gu){ db.ref('materi/').push({judul:j,sesi:sesi,gambar:gu,isHidden:false,waktu:new Date().toLocaleDateString()}).then(function(){tutupModal('modal-tambah');toast('Materi berhasil ditambahkan!','success');}).catch(function(){toast('Gagal menyimpan','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
     if(fi.files.length>0){ var f=fi.files[0],sr=storageRef.ref('materi_images/'+Date.now()+'_'+f.name); sr.put(f).then(function(s){return s.ref.getDownloadURL();}).then(function(url){doSave(url);}).catch(function(){toast('Gagal upload gambar','error');btn.innerHTML=ob;btn.disabled=false;}); } else { doSave("https://picsum.photos/seed/"+j.replace(/\s/g,'')+"/800/400"); }
 }
 
 /* ===== Modal Edit Materi ===== */
 function bukaModalEditMateri(id){
     var d=allMateriData[id]; if(!d) return;
+    var nm = normalizeMateri(d);
     document.getElementById('edit-id').value=id;
-    document.getElementById('input-edit-judul').value=d.judul||"";
-    document.getElementById('input-edit-kuis').value=d.kuis||"";
-    document.getElementById('input-edit-hidden').checked=d.isHidden===true;
+    document.getElementById('input-edit-judul').value=nm.judul||"";
+    document.getElementById('input-edit-hidden').checked=nm.isHidden===true;
     document.getElementById('input-edit-gambar').value="";
     document.getElementById('img-preview-edit').style.display='none';
     document.getElementById('upload-placeholder-edit').style.display='';
-    var c=document.getElementById('dynamic-links-container-edit'); c.innerHTML="";
-    var cl=Array.isArray(d.links)?d.links:[];
-    if(cl.length===0) tambahBarisLink('dynamic-links-container-edit');
-    else { for(var i=0;i<cl.length;i++){var div=document.createElement('div');div.className="link-row flex gap-2 items-center animate-fade-in";div.innerHTML='<input type="text" value="'+(cl[i].label||'')+'" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" value="'+(cl[i].url||'')+'" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';c.appendChild(div);} }
+    populateSessions('edit-sessions-container', nm.sesi);
     bukaModal('modal-edit');
 }
 function updateMateri(){
     if(!db) return toast('Firebase belum siap','error');
-    var id=document.getElementById('edit-id').value,j=document.getElementById('input-edit-judul').value,k=document.getElementById('input-edit-kuis').value,h=document.getElementById('input-edit-hidden').checked,fi=document.getElementById('input-edit-gambar'),btn=document.getElementById('btn-update-materi'),old=allMateriData[id],la=[];
-    var rows=document.querySelectorAll('#dynamic-links-container-edit .link-row');
-    for(var i=0;i<rows.length;i++){var l=rows[i].querySelector('.input-label').value,u=rows[i].querySelector('.input-url').value;if(l&&u)la.push({label:l,url:u});}
+    var id=document.getElementById('edit-id').value, j=document.getElementById('input-edit-judul').value.trim(), h=document.getElementById('input-edit-hidden').checked, fi=document.getElementById('input-edit-gambar'), btn=document.getElementById('btn-update-materi'), old=allMateriData[id];
+    var sesi = collectSessions('edit-sessions-container');
     if(!j) return alert("Judul wajib!");
+    if(sesi.length===0) return alert("Minimal satu sesi!");
     var ob=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; btn.disabled=true;
-    var doUpdate=function(gu){ db.ref('materi/'+id).update({judul:j,links:la,kuis:k||"",isHidden:h,gambar:gu}).then(function(){tutupModal('modal-edit');toast('Materi berhasil diupdate!','success');}).catch(function(){toast('Gagal update','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
+    var doUpdate=function(gu){ db.ref('materi/'+id).update({judul:j,sesi:sesi,isHidden:h,gambar:gu}).then(function(){tutupModal('modal-edit');toast('Materi berhasil diupdate!','success');}).catch(function(){toast('Gagal update','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
     if(fi.files.length>0){ var f=fi.files[0],sr=storageRef.ref('materi_images/'+Date.now()+'_'+f.name); sr.put(f).then(function(s){return s.ref.getDownloadURL();}).then(function(url){doUpdate(url);}).catch(function(){toast('Gagal upload','error');btn.innerHTML=ob;btn.disabled=false;}); } else { doUpdate(old&&old.gambar?old.gambar:"https://picsum.photos/seed/"+j.replace(/\s/g,'')+"/800/400"); }
 }
 
-/* ===== Logika Siswa ===== */
-function tandaiProgres(t){ if(t==='materi') materiSelesai=true; if(t==='kuis') kuisSelesai=true; var bl=document.getElementById('btn-lapor'),st=document.getElementById('status-belajar'),hk=document.getElementById('link-kuis-aktif').style.display!=='none'; if(materiSelesai&&(hk?kuisSelesai:true)){ bl.disabled=false;bl.className="w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90";bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai'; st.innerHTML='<i class="fas fa-unlock text-emerald-500"></i> Materi selesai!'; st.className="text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit"; } }
+/* =====================================================
+   LOGIKA SISWA
+   ===================================================== */
+function tandaiProgresSesi(materiId, sesiIdx, type) {
+    var key = 'progres_'+materiId;
+    var prog = JSON.parse(localStorage.getItem(key) || '{}');
+    if (!prog[sesiIdx]) prog[sesiIdx] = {};
+    prog[sesiIdx][type] = true;
+    localStorage.setItem(key, JSON.stringify(prog));
+    setTimeout(function(){
+        var nm = normalizeMateri(allMateriData[materiId]);
+        renderSesiContent(materiId, nm);
+        renderProgressBar(materiId, nm);
+        checkAllSesiComplete(materiId, nm);
+    }, 150);
+}
+
+function checkAllSesiComplete(materiId, nm) {
+    if (isAllSesiComplete(materiId, nm)) {
+        var bl = document.getElementById('btn-lapor');
+        bl.disabled = false;
+        bl.className = "w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90 cursor-pointer";
+        bl.innerHTML = '<i class="fas fa-check-circle"></i> Lapor Selesai';
+        var st = document.getElementById('status-belajar');
+        st.innerHTML = '<i class="fas fa-unlock text-emerald-500"></i> Semua sesi selesai! Silakan lapor.';
+        st.className = "text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit";
+    }
+}
+
+function renderProgressBar(materiId, nm) {
+    var total = nm.sesi ? nm.sesi.length : 0, done = 0;
+    for (var i = 0; i < total; i++) { if (isSesiComplete(materiId, i, nm.sesi[i])) done++; }
+    var pct = total > 0 ? Math.round((done/total)*100) : 0;
+    document.getElementById('progress-bar').style.width = pct+'%';
+    document.getElementById('progress-text').textContent = done+'/'+total+' Sesi ('+pct+'%)';
+}
+
+function renderSesiContent(materiId, nm) {
+    var container = document.getElementById('container-sesi');
+    if (!nm.sesi || nm.sesi.length === 0) { container.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Tidak ada sesi.</p>'; return; }
+    var html = '';
+    for (var i = 0; i < nm.sesi.length; i++) {
+        var s = nm.sesi[i];
+        var complete = isSesiComplete(materiId, i, s);
+        var prog = getSesiProgress(materiId), sp = prog[i] || {};
+        var hasKuis = s.kuis && s.kuis !== '' && s.kuis !== 'undefined';
+        var hasLinks = s.links && s.links.length > 0;
+
+        var borderClass, statusIcon, statusColor, statusText, statusBg;
+        if (complete) {
+            borderClass = 'sesi-complete'; statusIcon = 'fa-check-circle'; statusColor = 'text-emerald-500'; statusText = 'Selesai'; statusBg = 'bg-emerald-100 text-emerald-700';
+        } else if (sp.materi || sp.kuis) {
+            borderClass = 'sesi-progress'; statusIcon = 'fa-clock'; statusColor = 'text-amber-500'; statusText = 'Dalam Proses'; statusBg = 'bg-amber-100 text-amber-700';
+        } else {
+            borderClass = 'sesi-pending'; statusIcon = 'fa-circle'; statusColor = 'text-gray-300'; statusText = 'Belum Dimulai'; statusBg = 'bg-gray-100 text-gray-500';
+        }
+
+        var infoParts = [];
+        if (hasLinks) infoParts.push(s.links.length + ' Materi');
+        if (hasKuis) infoParts.push('Kuis');
+        var infoText = infoParts.join(' · ') || 'Tidak ada konten';
+
+        html += '<div class="'+borderClass+' rounded-2xl border border-gray-100 p-5 transition-all">';
+        html += '<div class="flex items-center justify-between mb-4">';
+        html += '<div class="flex items-center gap-3">';
+        html += '<i class="fas '+statusIcon+' '+statusColor+' text-lg"></i>';
+        html += '<div><h4 class="font-black text-sm text-gray-900 uppercase tracking-tight">'+(s.nama||'Sesi '+(i+1))+'</h4>';
+        html += '<span class="text-[10px] text-gray-400 font-bold">'+infoText+'</span></div></div>';
+        html += '<span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-full '+statusBg+'">'+statusText+'</span>';
+        html += '</div>';
+
+        if (hasLinks) {
+            html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">';
+            for (var j = 0; j < s.links.length; j++) {
+                var linkDone = complete || sp.materi === true;
+                html += '<a href="'+s.links[j].url+'" target="_blank" onclick="tandaiProgresSesi(\''+materiId+'\','+i+',\'materi\')" class="bg-[#5851db] text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:opacity-90 flex items-center justify-between group transition-all text-xs uppercase italic" style="text-decoration:none;">';
+                html += '<span class="flex items-center gap-2"><i class="fas fa-play-circle text-base group-hover:scale-110 transition-transform"></i> '+(s.links[j].label||'Materi '+(j+1))+'</span>';
+                html += linkDone ? '<i class="fas fa-check text-emerald-300 text-[10px]"></i>' : '<i class="fas fa-external-link-alt opacity-40 text-[10px]"></i>';
+                html += '</a>';
+            }
+            html += '</div>';
+        }
+
+        if (hasKuis) {
+            var kuisDone = sp.kuis === true;
+            html += '<a href="'+s.kuis+'" target="_blank" onclick="tandaiProgresSesi(\''+materiId+'\','+i+',\'kuis\')" class="bg-[#f58020] text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:opacity-90 flex items-center justify-between group transition-all text-xs uppercase italic border-2 border-transparent hover:border-orange-400 w-full md:w-auto" style="text-decoration:none;">';
+            html += '<span class="flex items-center gap-2"><i class="fas fa-edit text-base"></i> Kerjakan Kuis</span>';
+            html += kuisDone ? '<i class="fas fa-check-circle text-emerald-300"></i>' : '<i class="fas fa-external-link-alt opacity-40 text-[10px]"></i>';
+            html += '</a>';
+        }
+
+        html += '</div>';
+    }
+    container.innerHTML = html;
+}
+
 function backToHome(){ document.getElementById('siswa-home').style.display=''; document.getElementById('siswa-belajar').style.display='none'; }
 
-/* --- UPDATED: Validasi NUP Object Key-Value --- */
+/* ===== Absen NUP ===== */
 function resetModalAbsen() {
-    document.getElementById('abs-nup').value = "";
-    document.getElementById('abs-nama').value = "";
-    document.getElementById('abs-unit').value = "";
-    document.getElementById('nup-error-msg').textContent = "";
-    document.getElementById('absen-data-container').style.opacity = "0.6";
-    document.getElementById('absen-data-container').style.pointerEvents = "none";
-    document.getElementById('btn-submit-absen').disabled = true;
-    document.getElementById('btn-submit-absen').className = "flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
-    currentKaryawanData = null;
+    document.getElementById('abs-nup').value="";
+    document.getElementById('abs-nama').value="";
+    document.getElementById('abs-unit').value="";
+    document.getElementById('nup-error-msg').textContent="";
+    document.getElementById('absen-data-container').style.opacity="0.6";
+    document.getElementById('absen-data-container').style.pointerEvents="none";
+    document.getElementById('btn-submit-absen').disabled=true;
+    document.getElementById('btn-submit-absen').className="flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+    currentKaryawanData=null;
 }
 
 function cekNUPDatabase() {
-    var nupInput = document.getElementById('abs-nup').value.trim();
-    var namaInput = document.getElementById('abs-nama');
-    var unitInput = document.getElementById('abs-unit');
-    var container = document.getElementById('absen-data-container');
-    var errorMsg = document.getElementById('nup-error-msg');
-    var btnSubmit = document.getElementById('btn-submit-absen');
-
-    namaInput.value = "";
-    unitInput.value = "";
-    errorMsg.textContent = "";
-    currentKaryawanData = null;
-
-    if (!nupInput) return;
-
+    var nupInput=document.getElementById('abs-nup').value.trim(), namaInput=document.getElementById('abs-nama'), unitInput=document.getElementById('abs-unit'), container=document.getElementById('absen-data-container'), errorMsg=document.getElementById('nup-error-msg'), btnSubmit=document.getElementById('btn-submit-absen');
+    namaInput.value=""; unitInput.value=""; errorMsg.textContent=""; currentKaryawanData=null;
+    if(!nupInput) return;
     var dataKaryawan = databasePegawai[nupInput];
-
-    if (dataKaryawan) {
-        namaInput.value = dataKaryawan.nama;
-        unitInput.value = dataKaryawan.unit;
-        
-        container.style.opacity = "1";
-        container.style.pointerEvents = "auto";
-        
-        btnSubmit.disabled = false;
-        btnSubmit.className = "flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700";
-        
-        toast("Data Pegawai Ditemukan!", "success");
-        
-        currentKaryawanData = {
-            nup: nupInput,
-            nama: dataKaryawan.nama,
-            unit: dataKaryawan.unit
-        };
+    if(dataKaryawan){
+        namaInput.value=dataKaryawan.nama; unitInput.value=dataKaryawan.unit;
+        container.style.opacity="1"; container.style.pointerEvents="auto";
+        btnSubmit.disabled=false;
+        btnSubmit.className="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700 cursor-pointer";
+        toast("Data Pegawai Ditemukan!","success");
+        currentKaryawanData={nup:nupInput, nama:dataKaryawan.nama, unit:dataKaryawan.unit};
     } else {
-        container.style.opacity = "0.6";
-        container.style.pointerEvents = "none";
-        
-        btnSubmit.disabled = true;
-        btnSubmit.className = "flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
-        
-        errorMsg.textContent = "NUP tidak terdaftar di database.";
-        toast("NUP Tidak Valid", "error");
+        container.style.opacity="0.6"; container.style.pointerEvents="none";
+        btnSubmit.disabled=true;
+        btnSubmit.className="flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
+        errorMsg.textContent="NUP tidak terdaftar di database.";
+        toast("NUP Tidak Valid","error");
     }
 }
 
 function bukaMateriSiswa(id){
     var d=allMateriData[id]; if(!d) return toast("Materi tidak ditemukan!","error");
-    curId=id; curJudul=d.judul;
-    
+    curId=id; curJudul=d.judul||'';
     var h=JSON.parse(localStorage.getItem('absensi_history')||"[]");
-    
-    if(h.indexOf(id)!==-1){
-        renderMateriContent(d);
-    } else {
-        bukaModal('modal-absen');
-    }
+    if(h.indexOf(id)!==-1){ renderMateriContent(d); } else { bukaModal('modal-absen'); }
 }
 
 function prosesAbsen(){
     if(!db) return;
-    
-    if(!currentKaryawanData){
-        toast("NUP tidak valid. Mohon cek ulang.","error");
-        return;
-    }
-
-    var n = currentKaryawanData.nama;
-    var u = currentKaryawanData.nup; 
-    var k = currentKaryawanData.unit;
-
-    db.ref('absensi/').push({
-        nama:n,
-        nup:u,
-        unit:k,
-        materi:curJudul,
-        waktu:new Date().toLocaleString()
-    }).then(function(){
-        var h=JSON.parse(localStorage.getItem('absensi_history')||"[]");
-        h.push(curId);
-        localStorage.setItem('absensi_history', JSON.stringify(h));
-        
-        localStorage.setItem('user_nama', n);
-        localStorage.setItem('user_nup', u);
-        localStorage.setItem('user_unit', k);
-
-        tutupModal('modal-absen');
-        toast('Absensi Berhasil! Materi dibuka.','success');
-        
-        var d = allMateriData[curId];
-        if(d) renderMateriContent(d);
-    }).catch(function(){
-        toast("Gagal menyimpan absensi. Cek koneksi.","error");
-    });
+    if(!currentKaryawanData){ toast("NUP tidak valid.","error"); return; }
+    var n=currentKaryawanData.nama, u=currentKaryawanData.nup, k=currentKaryawanData.unit;
+    db.ref('absensi/').push({nama:n,nup:u,unit:k,materi:curJudul,waktu:new Date().toLocaleString()}).then(function(){
+        var h=JSON.parse(localStorage.getItem('absensi_history')||"[]"); h.push(curId); localStorage.setItem('absensi_history',JSON.stringify(h));
+        localStorage.setItem('user_nama',n); localStorage.setItem('user_nup',u); localStorage.setItem('user_unit',k);
+        tutupModal('modal-absen'); toast('Absensi Berhasil! Materi dibuka.','success');
+        var d=allMateriData[curId]; if(d) renderMateriContent(d);
+    }).catch(function(){ toast("Gagal menyimpan absensi.","error"); });
 }
 
-/* --- Helper: Render Konten Materi --- */
 function renderMateriContent(d){
     document.getElementById('siswa-home').style.display='none';
     document.getElementById('siswa-belajar').style.display='';
-    document.getElementById('judul-aktif').innerText=d.judul;
-    var hi=document.getElementById('img-header-belajar'); 
-    if(d.gambar){
-        hi.src=d.gambar;
-        hi.style.display='';
-    }else{
-        hi.style.display='none';
+    document.getElementById('judul-aktif').innerText=d.judul||'';
+    var hi=document.getElementById('img-header-belajar');
+    var nm = normalizeMateri(d);
+    if(nm.gambar){ hi.src=nm.gambar; hi.style.display=''; } else { hi.style.display='none'; }
+
+    // Reset lapor button
+    var bl=document.getElementById('btn-lapor');
+    var st=document.getElementById('status-belajar');
+
+    renderProgressBar(curId, nm);
+    renderSesiContent(curId, nm);
+
+    if (isAllSesiComplete(curId, nm)) {
+        bl.disabled=false;
+        bl.className="w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90 cursor-pointer";
+        bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai';
+        st.innerHTML='<i class="fas fa-unlock text-emerald-500"></i> Semua sesi selesai! Silakan lapor.';
+        st.className="text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit";
+    } else {
+        bl.disabled=true;
+        bl.className="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all";
+        bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
+        st.innerHTML='<i class="fas fa-lock"></i> Selesaikan semua sesi untuk membuka laporan';
+        st.className="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit";
     }
-    var lc=document.getElementById('container-links-materi'); 
-    lc.innerHTML="";
-    var lr=Array.isArray(d.links)?d.links:(typeof d.links==='string'&&d.links?[{label:"Buka Materi",url:d.links}]:[]);
-    for(var idx=0;idx<lr.length;idx++){ 
-        var it=lr[idx]; 
-        lc.innerHTML+='<a href="'+it.url+'" target="_blank" onclick="tandaiProgres(\'materi\')" class="bg-[#5851db] text-white px-6 py-4 rounded-2xl font-bold shadow-md hover:opacity-90 flex items-center justify-between group transition-all border-2 border-transparent hover:border-indigo-400" style="text-decoration:none;"><span class="flex items-center gap-3 uppercase italic text-xs"><i class="fas fa-play-circle text-xl group-hover:scale-110 transition-transform"></i> '+(it.label||'Materi '+(idx+1))+'</span><i class="fas fa-external-link-alt opacity-50 text-xs"></i></a>'; 
-    }
-    var kb=document.getElementById('link-kuis-aktif'); 
-    if(kb){
-        if(d.kuis&&d.kuis!=="undefined"&&d.kuis!==""){
-            kb.href=d.kuis;
-            kb.style.display='flex';
-        }else{
-            kb.style.display='none';
-        }
-    }
-    materiSelesai=false; 
-    kuisSelesai=false;
-    var bl=document.getElementById('btn-lapor'); 
-    bl.disabled=true; 
-    bl.className="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"; 
-    bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
-    var st=document.getElementById('status-belajar'); 
-    st.innerHTML='<i class="fas fa-lock"></i> Selesaikan materi & kuis untuk membuka laporan'; 
-    st.className="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit";
+
     loadChat();
 }
 
+/* ===== Chat ===== */
 function kirimChat(){ var n=localStorage.getItem('user_nama')||"Anonim",p=document.getElementById('chat-pesan').value; if(p&&db){db.ref('chat/').push({nama:n,pesan:p,materiId:curId,judulMateri:curJudul,waktu:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});document.getElementById('chat-pesan').value="";} }
 function loadChat(){ if(!db) return; db.ref('chat/').on('value',function(snap){ var box=document.getElementById('chat-box'); box.innerHTML=""; var has=false; snap.forEach(function(c){ var d=c.val(); if(d.materiId===curId){ has=true; var isC=d.nama.toLowerCase().indexOf('admin')!==-1||d.nama.toLowerCase().indexOf('cs')!==-1; box.innerHTML+='<div class="flex flex-col '+(isC?'items-start':'items-end')+' animate-fade-in"><span class="text-[9px] font-black uppercase text-gray-400 mb-1 px-2">'+(isC?'<i class="fas fa-headset text-indigo-600"></i> CS - ':'')+d.nama+' &bull; '+d.waktu+'</span><div class="'+(isC?'bg-indigo-600 text-white':'bg-white border-2 border-gray-100 text-gray-800')+' p-3 rounded-2xl text-sm shadow-sm max-w-[85%] font-medium leading-relaxed">'+d.pesan+'</div></div>'; } }); if(!has) box.innerHTML='<div class="text-center text-xs text-gray-400 my-4 italic">Belum ada diskusi.</div>'; box.scrollTop=box.scrollHeight; }); }
 
@@ -1319,7 +1486,7 @@ function downloadExcel(){ var t=document.getElementById('tabel-laporan'),data=[[
 /* ===== FIREBASE LISTENERS ===== */
 if (db) {
     db.ref('chat/').on('value',function(snap){
-        var l=document.getElementById('admin-chat-list'); l.innerHTML="";
+        var l=document.getElementById('admin-chat-list'); if(!l) return; l.innerHTML="";
         snap.forEach(function(c){ var d=c.val(); l.innerHTML+='<div class="flex justify-between items-start bg-gray-50 p-3 rounded-xl border text-xs"><div><span class="block text-[9px] font-bold text-indigo-500 uppercase mb-0.5"><i class="fas fa-folder"></i> '+(d.judulMateri||'?')+'</span><span class="font-bold text-gray-800"><b class="text-indigo-700">'+d.nama+':</b> '+d.pesan+'</span></div><button onclick="hapusRecord(\'chat/'+c.key+'\')" type="button" class="text-red-300 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button></div>'; });
     });
 
@@ -1328,20 +1495,44 @@ if (db) {
         ls.innerHTML=""; la.innerHTML=""; lh.innerHTML=""; var hiddenCount=0;
         snap.forEach(function(c){
             var m=c.val(),id=c.key; allMateriData[id]=m;
-            var imgU=m.gambar||"https://picsum.photos/seed/"+(m.judul||'x')+"/400/200";
-            var isH=m.isHidden===true;
+            var nm = normalizeMateri(m);
+            var imgU=nm.gambar||"https://picsum.photos/seed/"+(nm.judul||'x')+"/400/200";
+            var isH=nm.isHidden===true;
             if(isH) hiddenCount++;
-            if(!isH){
-                var hasK=m.kuis&&m.kuis!==""&&m.kuis!=="undefined";
-                var lab=hasK?'<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> Materi & Kuis</span>':'<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> Materi</span>';
-                var ml=''; if(Array.isArray(m.links)){ml='<div class="mt-2 space-y-1">';var cnt=Math.min(m.links.length,3);for(var ii=0;ii<cnt;ii++){ml+='<div class="flex items-center gap-2 text-[10px] text-white/90 truncate"><i class="fas fa-check-circle text-indigo-300"></i> '+(m.links[ii].label||'Materi '+(ii+1))+'</div>';}if(m.links.length>3)ml+='<div class="text-[9px] text-white/60 italic ml-5">+'+(m.links.length-3)+' lainnya</div>';ml+='</div>';}
-                ls.innerHTML+='<div onclick="bukaMateriSiswa(\''+id+'\')" class="group relative bg-white h-64 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end"><div class="absolute inset-0 bg-gray-200"><img src="'+imgU+'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"></div><div class="absolute top-4 left-4 z-20">'+lab+'</div><div class="absolute inset-0 card-gradient"></div><div class="relative z-10 p-5 text-white"><div class="flex items-center gap-2 mb-2"><i class="fas fa-layer-group text-indigo-300 text-[9px]"></i><span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">'+(Array.isArray(m.links)?m.links.length+' Resource':'1 Link')+'</span></div><h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight drop-shadow-md mb-1">'+m.judul+'</h3>'+ml+'</div></div>';
+
+            // Hitung info sesi
+            var totalSesi = nm.sesi ? nm.sesi.length : 0;
+            var totalKuis = 0, totalLinks = 0;
+            for (var si = 0; si < totalSesi; si++) {
+                if (nm.sesi[si].links) totalLinks += nm.sesi[si].links.length;
+                if (nm.sesi[si].kuis && nm.sesi[si].kuis !== '' && nm.sesi[si].kuis !== 'undefined') totalKuis++;
             }
+
             if(!isH){
-                la.innerHTML+='<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full group hover:shadow-md transition-all"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover"><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye show bg-white/90 p-2 rounded-lg shadow" title="Sembunyikan"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200 mb-2"><i class="fas fa-eye mr-1"></i>AKTIF</span><p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+m.judul+'</p><p class="text-[10px] text-gray-500"><i class="fas fa-link"></i> '+(Array.isArray(m.links)?m.links.length+' Links':'1 Link')+'</p></div><div class="text-[10px] text-gray-300 font-mono">'+(m.waktu||'')+'</div></div></div>';
+                // Card Siswa
+                var lab = totalKuis > 0
+                    ? '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> '+totalSesi+' Sesi · '+totalKuis+' Kuis</span>'
+                    : '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> '+totalSesi+' Sesi</span>';
+
+                var sesiList = '';
+                var showCount = Math.min(totalSesi, 3);
+                for (var sli = 0; sli < showCount; sli++) {
+                    var sld = nm.sesi[sli];
+                    var slComplete = isSesiComplete(id, sli, sld);
+                    var slProg = getSesiProgress(id)[sli];
+                    var slIcon = slComplete ? 'fa-check-circle text-emerald-300' : (slProg ? 'fa-clock text-amber-300' : 'fa-circle text-white/30');
+                    sesiList += '<div class="flex items-center gap-2 text-[10px] text-white/90 truncate"><i class="fas '+slIcon+'"></i> '+(sld.nama||'Sesi '+(sli+1))+'</div>';
+                }
+                if (totalSesi > 3) sesiList += '<div class="text-[9px] text-white/60 italic ml-5">+'+(totalSesi-3)+' sesi lainnya</div>';
+
+                ls.innerHTML+='<div onclick="bukaMateriSiswa(\''+id+'\')" class="group relative bg-white h-64 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end"><div class="absolute inset-0 bg-gray-200"><img src="'+imgU+'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"></div><div class="absolute top-4 left-4 z-20">'+lab+'</div><div class="absolute inset-0 card-gradient"></div><div class="relative z-10 p-5 text-white"><div class="flex items-center gap-2 mb-2"><i class="fas fa-layer-group text-indigo-300 text-[9px]"></i><span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">'+totalLinks+' Resource</span></div><h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight drop-shadow-md mb-1">'+(nm.judul||'')+'</h3>'+sesiList+'</div></div>';
+
+                // Card Admin
+                la.innerHTML+='<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full group hover:shadow-md transition-all"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover"><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye show bg-white/90 p-2 rounded-lg shadow" title="Sembunyikan"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200 mb-2"><i class="fas fa-eye mr-1"></i>AKTIF</span><p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+(nm.judul||'')+'</p><p class="text-[10px] text-gray-500"><i class="fas fa-layer-group mr-1"></i>'+totalSesi+' Sesi'+(totalKuis>0?' · '+totalKuis+' Kuis':'')+'</p></div><div class="text-[10px] text-gray-300 font-mono">'+(nm.waktu||'')+'</div></div></div>';
             }
+
             if(isH){
-                lh.innerHTML+='<div class="bg-white rounded-2xl border-2 border-dashed border-red-200 flex flex-col overflow-hidden h-full opacity-80 hover:opacity-100 transition-opacity"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover grayscale"><div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-center px-3"><i class="fas fa-eye-slash text-lg mb-1"></i><span class="text-[10px] font-black uppercase">Tersembunyi</span></div><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye hide bg-white/90 p-2 rounded-lg shadow"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-red-100 text-red-700 border border-red-200 mb-2"><i class="fas fa-eye-slash mr-1"></i>TERSEMBUNYI</span><p class="font-black text-gray-500 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+m.judul+'</p></div><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="mt-3 w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-2 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1.5"><i class="fas fa-eye"></i> Tampilkan ke Siswa</button><div class="text-[10px] text-gray-300 font-mono mt-2">'+(m.waktu||'')+'</div></div></div>';
+                lh.innerHTML+='<div class="bg-white rounded-2xl border-2 border-dashed border-red-200 flex flex-col overflow-hidden h-full opacity-80 hover:opacity-100 transition-opacity"><div class="h-32 bg-gray-100 overflow-hidden relative"><img src="'+imgU+'" class="w-full h-full object-cover grayscale"><div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-center px-3"><i class="fas fa-eye-slash text-lg mb-1"></i><span class="text-[10px] font-black uppercase">Tersembunyi</span></div><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye hide bg-white/90 p-2 rounded-lg shadow"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-red-100 text-red-700 border border-red-200 mb-2"><i class="fas fa-eye-slash mr-1"></i>TERSEMBUNYI</span><p class="font-black text-gray-500 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+(nm.judul||'')+'</p><p class="text-[10px] text-gray-400"><i class="fas fa-layer-group mr-1"></i>'+totalSesi+' Sesi</p></div><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="mt-3 w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-2 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1.5"><i class="fas fa-eye"></i> Tampilkan ke Siswa</button><div class="text-[10px] text-gray-300 font-mono mt-2">'+(nm.waktu||'')+'</div></div></div>';
             }
         });
         if(hiddenCount>0){hc.style.display='';hc.textContent=hiddenCount;}else{hc.style.display='none';}
@@ -1354,7 +1545,7 @@ if (db) {
     });
 
     db.ref('absensi/').on('value',function(snap){
-        var t=document.getElementById('tabel-absensi'); t.innerHTML="";
+        var t=document.getElementById('tabel-absensi'); if(!t) return; t.innerHTML="";
         snap.forEach(function(c){ var d=c.val(); t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-[11px] uppercase">'+d.nama+'</td><td class="p-3 text-[11px]">'+d.nup+'</td><td class="p-3 text-[11px]">'+d.unit+'</td><td class="p-3 text-[11px]">'+d.materi+'</td><td class="p-3 text-gray-400 text-[10px]">'+d.waktu+'</td><td class="p-3 text-right"><button onclick="hapusRecord(\'absensi/'+c.key+'\')" type="button" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>'; });
     });
 }
