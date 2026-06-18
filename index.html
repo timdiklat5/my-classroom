@@ -34,9 +34,68 @@
         .upload-zone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:10}
         .upload-zone .placeholder{z-index:5;text-align:center;pointer-events:none}
         .upload-zone .placeholder.hidden{display:none}
+        @keyframes float1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.1)}}
+        @keyframes float2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,30px) scale(1.05)}}
+        @keyframes float3{0%,100%{transform:translate(0,0)}50%{transform:translate(15px,15px)}}
+        .login-orb-1{animation:float1 8s ease-in-out infinite}
+        .login-orb-2{animation:float2 10s ease-in-out infinite}
+        .login-orb-3{animation:float3 6s ease-in-out infinite}
+        .login-input:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+        @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+        .shake{animation:shake .4s ease-in-out}
+        @keyframes pulse-ring{0%{transform:scale(.8);opacity:.5}100%{transform:scale(1.4);opacity:0}}
+        .login-logo-ring{animation:pulse-ring 2s ease-out infinite}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+        .timer-blink{animation:blink 1.5s ease-in-out infinite}
+        .time-bar{height:8px;border-radius:99px;transition:width .8s ease}
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
+
+<!-- ==================== LOGIN OVERLAY ==================== -->
+<div id="login-overlay" class="fixed inset-0 z-[100] flex items-center justify-center" style="display:none; background: linear-gradient(135deg, #0f0a2e 0%, #1e1b4b 25%, #312e81 50%, #3730a3 75%, #4338ca 100%);">
+    <div class="login-orb-1 absolute top-[-8%] right-[-4%] w-[420px] h-[420px] rounded-full" style="background:radial-gradient(circle,rgba(129,140,248,.15),transparent 70%)"></div>
+    <div class="login-orb-2 absolute bottom-[-12%] left-[-6%] w-[380px] h-[380px] rounded-full" style="background:radial-gradient(circle,rgba(167,139,250,.12),transparent 70%)"></div>
+    <div class="login-orb-3 absolute top-[40%] left-[10%] w-[200px] h-[200px] rounded-full" style="background:radial-gradient(circle,rgba(99,102,241,.1),transparent 70%)"></div>
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:60px 60px"></div>
+    <div class="relative bg-white/[0.97] backdrop-blur-xl w-full max-w-md mx-4 rounded-3xl p-8 shadow-2xl animate-fade-in border border-white/20">
+        <div class="text-center mb-8">
+            <div class="relative inline-block mb-4">
+                <div class="login-logo-ring absolute inset-0 w-20 h-20 mx-auto rounded-2xl bg-indigo-100"></div>
+                <div class="relative w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30">
+                    <i class="fas fa-graduation-cap text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight">bki Classroom</h1>
+            <p class="text-[10px] font-bold text-indigo-400 tracking-[0.15em] uppercase mt-1">by.hc diklat ppsdm</p>
+            <div class="w-12 h-0.5 bg-gradient-to-r from-indigo-400 to-purple-400 mx-auto mt-4 rounded-full"></div>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">NUP Pegawai</label>
+                <div class="relative">
+                    <i class="fas fa-id-badge absolute left-4 top-1/2 -translate-y-1/2 text-indigo-300 text-sm"></i>
+                    <input id="login-nup" type="text" placeholder="Masukkan NUP Anda" autocomplete="off" class="login-input w-full border-2 border-gray-200 rounded-xl pl-11 pr-5 py-4 outline-none bg-gray-50/80 font-black text-sm text-center uppercase tracking-[0.2em] transition-all" onkeyup="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')doLogin()">
+                </div>
+            </div>
+            <p id="login-error" class="text-xs text-red-500 text-center font-bold h-4 transition-all"></p>
+            <button id="btn-login" onclick="doLogin()" type="button" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/25 uppercase text-sm flex items-center justify-center gap-2 hover:from-indigo-700 hover:to-indigo-800 transition-all active:scale-[0.98]">
+                <i class="fas fa-sign-in-alt"></i> Masuk
+            </button>
+        </div>
+        <div class="mt-6 pt-5 border-t border-gray-100">
+            <div class="flex items-center justify-center gap-2 text-gray-400 text-[10px]">
+                <i class="fas fa-shield-alt text-indigo-300"></i>
+                <span>Login sekali untuk mengakses semua materi pelatihan</span>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+            <button onclick="bypassLogin()" type="button" class="text-[10px] text-gray-300 hover:text-indigo-500 transition-colors font-medium">
+                <i class="fas fa-lock text-[8px] mr-1"></i> Akses Trainer
+            </button>
+        </div>
+    </div>
+</div>
 
 <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 h-14 flex justify-between items-center">
@@ -44,11 +103,25 @@
             <img src="https://docs.google.com/uc?export=view&id=1-MlYRfiNuuZfw3gjELOmlLrnkTCRYFAw" class="w-9 h-9 rounded-lg object-cover shadow-sm border border-gray-100" onerror="this.style.display='none'">
             <i class="fas fa-graduation-cap text-indigo-600 text-xl"></i>
             <span class="font-bold text-lg tracking-tight">bki Classroom</span>
-            <span class="text-[7px] font-bold text-indigo-400 tracking-[0.15em] uppercase">by.hc diklat ppsdm</span>
+            <span class="text-[7px] font-bold text-indigo-400 tracking-[0.15em] uppercase hidden sm:inline">by.hc diklat ppsdm</span>
         </div>
-        <div class="bg-gray-100 p-1 rounded-xl flex gap-1 shadow-inner">
-            <button id="nav-siswa" onclick="pindahMenu('siswa')" type="button" class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase">Siswa</button>
-            <button id="nav-guru" onclick="pindahMenu('guru')" type="button" class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase">Trainer</button>
+        <div class="flex items-center gap-3">
+            <div class="bg-gray-100 p-1 rounded-xl flex gap-1 shadow-inner">
+                <button id="nav-siswa" onclick="pindahMenu('siswa')" type="button" class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase">Siswa</button>
+                <button id="nav-guru" onclick="pindahMenu('guru')" type="button" class="px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase">Trainer</button>
+            </div>
+            <div id="user-info-nav" style="display:none" class="flex items-center gap-2 ml-1 pl-3 border-l border-gray-100">
+                <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-sm">
+                    <i class="fas fa-user text-white text-[10px]"></i>
+                </div>
+                <div class="hidden md:block">
+                    <p id="nav-username" class="text-[11px] font-bold text-gray-700 leading-tight"></p>
+                    <p id="nav-usernup" class="text-[9px] text-gray-400 leading-tight"></p>
+                </div>
+                <button onclick="doLogout()" class="ml-1 text-gray-300 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50" title="Keluar">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                </button>
+            </div>
         </div>
     </div>
 </nav>
@@ -57,14 +130,26 @@
 <main id="view-siswa" class="max-w-6xl mx-auto px-4 py-8">
     <div id="siswa-home">
         <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
-        <p class="text-gray-500 text-center text-sm mb-8">Masukkan NUP Anda untuk verifikasi data sebelum mengakses materi.</p>
+        <p class="text-gray-500 text-center text-sm mb-8">Pilih materi pelatihan yang ingin Anda pelajari.</p>
         <div id="list-materi-siswa" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
     <div id="siswa-belajar" style="display:none">
         <div class="bg-white rounded-3xl shadow-lg border p-0 overflow-hidden mb-6">
             <div id="header-bg-wrap" class="relative h-48 md:h-64 w-full" style="background:linear-gradient(135deg,#4f46e5,#7c3aed)">
                 <img id="img-header-belajar" src="" class="w-full h-full object-cover" onerror="this.style.display='none'">
-                <div class="absolute inset-0 bg-black/40 flex items-end p-6 md:p-10"><div class="text-white w-full"><h2 id="judul-aktif" class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none drop-shadow-md">JUDUL</h2><p class="text-indigo-200 text-xs font-bold uppercase tracking-widest mt-2">Discussion Group Active</p></div></div>
+                <div class="absolute inset-0 bg-black/40 flex items-end p-6 md:p-10">
+                    <div class="text-white w-full">
+                        <h2 id="judul-aktif" class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none drop-shadow-md">JUDUL</h2>
+                        <div class="flex items-center justify-between mt-3 flex-wrap gap-2">
+                            <p class="text-indigo-200 text-xs font-bold uppercase tracking-widest">Discussion Group Active</p>
+                            <div id="study-timer-display" class="bg-black/30 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-2 flex items-center gap-2.5">
+                                <span id="timer-dot" class="w-2 h-2 rounded-full bg-emerald-400 timer-blink"></span>
+                                <i class="fas fa-clock text-emerald-300 text-xs"></i>
+                                <span id="timer-text" class="text-white font-mono font-bold text-sm tracking-wider">00:00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="p-6 md:p-8">
                 <div class="bg-gray-50 rounded-2xl border border-gray-100 p-4 mb-6">
@@ -84,7 +169,7 @@
                 <h3 class="font-bold mb-4 text-indigo-900 flex items-center gap-2 uppercase text-xs tracking-widest"><i class="fas fa-comments text-lg"></i> Diskusi Kelas</h3>
                 <div id="chat-box" class="min-h-[250px] max-h-[400px] overflow-y-auto bg-white rounded-2xl p-6 space-y-4 mb-6 border-2 border-gray-100 shadow-inner custom-scroll"><div class="text-center text-xs text-gray-400 my-4">Belum ada pesan.</div></div>
                 <div class="flex gap-3 items-center">
-                    <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-white transition-all">
+                    <input id="chat-pesan" type="text" placeholder="Tulis pertanyaan..." class="flex-1 border-2 border-gray-100 rounded-2xl px-6 py-4 text-sm outline-none focus:border-indigo-500 bg-white transition-all" onkeydown="if(event.key==='Enter')kirimChat()">
                     <button onclick="kirimChat()" type="button" class="bg-[#5851db] text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform"><i class="fas fa-paper-plane text-xl"></i></button>
                 </div>
             </div>
@@ -97,18 +182,40 @@
 <main id="view-guru" style="display:none" class="max-w-7xl mx-auto px-4 py-8">
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <h1 class="text-2xl font-black text-indigo-900 uppercase">Panel Administrator</h1>
-        <div class="flex gap-2 w-full md:w-auto">
-            <button onclick="downloadExcel()" type="button" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 flex items-center gap-2 transition-all text-xs uppercase"><i class="fas fa-file-excel"></i> Excel</button>
+        <div class="flex gap-2 w-full md:w-auto flex-wrap">
+            <button onclick="downloadExcelWaktu()" type="button" class="bg-amber-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:bg-amber-600 flex items-center gap-2 transition-all text-xs uppercase"><i class="fas fa-clock"></i> Excel Waktu</button>
+            <button onclick="downloadExcel()" type="button" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:bg-emerald-700 flex items-center gap-2 transition-all text-xs uppercase"><i class="fas fa-file-excel"></i> Excel Absen</button>
             <button onclick="bukaModalTambahMateri()" type="button" class="bg-indigo-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-700 text-xs uppercase flex items-center gap-2"><i class="fas fa-plus"></i> Add Materi</button>
         </div>
     </div>
     <div class="bg-white rounded-3xl shadow-xl border overflow-hidden">
-        <div class="flex bg-gray-50 border-b p-2 gap-2 overflow-x-auto">
-            <button onclick="switchTabGuru('materi')" id="tab-g-materi" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">Materi</button>
-            <button onclick="switchTabGuru('hidden')" id="tab-g-hidden" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"><i class="fas fa-eye-slash text-[9px]"></i> Tersembunyi <span id="hiddenCount" class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[9px] font-black ml-1" style="display:none">0</span></button>
-            <button onclick="switchTabGuru('nilai')" id="tab-g-nilai" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Nilai</button>
-            <button onclick="switchTabGuru('absen')" id="tab-g-absen" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Absen</button>
-            <button onclick="switchTabGuru('chat')" id="tab-g-chat" type="button" class="flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Chat</button>
+        <div class="flex bg-gray-50 border-b p-2 gap-1.5 overflow-x-auto">
+            <button onclick="switchTabGuru('materi')" id="tab-g-materi" type="button" class="flex-1 min-w-[80px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">Materi</button>
+            <button onclick="switchTabGuru('hidden')" id="tab-g-hidden" type="button" class="flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"><i class="fas fa-eye-slash text-[9px]"></i> Hidden <span id="hiddenCount" class="bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full text-[9px] font-black ml-0.5" style="display:none">0</span></button>
+            <button onclick="switchTabGuru('waktu')" id="tab-g-waktu" type="button" class="flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"><i class="fas fa-stopwatch text-[9px]"></i> Waktu</button>
+            <button onclick="switchTabGuru('nilai')" id="tab-g-nilai" type="button" class="flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Nilai</button>
+            <button onclick="switchTabGuru('absen')" id="tab-g-absen" type="button" class="flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Absen</button>
+            <button onclick="switchTabGuru('chat')" id="tab-g-chat" type="button" class="flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest">Chat</button>
+        </div>
+        <div id="g-content-waktu" style="display:none" class="p-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-5">
+                <div>
+                    <h3 class="font-bold text-gray-900 flex items-center gap-2 text-sm uppercase"><i class="fas fa-stopwatch text-amber-500"></i> Histori Waktu Belajar Peserta</h3>
+                    <p class="text-[11px] text-gray-400 mt-1">Pantau durasi setiap peserta mempelajari materi</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="filter-waktu-materi" onchange="filterWaktuBelajar()" class="border-2 border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold bg-white outline-none focus:border-indigo-500 transition-colors"><option value="all">Semua Materi</option></select>
+                    <select id="filter-waktu-sort" onchange="filterWaktuBelajar()" class="border-2 border-gray-100 rounded-xl px-4 py-2.5 text-xs font-bold bg-white outline-none focus:border-indigo-500 transition-colors"><option value="terlama">Terlama Dulu</option><option value="terbaru">Terbaru Dulu</option><option value="terlama_total">Total Terlama</option><option value="terbaru_total">Total Terbaru</option></select>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 mb-5 text-[10px] font-bold">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400"></span> > 30 menit (Rajin)</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400"></span> 10 - 30 menit</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-red-400"></span> &lt; 10 menit (Perlu Perhatian)</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-400 animate-pulse"></span> Sedang Belajar</span>
+            </div>
+            <div id="waktu-belajar-list" class="space-y-3"></div>
+            <div id="emptyWaktu" style="display:none" class="text-center py-16"><i class="fas fa-hourglass-half text-4xl text-gray-200 mb-3"></i><p class="text-sm text-gray-400">Belum ada data waktu belajar.</p></div>
         </div>
         <div id="g-content-materi" class="p-6"><div id="list-materi-admin" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div></div>
         <div id="g-content-hidden" style="display:none" class="p-6">
@@ -128,10 +235,10 @@
         <div class="text-center mb-6">
             <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-id-badge text-indigo-600 text-xl"></i></div>
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Verifikasi Data</h3>
-            <p class="text-xs text-gray-500 mt-1">*Masukkan NUP Anda.Tekan Enter Sistem akan otomatis mengambil data*.</p>
+            <p class="text-xs text-gray-500 mt-1">*Masukkan NUP Anda. Tekan Enter Sistem akan otomatis mengambil data*.</p>
         </div>
         <div class="space-y-3 mb-8">
-            <input id="abs-nup" type="text" placeholder="Masukkan NUP Anda" class="w-full border-2 border-indigo-200 rounded-xl px-5 py-4 outline-none focus:border-indigo-600 bg-indigo-50 font-black text-sm transition-colors text-center uppercase tracking-widest" onchange="cekNUPDatabase()" onkeyup="this.value=this.value.toUpperCase()">
+            <input id="abs-nup" type="text" placeholder="Masukkan NUP Anda" class="w-full border-2 border-indigo-200 rounded-xl px-5 py-4 outline-none focus:border-indigo-600 bg-indigo-50 font-black text-sm transition-colors text-center uppercase tracking-widest" onkeydown="if(event.key==='Enter'){cekNUPDatabase()}" onkeyup="this.value=this.value.toUpperCase()">
             <div class="grid grid-cols-1 gap-3 opacity-60 pointer-events-none transition-opacity" id="absen-data-container">
                 <input id="abs-nama" type="text" placeholder="Nama (Otomatis)" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none bg-gray-50 uppercase font-bold text-sm" readonly>
                 <input id="abs-unit" type="text" placeholder="Unit (Otomatis)" class="w-full border-2 border-gray-100 rounded-xl px-5 py-4 outline-none bg-gray-50 uppercase font-bold text-sm" readonly>
@@ -141,6 +248,27 @@
         <div class="flex gap-2">
             <button onclick="tutupModal('modal-absen')" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs hover:bg-gray-50 rounded-xl transition-colors">Batal</button>
             <button id="btn-submit-absen" onclick="prosesAbsen()" type="button" class="flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed" disabled>Kirim & Buka</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODAL DETAIL WAKTU ==================== -->
+<div id="modal-detail-waktu" class="modal-overlay">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-8 shadow-2xl animate-fade-in">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <div>
+                <h3 class="font-bold text-lg text-indigo-900 uppercase tracking-tight">Detail Waktu Belajar</h3>
+                <p id="detail-waktu-subtitle" class="text-[11px] text-gray-400 mt-0.5"></p>
+            </div>
+            <button onclick="tutupModal('modal-detail-waktu')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        <div id="detail-waktu-content" class="space-y-3 max-h-[60vh] overflow-y-auto custom-scroll pr-2"></div>
+        <div class="mt-6 pt-4 border-t flex justify-between items-center">
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase">Total Keseluruhan</p>
+                <p id="detail-waktu-total" class="text-xl font-black text-indigo-600"></p>
+            </div>
+            <button onclick="tutupModal('modal-detail-waktu')" type="button" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase hover:bg-indigo-700 transition-colors">Tutup</button>
         </div>
     </div>
 </div>
@@ -216,7 +344,7 @@
    DATABASE PEGAWAI
    ======================================================= */
 const databasePegawai = {
-	"38491": { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN" },
+    "38491": { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN" },
     "39792": { nama: "NASARUDDIN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
     "40793": { nama: "ROSALINA AMRAN", unit: "DIVISI KEUANGAN DAN AKUNTANSI" },
     "41093": { nama: "DWIYANA", unit: "UNIT PEMASARAN DAN LAYANAN PELANGGAN NUSANTARA" },
@@ -1068,6 +1196,7 @@ const databasePegawai = {
     "124725": { nama: "RAFIF BINTANG RAMADHAN", unit: "DIVISI PENGADAAN, UMUM DAN MANAJEMEN ASET" },
     "124825": { nama: "ELMY MUFIDAH", unit: "DIVISI HUMAN CAPITAL" }
 };
+
 /* ===== Firebase Init ===== */
 var db = null, storageRef = null;
 try {
@@ -1086,74 +1215,183 @@ try {
 
 var curId = "", curJudul = "", isAdmin = false;
 var allMateriData = {};
+var allStudyTimeData = {};
+var allAbsenData = {};
+var allLaporanData = {};
+var currentGuruTab = 'materi';
 var currentKaryawanData = null;
 
-/* ===== Utility ===== */
-function bukaModal(id) { document.getElementById(id).style.display='flex'; if(id==='modal-absen') resetModalAbsen(); }
-function tutupModal(id) { document.getElementById(id).style.display='none'; }
-
-function toast(msg, type) {
-    type = type || 'info';
-    var box = document.getElementById('toastBox'), el = document.createElement('div');
-    var c = {success:'bg-emerald-50 border-emerald-200 text-emerald-700',error:'bg-red-50 border-red-200 text-red-600',info:'bg-indigo-50 border-indigo-200 text-indigo-700'};
-    var ic = {success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};
-    el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in '+(c[type]||c.info);
-    el.innerHTML = '<i class="fas '+(ic[type]||ic.info)+'"></i>'+msg;
-    box.appendChild(el);
-    setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all .3s'; setTimeout(function(){ el.remove(); },300); },3500);
-}
-
-/* ===== Gradient Generator (pengganti picsum) ===== */
+/* =====================================================
+   WARNA KARTU - 16 TEMA BERBEDA PER MATERI
+   ===================================================== */
 function getGradient(str) {
     var hash = 0;
     for (var i = 0; i < (str||'').length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
     var g = [
+        'linear-gradient(135deg, #059669 0%, #0d9488 100%)',
+        'linear-gradient(135deg, #e11d48 0%, #f472b6 100%)',
+        'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
         'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+        'linear-gradient(135deg, #0891b2 0%, #3b82f6 100%)',
+        'linear-gradient(135deg, #c026d3 0%, #e879f9 100%)',
+        'linear-gradient(135deg, #65a30d 0%, #22c55e 100%)',
+        'linear-gradient(135deg, #dc2626 0%, #f97316 100%)',
         'linear-gradient(135deg, #0284c7 0%, #6366f1 100%)',
-        'linear-gradient(135deg, #059669 0%, #0891b2 100%)',
-        'linear-gradient(135deg, #b91c1c 0%, #ea580c 100%)',
-        'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)',
-        'linear-gradient(135deg, #1d4ed8 0%, #0e7490 100%)',
-        'linear-gradient(135deg, #9333ea 0%, #c026d3 100%)',
-        'linear-gradient(135deg, #0f766e 0%, #15803d 100%)'
+        'linear-gradient(135deg, #9333ea 0%, #ec4899 100%)',
+        'linear-gradient(135deg, #0f766e 0%, #06b6d4 100%)',
+        'linear-gradient(135deg, #ea580c 0%, #ef4444 100%)',
+        'linear-gradient(135deg, #4338ca 0%, #2563eb 100%)',
+        'linear-gradient(135deg, #b45309 0%, #eab308 100%)',
+        'linear-gradient(135deg, #be185d 0%, #a855f7 100%)',
+        'linear-gradient(135deg, #047857 0%, #34d399 100%)'
     ];
     return g[Math.abs(hash) % g.length];
 }
 
-/* ===== Normalize Materi (backward compat) ===== */
+function getCardTheme(str) {
+    var hash = 0;
+    for (var i = 0; i < (str||'').length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+    var idx = Math.abs(hash) % 16;
+    var themes = [
+        { accent:'#059669', light:'#ecfdf5', border:'#a7f3d0', text:'#065f46', badge:'bg-emerald-100 text-emerald-700', btn:'bg-emerald-600 hover:bg-emerald-700', glow:'shadow-emerald-500/25' },
+        { accent:'#e11d48', light:'#fff1f2', border:'#fecdd3', text:'#9f1239', badge:'bg-rose-100 text-rose-700', btn:'bg-rose-600 hover:bg-rose-700', glow:'shadow-rose-500/25' },
+        { accent:'#d97706', light:'#fffbeb', border:'#fde68a', text:'#92400e', badge:'bg-amber-100 text-amber-700', btn:'bg-amber-600 hover:bg-amber-700', glow:'shadow-amber-500/25' },
+        { accent:'#4f46e5', light:'#eef2ff', border:'#c7d2fe', text:'#3730a3', badge:'bg-indigo-100 text-indigo-700', btn:'bg-indigo-600 hover:bg-indigo-700', glow:'shadow-indigo-500/25' },
+        { accent:'#0891b2', light:'#ecfeff', border:'#a5f3fc', text:'#155e75', badge:'bg-cyan-100 text-cyan-700', btn:'bg-cyan-600 hover:bg-cyan-700', glow:'shadow-cyan-500/25' },
+        { accent:'#c026d3', light:'#fdf4ff', border:'#f0abfc', text:'#86198f', badge:'bg-fuchsia-100 text-fuchsia-700', btn:'bg-fuchsia-600 hover:bg-fuchsia-700', glow:'shadow-fuchsia-500/25' },
+        { accent:'#65a30d', light:'#f7fee7', border:'#bef264', text:'#3f6212', badge:'bg-lime-100 text-lime-700', btn:'bg-lime-600 hover:bg-lime-700', glow:'shadow-lime-500/25' },
+        { accent:'#dc2626', light:'#fef2f2', border:'#fca5a5', text:'#991b1b', badge:'bg-red-100 text-red-700', btn:'bg-red-600 hover:bg-red-700', glow:'shadow-red-500/25' },
+        { accent:'#0284c7', light:'#f0f9ff', border:'#7dd3fc', text:'#075985', badge:'bg-sky-100 text-sky-700', btn:'bg-sky-600 hover:bg-sky-700', glow:'shadow-sky-500/25' },
+        { accent:'#9333ea', light:'#faf5ff', border:'#d8b4fe', text:'#6b21a8', badge:'bg-purple-100 text-purple-700', btn:'bg-purple-600 hover:bg-purple-700', glow:'shadow-purple-500/25' },
+        { accent:'#0f766e', light:'#f0fdfa', border:'#99f6e4', text:'#115e59', badge:'bg-teal-100 text-teal-700', btn:'bg-teal-600 hover:bg-teal-700', glow:'shadow-teal-500/25' },
+        { accent:'#ea580c', light:'#fff7ed', border:'#fdba74', text:'#9a3412', badge:'bg-orange-100 text-orange-700', btn:'bg-orange-600 hover:bg-orange-700', glow:'shadow-orange-500/25' },
+        { accent:'#4338ca', light:'#eef2ff', border:'#a5b4fc', text:'#3730a3', badge:'bg-indigo-100 text-indigo-800', btn:'bg-indigo-700 hover:bg-indigo-800', glow:'shadow-indigo-500/30' },
+        { accent:'#b45309', light:'#fffbeb', border:'#fcd34d', text:'#78350f', badge:'bg-yellow-100 text-yellow-800', btn:'bg-yellow-600 hover:bg-yellow-700', glow:'shadow-yellow-500/25' },
+        { accent:'#be185d', light:'#fdf2f8', border:'#f9a8d4', text:'#9d174d', badge:'bg-pink-100 text-pink-700', btn:'bg-pink-600 hover:bg-pink-700', glow:'shadow-pink-500/25' },
+        { accent:'#047857', light:'#ecfdf5', border:'#6ee7b7', text:'#065f46', badge:'bg-green-100 text-green-700', btn:'bg-green-600 hover:bg-green-700', glow:'shadow-green-500/25' }
+    ];
+    return themes[idx];
+}
+
+/* =====================================================
+   STUDY TIME TRACKER
+   ===================================================== */
+var studyTimerSeconds = 0;
+var studyTimerInterval = null;
+var studyTimerSaveInterval = null;
+var studyTimerActive = false;
+var studyTimerTabVisible = true;
+var studyTimerMateriId = '';
+
+function formatDetik(d) {
+    d = Math.max(0, Math.floor(d));
+    var h = Math.floor(d / 3600), m = Math.floor((d % 3600) / 60), s = d % 60;
+    return (h > 0 ? String(h).padStart(2,'0') + ':' : '') + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+function formatDetikLabel(d) {
+    d = Math.max(0, Math.floor(d));
+    var h = Math.floor(d / 3600), m = Math.floor((d % 3600) / 60), s = d % 60;
+    if (h > 0) return h + ' jam ' + m + ' menit ' + s + ' detik';
+    if (m > 0) return m + ' menit ' + s + ' detik';
+    return s + ' detik';
+}
+function updateTimerDisplay() {
+    var el = document.getElementById('timer-text');
+    var dot = document.getElementById('timer-dot');
+    if (el) el.textContent = formatDetik(studyTimerSeconds);
+    if (dot) { dot.className = (studyTimerTabVisible && studyTimerActive) ? 'w-2 h-2 rounded-full bg-emerald-400 timer-blink' : (studyTimerActive ? 'w-2 h-2 rounded-full bg-amber-400' : 'w-2 h-2 rounded-full bg-gray-500'); }
+}
+function _doSaveStudyTime() {
+    if (!db || !studyTimerMateriId || studyTimerSeconds <= 0) return;
+    var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || 'Anonim', unit = localStorage.getItem('user_unit') || '-';
+    if (!nup) return;
+    var secs = studyTimerSeconds;
+    db.ref('studyTime/' + studyTimerMateriId + '/' + nup).transaction(function(cur) {
+        if (cur === null) return { nama:nama, unit:unit, totalDetik:secs, sesiCount:1, lastSeen:firebase.database.ServerValue.TIMESTAMP, sesiTerakhir:secs };
+        cur.totalDetik = (cur.totalDetik||0) + secs; cur.sesiCount = (cur.sesiCount||0) + 1; cur.lastSeen = firebase.database.ServerValue.TIMESTAMP; cur.sesiTerakhir = secs; cur.nama = nama; cur.unit = unit; return cur;
+    });
+    studyTimerSeconds = 0;
+}
+function startStudyTimer(materiId) {
+    stopStudyTimer(); studyTimerMateriId = materiId; studyTimerSeconds = 0; studyTimerActive = true; studyTimerTabVisible = true; updateTimerDisplay();
+    studyTimerInterval = setInterval(function(){ if(studyTimerTabVisible){ studyTimerSeconds++; updateTimerDisplay(); } }, 1000);
+    studyTimerSaveInterval = setInterval(function(){ _doSaveStudyTime(); }, 30000);
+}
+function stopStudyTimer() {
+    if (studyTimerActive && studyTimerSeconds > 0) _doSaveStudyTime();
+    studyTimerActive = false; studyTimerMateriId = '';
+    if (studyTimerInterval) { clearInterval(studyTimerInterval); studyTimerInterval = null; }
+    if (studyTimerSaveInterval) { clearInterval(studyTimerSaveInterval); studyTimerSaveInterval = null; }
+}
+document.addEventListener('visibilitychange', function() { studyTimerTabVisible = !document.hidden; updateTimerDisplay(); });
+window.addEventListener('beforeunload', function() { if (studyTimerActive && studyTimerSeconds > 0) _doSaveStudyTime(); });
+
+/* =====================================================
+   LOGIN SYSTEM
+   ===================================================== */
+function isLoggedIn() { return localStorage.getItem('bki_logged_in') === 'true'; }
+function checkLoginState() {
+    if (isLoggedIn()) { document.getElementById('login-overlay').style.display = 'none'; showUserInfoNav(); }
+    else { document.getElementById('login-overlay').style.display = 'flex'; document.getElementById('user-info-nav').style.display = 'none'; setTimeout(function(){ document.getElementById('login-nup').focus(); }, 400); }
+}
+function showUserInfoNav() {
+    var nama = localStorage.getItem('user_nama') || '', nup = localStorage.getItem('user_nup') || '';
+    if (nama) { document.getElementById('nav-username').textContent = nama; document.getElementById('nav-usernup').textContent = 'NUP: ' + nup; document.getElementById('user-info-nav').style.display = 'flex'; }
+}
+function doLogin() {
+    var nupInput = document.getElementById('login-nup').value.trim(), errorEl = document.getElementById('login-error'), btnLogin = document.getElementById('btn-login'), inputEl = document.getElementById('login-nup');
+    errorEl.textContent = ''; inputEl.classList.remove('shake');
+    if (!nupInput) { errorEl.textContent = 'NUP tidak boleh kosong.'; inputEl.classList.add('shake'); inputEl.focus(); return; }
+    var dataKaryawan = databasePegawai[nupInput];
+    if (!dataKaryawan) { errorEl.textContent = 'NUP tidak terdaftar di database pegawai.'; inputEl.classList.add('shake'); inputEl.focus(); setTimeout(function(){ inputEl.classList.remove('shake'); }, 500); return; }
+    localStorage.setItem('bki_logged_in', 'true'); localStorage.setItem('user_nama', dataKaryawan.nama); localStorage.setItem('user_nup', nupInput); localStorage.setItem('user_unit', dataKaryawan.unit);
+    btnLogin.innerHTML = '<i class="fas fa-check"></i> Berhasil'; btnLogin.className = 'w-full bg-emerald-500 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-sm flex items-center justify-center gap-2 transition-all';
+    setTimeout(function(){ document.getElementById('login-overlay').style.display = 'none'; showUserInfoNav(); toast('Selamat datang, ' + dataKaryawan.nama + '!', 'success'); btnLogin.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk'; btnLogin.className = 'w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/25 uppercase text-sm flex items-center justify-center gap-2 hover:from-indigo-700 hover:to-indigo-800 transition-all active:scale-[0.98]'; document.getElementById('login-nup').value = ''; errorEl.textContent = ''; }, 600);
+}
+function doLogout() {
+    if (!confirm('Keluar dari akun?')) return; stopStudyTimer();
+    localStorage.removeItem('bki_logged_in'); localStorage.removeItem('user_nama'); localStorage.removeItem('user_nup'); localStorage.removeItem('user_unit');
+    document.getElementById('user-info-nav').style.display = 'none'; checkLoginState(); toast('Anda telah keluar.', 'info');
+}
+function bypassLogin() { document.getElementById('login-overlay').style.display = 'none'; }
+
+/* ===== Utility ===== */
+function bukaModal(id) { document.getElementById(id).style.display = 'flex'; if (id === 'modal-absen') resetModalAbsen(); }
+function tutupModal(id) { document.getElementById(id).style.display = 'none'; }
+function toast(msg, type) {
+    type = type || 'info'; var box = document.getElementById('toastBox'), el = document.createElement('div');
+    var c = {success:'bg-emerald-50 border-emerald-200 text-emerald-700',error:'bg-red-50 border-red-200 text-red-600',info:'bg-indigo-50 border-indigo-200 text-indigo-700'};
+    var ic = {success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};
+    el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in ' + (c[type]||c.info);
+    el.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i>' + msg; box.appendChild(el);
+    setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all .3s'; setTimeout(function(){ el.remove(); },300); }, 3500);
+}
 function normalizeMateri(m) {
     if (!m) return { sesi: [] };
     if (m.sesi && Array.isArray(m.sesi) && m.sesi.length > 0) return m;
     var links = [];
-    if (Array.isArray(m.links)) links = m.links;
-    else if (m.links && typeof m.links === 'string') links = [{label:"Materi", url:m.links}];
-    var result = {};
-    for (var key in m) {
-        if (key !== 'links' && key !== 'kuis') result[key] = m[key];
-    }
-    result.sesi = [{ nama: "Sesi 1", links: links, kuis: m.kuis || "" }];
-    return result;
+    if (Array.isArray(m.links)) links = m.links; else if (m.links && typeof m.links === 'string') links = [{label:"Materi", url:m.links}];
+    var result = {}; for (var key in m) { if (key !== 'links' && key !== 'kuis') result[key] = m[key]; }
+    result.sesi = [{ nama: "Sesi 1", links: links, kuis: m.kuis || "" }]; return result;
 }
-
-/* ===== Progress Tracking ===== */
-function getSesiProgress(materiId) {
-    try { return JSON.parse(localStorage.getItem('progres_'+materiId) || '{}'); } catch(e) { return {}; }
-}
+function getSesiProgress(materiId) { try { return JSON.parse(localStorage.getItem('progres_' + materiId) || '{}'); } catch(e) { return {}; } }
 function isSesiComplete(materiId, sesiIndex, sesiData) {
     var prog = getSesiProgress(materiId), sp = prog[sesiIndex] || {};
-    var hasLinks = sesiData.links && sesiData.links.length > 0;
-    var hasKuis = sesiData.kuis && sesiData.kuis !== '' && sesiData.kuis !== 'undefined';
+    var hasLinks = sesiData.links && sesiData.links.length > 0, hasKuis = sesiData.kuis && sesiData.kuis !== '' && sesiData.kuis !== 'undefined';
     return (!hasLinks || sp.materi === true) && (!hasKuis || sp.kuis === true);
 }
 function isAllSesiComplete(materiId, nm) {
     if (!nm.sesi || nm.sesi.length === 0) return false;
-    for (var i = 0; i < nm.sesi.length; i++) { if (!isSesiComplete(materiId, i, nm.sesi[i])) return false; }
-    return true;
+    for (var i = 0; i < nm.sesi.length; i++) { if (!isSesiComplete(materiId, i, nm.sesi[i])) return false; } return true;
+}
+function hasAnyProgress(materiId, sesiIndex) {
+    var prog = getSesiProgress(materiId), sp = prog[sesiIndex] || {};
+    return sp.materi === true || sp.kuis === true;
 }
 
 /* ===== Navigasi ===== */
 function pindahMenu(role) {
-    if (role === 'guru') { if (prompt("PIN Admin:") !== "0") { toast("Akses gagal!","error"); return; } isAdmin = true; } else { isAdmin = false; }
+    if (role === 'guru') { if (prompt("PIN Admin:") !== "0") { toast("Akses gagal!", "error"); return; } isAdmin = true; } else { isAdmin = false; }
     var v = {siswa:'view-siswa',guru:'view-guru'}, b = {siswa:'nav-siswa',guru:'nav-guru'}, k = ['siswa','guru'];
     for (var i = 0; i < k.length; i++) {
         document.getElementById(v[k[i]]).style.display = 'none';
@@ -1162,427 +1400,570 @@ function pindahMenu(role) {
         btn.innerHTML = k[i] === 'guru' ? 'Trainer' : 'Siswa';
     }
     document.getElementById(v[role]).style.display = '';
+    if (role === 'guru') { switchTabGuru('materi'); renderMateriAdmin(); renderHiddenMateri(); updateHiddenCount(); }
 }
-
-/* ===== Toggle Visibilitas ===== */
 function toggleVisibilitas(id) {
-    var data = allMateriData[id]; if (!data) return;
-    var nm = normalizeMateri(data);
-    var ns = !(nm.isHidden === true);
-    if (!confirm((ns?'Sembunyikan':'Tampilkan')+' "'+(nm.judul||'')+'"?')) return;
-    db.ref('materi/'+id).update({isHidden:ns}).then(function(){ toast('"'+(nm.judul||'')+'" '+(ns?'disembunyikan':'ditampilkan'), ns?'error':'success'); }).catch(function(){ toast('Gagal','error'); });
+    var data = allMateriData[id]; if (!data) return; var nm = normalizeMateri(data); var ns = !(nm.isHidden === true);
+    if (!confirm((ns ? 'Sembunyikan' : 'Tampilkan') + ' "' + (nm.judul||'') + '"?')) return;
+    db.ref('materi/' + id).update({isHidden:ns}).then(function(){ toast('"' + (nm.judul||'') + '" ' + (ns ? 'disembunyikan' : 'ditampilkan'), ns ? 'error' : 'success'); }).catch(function(){ toast('Gagal', 'error'); });
 }
 
 /* =====================================================
    SESSION MANAGEMENT (Admin Modals)
    ===================================================== */
 function createSessionCardHTML() {
-    return '<div class="session-card animate-fade-in">' +
-        '<div class="sesi-header">' +
-            '<span class="sesi-number text-[10px] font-black text-indigo-600 uppercase tracking-widest">Sesi 1</span>' +
-            '<button onclick="this.closest(\'.session-card\').remove();renumberSesi(this.closest(\'.session-card\').parentElement.id)" type="button" class="text-red-400 hover:text-red-600 text-[10px] font-bold flex items-center gap-1 transition-colors"><i class="fas fa-trash"></i> Hapus</button>' +
-        '</div>' +
-        '<div class="p-4 space-y-3">' +
-            '<input type="text" placeholder="Nama Sesi (contoh: Pengenalan K3)" class="sesi-nama w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 bg-gray-50 font-bold">' +
-            '<div>' +
-                '<div class="flex justify-between items-center mb-2">' +
-                    '<label class="text-[10px] font-bold text-gray-400 uppercase">Links Materi</label>' +
-                    '<button onclick="tambahBarisLinkInSesi(this)" type="button" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-lg font-bold hover:bg-gray-200 transition-colors">+ Link</button>' +
-                '</div>' +
-                '<div class="sesi-links space-y-2">' +
-                    '<div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div>' +
-                '</div>' +
-            '</div>' +
-            '<input type="text" placeholder="Link Kuis Sesi Ini (opsional)" class="sesi-kuis w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 bg-white">' +
-        '</div>' +
-    '</div>';
+    return '<div class="session-card animate-fade-in"><div class="sesi-header"><span class="sesi-number text-[10px] font-black text-indigo-600 uppercase tracking-widest">Sesi 1</span><button onclick="this.closest(\'.session-card\').remove();renumberSesi(this.closest(\'.session-card\').parentElement.id)" type="button" class="text-red-400 hover:text-red-600 text-[10px] font-bold flex items-center gap-1 transition-colors"><i class="fas fa-trash"></i> Hapus</button></div><div class="p-4 space-y-3"><input type="text" placeholder="Nama Sesi (contoh: Pengenalan K3)" class="sesi-nama w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 bg-gray-50 font-bold"><div><div class="flex justify-between items-center mb-2"><label class="text-[10px] font-bold text-gray-400 uppercase">Links Materi</label><button onclick="tambahBarisLinkInSesi(this)" type="button" class="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded-lg font-bold hover:bg-gray-200 transition-colors">+ Link</button></div><div class="sesi-links space-y-2"><div class="link-row flex gap-2 items-center animate-fade-in"><input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button></div></div></div><input type="text" placeholder="Link Kuis Sesi Ini (opsional)" class="sesi-kuis w-full border-2 border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-500 bg-white"></div></div>';
 }
-
-function tambahSesi(containerId) {
-    var container = document.getElementById(containerId);
-    var div = document.createElement('div');
-    div.innerHTML = createSessionCardHTML();
-    container.appendChild(div.firstElementChild);
-    renumberSesi(containerId);
-}
-
-function renumberSesi(containerId) {
-    var cards = document.querySelectorAll('#'+containerId+' .session-card');
-    for (var i = 0; i < cards.length; i++) { cards[i].querySelector('.sesi-number').textContent = 'Sesi ' + (i + 1); }
-}
-
-function tambahBarisLinkInSesi(btn) {
-    var linksContainer = btn.closest('.session-card').querySelector('.sesi-links');
-    var div = document.createElement('div');
-    div.className = 'link-row flex gap-2 items-center animate-fade-in';
-    div.innerHTML = '<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
-    linksContainer.appendChild(div);
-}
-
-function collectSessions(containerId) {
-    var sessions = [], cards = document.querySelectorAll('#'+containerId+' .session-card');
-    for (var i = 0; i < cards.length; i++) {
-        var card = cards[i];
-        var nama = card.querySelector('.sesi-nama').value.trim();
-        var links = [], linkRows = card.querySelectorAll('.sesi-links .link-row');
-        for (var j = 0; j < linkRows.length; j++) {
-            var label = linkRows[j].querySelector('.input-label').value.trim();
-            var url = linkRows[j].querySelector('.input-url').value.trim();
-            if (label && url) links.push({label:label, url:url});
-        }
+function tambahSesi(containerId) { var container = document.getElementById(containerId); var div = document.createElement('div'); div.innerHTML = createSessionCardHTML(); container.appendChild(div.firstElementChild); renumberSesi(containerId); }
+function renumberSesi(containerId) { var cards = document.querySelectorAll('#' + containerId + ' .session-card'); for (var i = 0; i < cards.length; i++) { cards[i].querySelector('.sesi-number').textContent = 'Sesi ' + (i + 1); } }
+function tambahBarisLinkInSesi(btn) { var lc = btn.closest('.session-card').querySelector('.sesi-links'); var div = document.createElement('div'); div.className = 'link-row flex gap-2 items-center animate-fade-in'; div.innerHTML = '<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>'; lc.appendChild(div); }
+function collectSessionsFromContainer(containerId) {
+    var cards = document.querySelectorAll('#' + containerId + ' .session-card'), arr = [];
+    cards.forEach(function(card, ci) {
+        var nama = card.querySelector('.sesi-nama').value.trim() || ('Sesi ' + (ci + 1));
         var kuis = card.querySelector('.sesi-kuis').value.trim();
-        sessions.push({nama: nama||('Sesi '+(i+1)), links:links, kuis:kuis||''});
-    }
-    return sessions;
+        var links = [];
+        card.querySelectorAll('.link-row').forEach(function(row) {
+            var label = row.querySelector('.input-label').value.trim(), url = row.querySelector('.input-url').value.trim();
+            if (url) links.push({ label: label || 'Materi', url: url });
+        });
+        arr.push({ nama: nama, links: links, kuis: kuis });
+    });
+    return arr;
 }
-
-function populateSessions(containerId, sesiData) {
-    var container = document.getElementById(containerId);
-    container.innerHTML = '';
-    if (!sesiData || !Array.isArray(sesiData) || sesiData.length === 0) { tambahSesi(containerId); return; }
-    for (var i = 0; i < sesiData.length; i++) {
-        tambahSesi(containerId);
-        var card = container.querySelectorAll('.session-card')[i];
-        card.querySelector('.sesi-nama').value = sesiData[i].nama || '';
-        card.querySelector('.sesi-kuis').value = sesiData[i].kuis || '';
-        var linksContainer = card.querySelector('.sesi-links');
-        linksContainer.innerHTML = '';
-        var links = sesiData[i].links || [];
-        if (links.length === 0) {
-            var div = document.createElement('div');
-            div.className = 'link-row flex gap-2 items-center animate-fade-in';
-            div.innerHTML = '<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
-            linksContainer.appendChild(div);
-        } else {
-            for (var j = 0; j < links.length; j++) {
-                var div = document.createElement('div');
-                div.className = 'link-row flex gap-2 items-center animate-fade-in';
-                div.innerHTML = '<input type="text" value="'+(links[j].label||'')+'" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" value="'+(links[j].url||'')+'" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
-                linksContainer.appendChild(div);
-            }
-        }
-    }
-    renumberSesi(containerId);
-}
-
-/* ===== Image Preview ===== */
 function previewImage(input, imgId, placeholderId) {
-    var f = input.files[0];
-    if (f) {
-        var r = new FileReader();
-        r.onload = function(e) {
-            var img = document.getElementById(imgId);
-            img.src = e.target.result;
-            img.style.display = '';
-            document.getElementById(placeholderId).classList.add('hidden');
-        };
-        r.readAsDataURL(f);
-    }
-}
-
-/* ===== Modal Tambah Materi ===== */
-function bukaModalTambahMateri(){
-    document.getElementById('input-judul').value="";
-    document.getElementById('input-gambar').value="";
-    document.getElementById('img-preview').style.display='none';
-    document.getElementById('img-preview').src='';
-    document.getElementById('add-placeholder').classList.remove('hidden');
-    document.getElementById('add-sessions-container').innerHTML='';
-    tambahSesi('add-sessions-container');
-    bukaModal('modal-tambah');
-}
-function simpanMateriBaru(){
-    if(!db) return toast('Firebase belum siap','error');
-    var j=document.getElementById('input-judul').value.trim(), fi=document.getElementById('input-gambar'), btn=document.getElementById('btn-simpan-materi');
-    var sesi = collectSessions('add-sessions-container');
-    if(!j) return alert("Judul wajib!");
-    if(sesi.length===0) return alert("Minimal satu sesi!");
-    for(var i=0;i<sesi.length;i++){ if(sesi[i].links.length===0) return alert("Sesi "+(i+1)+" minimal punya satu link!"); }
-    var ob=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled=true;
-    var doSave=function(gu){ db.ref('materi/').push({judul:j,sesi:sesi,gambar:gu,isHidden:false,waktu:new Date().toLocaleDateString()}).then(function(){tutupModal('modal-tambah');toast('Materi berhasil ditambahkan!','success');}).catch(function(e){console.error(e);toast('Gagal menyimpan','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
-    if(fi.files.length>0){
-        toast('Mengupload gambar...','info');
-        var f=fi.files[0],sr=storageRef.ref('materi_images/'+Date.now()+'_'+f.name);
-        sr.put(f).then(function(s){return s.ref.getDownloadURL();}).then(function(url){doSave(url);}).catch(function(e){console.error(e);toast('Gagal upload gambar. Cek koneksi & Storage Rules.','error');btn.innerHTML=ob;btn.disabled=false;});
-    } else { doSave(""); }
-}
-
-/* ===== Modal Edit Materi ===== */
-function bukaModalEditMateri(id){
-    var d=allMateriData[id]; if(!d) return;
-    var nm = normalizeMateri(d);
-    document.getElementById('edit-id').value=id;
-    document.getElementById('input-edit-judul').value=nm.judul||"";
-    document.getElementById('input-edit-hidden').checked=nm.isHidden===true;
-    document.getElementById('input-edit-gambar').value="";
-    /* Tampilkan gambar lama jika ada */
-    var editImg = document.getElementById('img-preview-edit');
-    var editPh = document.getElementById('edit-placeholder');
-    if (nm.gambar && nm.gambar !== '') {
-        editImg.src = nm.gambar;
-        editImg.style.display = '';
-        editImg.onerror = function(){ this.style.display='none'; editPh.classList.remove('hidden'); };
-        editPh.classList.add('hidden');
-    } else {
-        editImg.style.display = 'none';
-        editImg.src = '';
-        editPh.classList.remove('hidden');
-    }
-    populateSessions('edit-sessions-container', nm.sesi);
-    bukaModal('modal-edit');
-}
-function updateMateri(){
-    if(!db) return toast('Firebase belum siap','error');
-    var id=document.getElementById('edit-id').value, j=document.getElementById('input-edit-judul').value.trim(), h=document.getElementById('input-edit-hidden').checked, fi=document.getElementById('input-edit-gambar'), btn=document.getElementById('btn-update-materi'), old=allMateriData[id];
-    var sesi = collectSessions('edit-sessions-container');
-    if(!j) return alert("Judul wajib!");
-    if(sesi.length===0) return alert("Minimal satu sesi!");
-    var ob=btn.innerHTML; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Mengupdate...'; btn.disabled=true;
-    var oldGambar = '';
-    try { var nmOld = normalizeMateri(old); oldGambar = nmOld.gambar || ''; } catch(e){}
-    var doUpdate=function(gu){ db.ref('materi/'+id).update({judul:j,sesi:sesi,isHidden:h,gambar:gu}).then(function(){tutupModal('modal-edit');toast('Materi berhasil diupdate!','success');}).catch(function(e){console.error(e);toast('Gagal update','error');}).finally(function(){btn.innerHTML=ob;btn.disabled=false;}); };
-    if(fi.files.length>0){
-        toast('Mengupload gambar...','info');
-        var f=fi.files[0],sr=storageRef.ref('materi_images/'+Date.now()+'_'+f.name);
-        sr.put(f).then(function(s){return s.ref.getDownloadURL();}).then(function(url){doUpdate(url);}).catch(function(e){console.error(e);toast('Gagal upload gambar. Cek koneksi & Storage Rules.','error');btn.innerHTML=ob;btn.disabled=false;});
-    } else { doUpdate(oldGambar); }
+    var img = document.getElementById(imgId), placeholder = document.getElementById(placeholderId);
+    if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function(e) { img.src = e.target.result; img.style.display = 'block'; placeholder.classList.add('hidden'); }; reader.readAsDataURL(input.files[0]); }
 }
 
 /* =====================================================
-   LOGIKA SISWA
+   RENDER MATERI SISWA (WARNA BERBEDA PER MATERI)
    ===================================================== */
-function tandaiProgresSesi(materiId, sesiIdx, type) {
-    var key = 'progres_'+materiId;
-    var prog = JSON.parse(localStorage.getItem(key) || '{}');
-    if (!prog[sesiIdx]) prog[sesiIdx] = {};
-    prog[sesiIdx][type] = true;
-    localStorage.setItem(key, JSON.stringify(prog));
-    setTimeout(function(){
-        var nm = normalizeMateri(allMateriData[materiId]);
-        renderSesiContent(materiId, nm);
-        renderProgressBar(materiId, nm);
-        checkAllSesiComplete(materiId, nm);
-    }, 150);
+function renderMateriSiswa() {
+    var container = document.getElementById('list-materi-siswa'); container.innerHTML = '';
+    var keys = Object.keys(allMateriData).filter(function(k) { return normalizeMateri(allMateriData[k]).isHidden !== true; });
+    if (keys.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-20"><i class="fas fa-book-open text-5xl text-gray-200 mb-4"></i><p class="text-gray-400 text-sm">Belum ada materi tersedia.</p></div>'; return; }
+    keys.forEach(function(id) {
+        var nm = normalizeMateri(allMateriData[id]);
+        var theme = getCardTheme(nm.judul || id);
+        var grad = getGradient(nm.judul || id);
+        var totalSesi = nm.sesi ? nm.sesi.length : 0, doneCount = 0;
+        for (var i = 0; i < totalSesi; i++) { if (isSesiComplete(id, i, nm.sesi[i])) doneCount++; }
+        var pct = totalSesi > 0 ? Math.round((doneCount / totalSesi) * 100) : 0;
+        var allDone = doneCount === totalSesi && totalSesi > 0;
+        var card = document.createElement('div');
+        card.className = 'group cursor-pointer rounded-2xl overflow-hidden shadow-lg border hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in';
+        card.style.borderColor = theme.border; card.style.background = '#fff';
+        card.onclick = (function(mid){ return function(){ bukaMateri(mid); }; })(id);
+        card.innerHTML = '<div class="relative h-44 overflow-hidden" style="background:' + grad + '">'
+            + '<img src="' + (nm.gambar || '') + '" class="w-full h-full object-cover" onerror="this.style.display=\'none\'">'
+            + '<div class="card-gradient absolute inset-0"></div>'
+            + '<div class="absolute top-3 right-3"><span class="' + theme.badge + ' text-[9px] font-black uppercase px-2.5 py-1 rounded-full">' + totalSesi + ' Sesi</span></div>'
+            + (allDone ? '<div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-emerald-600 text-[9px] font-black uppercase px-2.5 py-1 rounded-full flex items-center gap-1"><i class="fas fa-check-circle"></i> Selesai</div>' : '')
+            + '<div class="absolute bottom-0 left-0 right-0 p-4"><h3 class="text-white font-black text-lg uppercase tracking-tight leading-tight drop-shadow-md">' + (nm.judul || 'Tanpa Judul') + '</h3></div>'
+            + '</div>'
+            + '<div class="p-4">'
+            + '<div class="flex items-center justify-between mb-2"><span class="text-[10px] font-bold text-gray-400 uppercase">Progress</span><span class="text-[11px] font-black" style="color:' + theme.accent + '">' + doneCount + '/' + totalSesi + ' (' + pct + '%)</span></div>'
+            + '<div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div class="h-full rounded-full transition-all duration-500" style="width:' + pct + '%;background:' + grad + '"></div></div>'
+            + '<div class="mt-4"><span class="w-full block text-center text-[10px] font-black uppercase tracking-widest py-2.5 rounded-xl text-white transition-all ' + theme.btn + ' shadow-md ' + theme.glow + '">' + (allDone ? '<i class="fas fa-check mr-1"></i> Lihat Hasil' : '<i class="fas fa-play mr-1"></i> Mulai Belajar') + '</span></div>'
+            + '</div>';
+        container.appendChild(card);
+    });
 }
 
-function checkAllSesiComplete(materiId, nm) {
-    if (isAllSesiComplete(materiId, nm)) {
-        var bl = document.getElementById('btn-lapor');
-        bl.disabled = false;
-        bl.className = "w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90 cursor-pointer";
-        bl.innerHTML = '<i class="fas fa-check-circle"></i> Lapor Selesai';
-        var st = document.getElementById('status-belajar');
-        st.innerHTML = '<i class="fas fa-unlock text-emerald-500"></i> Semua sesi selesai! Silakan lapor.';
-        st.className = "text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit";
-    }
+/* =====================================================
+   BUKA MATERI (HEADER IKUT WARNA TEMA)
+   ===================================================== */
+function bukaMateri(id) {
+    if (!isLoggedIn() && !isAdmin) { curId = id; bukaModal('modal-absen'); return; }
+    curId = id; var nm = normalizeMateri(allMateriData[id]); curJudul = nm.judul || '';
+    var headerBg = document.getElementById('header-bg-wrap');
+    if (headerBg) headerBg.style.background = getGradient(curJudul || id);
+    document.getElementById('judul-aktif').textContent = curJudul;
+    var imgEl = document.getElementById('img-header-belajar');
+    if (nm.gambar) { imgEl.src = nm.gambar; imgEl.style.display = ''; } else { imgEl.style.display = 'none'; }
+    renderSesi(id, nm); updateProgress(id, nm); listenChat(); startStudyTimer(id);
+    document.getElementById('siswa-home').style.display = 'none'; document.getElementById('siswa-belajar').style.display = '';
+}
+function backToHome() {
+    stopStudyTimer(); if (db && curId) { db.ref('chat/' + curId).off(); }
+    curId = ''; document.getElementById('siswa-home').style.display = ''; document.getElementById('siswa-belajar').style.display = 'none'; renderMateriSiswa();
 }
 
-function renderProgressBar(materiId, nm) {
-    var total = nm.sesi ? nm.sesi.length : 0, done = 0;
-    for (var i = 0; i < total; i++) { if (isSesiComplete(materiId, i, nm.sesi[i])) done++; }
-    var pct = total > 0 ? Math.round((done/total)*100) : 0;
-    document.getElementById('progress-bar').style.width = pct+'%';
-    document.getElementById('progress-text').textContent = done+'/'+total+' Sesi ('+pct+'%)';
-}
-
-function renderSesiContent(materiId, nm) {
-    var container = document.getElementById('container-sesi');
-    if (!nm.sesi || nm.sesi.length === 0) { container.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Tidak ada sesi.</p>'; return; }
-    var html = '';
-    for (var i = 0; i < nm.sesi.length; i++) {
-        var s = nm.sesi[i];
-        var complete = isSesiComplete(materiId, i, s);
-        var prog = getSesiProgress(materiId), sp = prog[i] || {};
-        var hasKuis = s.kuis && s.kuis !== '' && s.kuis !== 'undefined';
-        var hasLinks = s.links && s.links.length > 0;
-        var borderClass, statusIcon, statusColor, statusText, statusBg;
-        if (complete) { borderClass='sesi-complete'; statusIcon='fa-check-circle'; statusColor='text-emerald-500'; statusText='Selesai'; statusBg='bg-emerald-100 text-emerald-700'; }
-        else if (sp.materi || sp.kuis) { borderClass='sesi-progress'; statusIcon='fa-clock'; statusColor='text-amber-500'; statusText='Dalam Proses'; statusBg='bg-amber-100 text-amber-700'; }
-        else { borderClass='sesi-pending'; statusIcon='fa-circle'; statusColor='text-gray-300'; statusText='Belum Dimulai'; statusBg='bg-gray-100 text-gray-500'; }
-        var infoParts = [];
-        if (hasLinks) infoParts.push(s.links.length + ' Materi');
-        if (hasKuis) infoParts.push('Kuis');
-        var infoText = infoParts.join(' · ') || 'Tidak ada konten';
-        html += '<div class="'+borderClass+' rounded-2xl border border-gray-100 p-5 transition-all">';
-        html += '<div class="flex items-center justify-between mb-4"><div class="flex items-center gap-3"><i class="fas '+statusIcon+' '+statusColor+' text-lg"></i><div><h4 class="font-black text-sm text-gray-900 uppercase tracking-tight">'+(s.nama||'Sesi '+(i+1))+'</h4><span class="text-[10px] text-gray-400 font-bold">'+infoText+'</span></div></div><span class="text-[9px] font-black uppercase px-2.5 py-1 rounded-full '+statusBg+'">'+statusText+'</span></div>';
+/* =====================================================
+   RENDER SESI
+   ===================================================== */
+function renderSesi(materiId, nm) {
+    var container = document.getElementById('container-sesi'); container.innerHTML = '';
+    if (!nm.sesi || nm.sesi.length === 0) { container.innerHTML = '<p class="text-sm text-gray-400">Tidak ada sesi.</p>'; return; }
+    nm.sesi.forEach(function(sesi, idx) {
+        var complete = isSesiComplete(materiId, idx, sesi);
+        var hasLinks = sesi.links && sesi.links.length > 0, hasKuis = sesi.kuis && sesi.kuis !== '' && sesi.kuis !== 'undefined';
+        var inProgress = hasAnyProgress(materiId, idx);
+        var statusClass = complete ? 'sesi-complete' : (inProgress ? 'sesi-progress' : 'sesi-pending');
+        var statusIcon = complete ? '<i class="fas fa-check-circle text-emerald-500"></i>' : (inProgress ? '<i class="fas fa-clock text-amber-500"></i>' : '<i class="far fa-circle text-gray-300"></i>');
+        var card = document.createElement('div'); card.className = 'session-card ' + statusClass + ' animate-fade-in';
+        var inner = '<div class="sesi-header"><div class="flex items-center gap-2">' + statusIcon + '<span class="text-sm font-bold text-gray-800">' + (sesi.nama || 'Sesi ' + (idx+1)) + '</span></div><span class="text-[10px] font-bold ' + (complete ? 'text-emerald-600' : 'text-gray-400') + ' uppercase">' + (complete ? 'Selesai' : 'Belum Selesai') + '</span></div><div class="p-4 space-y-2">';
         if (hasLinks) {
-            html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">';
-            for (var j = 0; j < s.links.length; j++) {
-                var linkDone = complete || sp.materi === true;
-                html += '<a href="'+s.links[j].url+'" target="_blank" onclick="tandaiProgresSesi(\''+materiId+'\','+i+',\'materi\')" class="bg-[#5851db] text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:opacity-90 flex items-center justify-between group transition-all text-xs uppercase italic" style="text-decoration:none;"><span class="flex items-center gap-2"><i class="fas fa-play-circle text-base group-hover:scale-110 transition-transform"></i> '+(s.links[j].label||'Materi '+(j+1))+'</span>'+(linkDone?'<i class="fas fa-check text-emerald-300 text-[10px]"></i>':'<i class="fas fa-external-link-alt opacity-40 text-[10px]"></i>')+'</a>';
-            }
-            html += '</div>';
+            sesi.links.forEach(function(link, li) {
+                var linkDone = (getSesiProgress(materiId)[idx] || {}).materi === true;
+                inner += '<div class="flex items-center gap-3"><button onclick="toggleSesi(\'' + materiId + '\',' + idx + ',\'materi\',' + li + ')" type="button" class="toggle-eye ' + (linkDone ? 'show' : 'hide') + '"><i class="fas ' + (linkDone ? 'fa-eye' : 'fa-eye-slash') + '"></i></button><a href="' + (link.url || '#') + '" target="_blank" class="flex-1 text-sm text-gray-700 hover:text-indigo-600 font-medium transition-colors truncate">' + (link.label || 'Materi') + '</a></div>';
+            });
         }
         if (hasKuis) {
-            var kuisDone = sp.kuis === true;
-            html += '<a href="'+s.kuis+'" target="_blank" onclick="tandaiProgresSesi(\''+materiId+'\','+i+',\'kuis\')" class="bg-[#f58020] text-white px-5 py-3 rounded-xl font-bold shadow-sm hover:opacity-90 flex items-center justify-between group transition-all text-xs uppercase italic border-2 border-transparent hover:border-orange-400 w-full md:w-auto" style="text-decoration:none;"><span class="flex items-center gap-2"><i class="fas fa-edit text-base"></i> Kerjakan Kuis</span>'+(kuisDone?'<i class="fas fa-check-circle text-emerald-300"></i>':'<i class="fas fa-external-link-alt opacity-40 text-[10px]"></i>')+'</a>';
+            var kuisDone = (getSesiProgress(materiId)[idx] || {}).kuis === true;
+            inner += '<div class="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100"><button onclick="toggleSesi(\'' + materiId + '\',' + idx + ',\'kuis\')" type="button" class="toggle-eye ' + (kuisDone ? 'show' : 'hide') + '"><i class="fas ' + (kuisDone ? 'fa-eye' : 'fa-eye-slash') + '"></i></button><a href="' + sesi.kuis + '" target="_blank" class="flex-1 text-sm text-gray-700 hover:text-indigo-600 font-medium transition-colors"><i class="fas fa-question-circle mr-1 text-amber-400"></i>Kuis Sesi Ini</a></div>';
         }
-        html += '</div>';
-    }
-    container.innerHTML = html;
+        inner += '</div>'; card.innerHTML = inner; container.appendChild(card);
+    });
 }
 
-function backToHome(){ document.getElementById('siswa-home').style.display=''; document.getElementById('siswa-belajar').style.display='none'; }
+function toggleSesi(materiId, sesiIdx, type, linkIdx) {
+    var prog = getSesiProgress(materiId);
+    if (!prog[sesiIdx]) prog[sesiIdx] = {};
+    prog[sesiIdx][type] = !prog[sesiIdx][type];
+    localStorage.setItem('progres_' + materiId, JSON.stringify(prog));
+    var nm = normalizeMateri(allMateriData[materiId]);
+    renderSesi(materiId, nm); updateProgress(materiId, nm);
+}
 
-/* ===== Absen NUP ===== */
+function updateProgress(materiId, nm) {
+    var totalSesi = nm.sesi ? nm.sesi.length : 0, doneCount = 0;
+    for (var i = 0; i < totalSesi; i++) { if (isSesiComplete(materiId, i, nm.sesi[i])) doneCount++; }
+    var pct = totalSesi > 0 ? Math.round((doneCount / totalSesi) * 100) : 0;
+    var allDone = doneCount === totalSesi && totalSesi > 0;
+    document.getElementById('progress-text').textContent = doneCount + '/' + totalSesi + ' (' + pct + '%)';
+    document.getElementById('progress-bar').style.width = pct + '%';
+    var btnLapor = document.getElementById('btn-lapor');
+    var statusEl = document.getElementById('status-belajar');
+    if (allDone) {
+        btnLapor.disabled = false; btnLapor.className = 'w-full bg-emerald-500 text-white py-4 rounded-2xl font-black shadow-lg mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic hover:bg-emerald-600 transition-all cursor-pointer';
+        btnLapor.innerHTML = '<i class="fas fa-paper-plane"></i> Lapor Selesai';
+        statusEl.className = 'text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit'; statusEl.innerHTML = '<i class="fas fa-unlock"></i> Semua sesi telah diselesaikan';
+    } else {
+        btnLapor.disabled = true; btnLapor.className = 'w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all';
+        btnLapor.innerHTML = '<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
+        statusEl.className = 'text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit'; statusEl.innerHTML = '<i class="fas fa-lock"></i> Selesaikan semua sesi untuk membuka laporan';
+    }
+}
+
+/* =====================================================
+   ABSEN / VERIFIKASI NUP
+   ===================================================== */
 function resetModalAbsen() {
-    document.getElementById('abs-nup').value="";
-    document.getElementById('abs-nama').value="";
-    document.getElementById('abs-unit').value="";
-    document.getElementById('nup-error-msg').textContent="";
-    document.getElementById('absen-data-container').style.opacity="0.6";
-    document.getElementById('absen-data-container').style.pointerEvents="none";
-    document.getElementById('btn-submit-absen').disabled=true;
-    document.getElementById('btn-submit-absen').className="flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
-    currentKaryawanData=null;
+    document.getElementById('abs-nup').value = ''; document.getElementById('abs-nama').value = ''; document.getElementById('abs-unit').value = '';
+    document.getElementById('nup-error-msg').textContent = ''; document.getElementById('absen-data-container').classList.add('opacity-60', 'pointer-events-none');
+    var btn = document.getElementById('btn-submit-absen'); btn.disabled = true; btn.className = 'flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed'; btn.textContent = 'Kirim & Buka';
+    currentKaryawanData = null;
 }
 function cekNUPDatabase() {
-    var nupInput=document.getElementById('abs-nup').value.trim(), namaInput=document.getElementById('abs-nama'), unitInput=document.getElementById('abs-unit'), container=document.getElementById('absen-data-container'), errorMsg=document.getElementById('nup-error-msg'), btnSubmit=document.getElementById('btn-submit-absen');
-    namaInput.value=""; unitInput.value=""; errorMsg.textContent=""; currentKaryawanData=null;
-    if(!nupInput) return;
-    var dataKaryawan = databasePegawai[nupInput];
-    if(dataKaryawan){
-        namaInput.value=dataKaryawan.nama; unitInput.value=dataKaryawan.unit;
-        container.style.opacity="1"; container.style.pointerEvents="auto";
-        btnSubmit.disabled=false;
-        btnSubmit.className="flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700 cursor-pointer";
-        toast("Data Pegawai Ditemukan!","success");
-        currentKaryawanData={nup:nupInput, nama:dataKaryawan.nama, unit:dataKaryawan.unit};
-    } else {
-        container.style.opacity="0.6"; container.style.pointerEvents="none";
-        btnSubmit.disabled=true;
-        btnSubmit.className="flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed";
-        errorMsg.textContent="NUP tidak terdaftar di database.";
-        toast("NUP Tidak Valid","error");
-    }
+    var nup = document.getElementById('abs-nup').value.trim(), errMsg = document.getElementById('nup-error-msg');
+    errMsg.textContent = '';
+    if (!nup) { errMsg.textContent = 'NUP tidak boleh kosong.'; return; }
+    var data = databasePegawai[nup];
+    if (!data) { errMsg.textContent = 'NUP tidak terdaftar.'; document.getElementById('absen-data-container').classList.add('opacity-60', 'pointer-events-none'); var btn = document.getElementById('btn-submit-absen'); btn.disabled = true; btn.className = 'flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed'; btn.textContent = 'Kirim & Buka'; currentKaryawanData = null; return; }
+    currentKaryawanData = data;
+    document.getElementById('abs-nama').value = data.nama; document.getElementById('abs-unit').value = data.unit;
+    document.getElementById('absen-data-container').classList.remove('opacity-60', 'pointer-events-none');
+    var btn = document.getElementById('btn-submit-absen'); btn.disabled = false; btn.className = 'flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700 cursor-pointer'; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Kirim & Buka';
 }
-function bukaMateriSiswa(id){
-    var d=allMateriData[id]; if(!d) return toast("Materi tidak ditemukan!","error");
-    var nm = normalizeMateri(d);
-    curId=id; curJudul=nm.judul||'';
-    var h=JSON.parse(localStorage.getItem('absensi_history')||"[]");
-    if(h.indexOf(id)!==-1){ renderMateriContent(d); } else { bukaModal('modal-absen'); }
-}
-function prosesAbsen(){
-    if(!db) return;
-    if(!currentKaryawanData){ toast("NUP tidak valid.","error"); return; }
-    var n=currentKaryawanData.nama, u=currentKaryawanData.nup, k=currentKaryawanData.unit;
-    db.ref('absensi/').push({nama:n,nup:u,unit:k,materi:curJudul,waktu:new Date().toLocaleString()}).then(function(){
-        var h=JSON.parse(localStorage.getItem('absensi_history')||"[]"); h.push(curId); localStorage.setItem('absensi_history',JSON.stringify(h));
-        localStorage.setItem('user_nama',n); localStorage.setItem('user_nup',u); localStorage.setItem('user_unit',k);
-        tutupModal('modal-absen'); toast('Absensi Berhasil! Materi dibuka.','success');
-        var d=allMateriData[curId]; if(d) renderMateriContent(d);
-    }).catch(function(){ toast("Gagal menyimpan absensi.","error"); });
-}
-function renderMateriContent(d){
-    document.getElementById('siswa-home').style.display='none';
-    document.getElementById('siswa-belajar').style.display='';
-    var nm = normalizeMateri(d);
-    document.getElementById('judul-aktif').innerText=nm.judul||'';
-    var hi=document.getElementById('img-header-belajar');
-    var headerBg=document.getElementById('header-bg-wrap');
-    if(nm.gambar && nm.gambar !== ''){
-        hi.src=nm.gambar; hi.style.display='';
-        hi.onerror=function(){ this.style.display='none'; };
-        headerBg.style.background=getGradient(nm.judul||'x');
-    } else {
-        hi.style.display='none'; hi.src='';
-        headerBg.style.background=getGradient(nm.judul||'x');
-    }
-    var bl=document.getElementById('btn-lapor'), st=document.getElementById('status-belajar');
-    renderProgressBar(curId, nm);
-    renderSesiContent(curId, nm);
-    if (isAllSesiComplete(curId, nm)) {
-        bl.disabled=false; bl.className="w-full bg-[#24d164] text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic transition-all hover:opacity-90 cursor-pointer"; bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai';
-        st.innerHTML='<i class="fas fa-unlock text-emerald-500"></i> Semua sesi selesai! Silakan lapor.'; st.className="text-sm text-emerald-600 mb-6 font-bold flex items-center gap-2 bg-emerald-50 p-3 rounded-xl w-fit";
-    } else {
-        bl.disabled=true; bl.className="w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all"; bl.innerHTML='<i class="fas fa-check-circle"></i> Lapor Selesai (Terkunci)';
-        st.innerHTML='<i class="fas fa-lock"></i> Selesaikan semua sesi untuk membuka laporan'; st.className="text-sm text-rose-500 mb-6 font-bold flex items-center gap-2 bg-rose-50 p-3 rounded-xl w-fit";
-    }
-    loadChat();
+function prosesAbsen() {
+    if (!currentKaryawanData || !curId) return;
+    var nup = document.getElementById('abs-nup').value.trim();
+    localStorage.setItem('bki_logged_in', 'true'); localStorage.setItem('user_nama', currentKaryawanData.nama); localStorage.setItem('user_nup', nup); localStorage.setItem('user_unit', currentKaryawanData.unit);
+    showUserInfoNav();
+    var absenRef = db.ref('absen/' + curId).push();
+    absenRef.set({ nama: currentKaryawanData.nama, nup: nup, unit: currentKaryawanData.unit, waktu: firebase.database.ServerValue.TIMESTAMP });
+    tutupModal('modal-absen'); toast('Absen berhasil! Selamat belajar, ' + currentKaryawanData.nama, 'success');
+    bukaMateri(curId);
 }
 
-/* ===== Chat ===== */
-function kirimChat(){ var n=localStorage.getItem('user_nama')||"Anonim",p=document.getElementById('chat-pesan').value; if(p&&db){db.ref('chat/').push({nama:n,pesan:p,materiId:curId,judulMateri:curJudul,waktu:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});document.getElementById('chat-pesan').value="";} }
-function loadChat(){ if(!db) return; db.ref('chat/').on('value',function(snap){ var box=document.getElementById('chat-box'); box.innerHTML=""; var has=false; snap.forEach(function(c){ var d=c.val(); if(d.materiId===curId){ has=true; var isC=d.nama.toLowerCase().indexOf('admin')!==-1||d.nama.toLowerCase().indexOf('cs')!==-1; box.innerHTML+='<div class="flex flex-col '+(isC?'items-start':'items-end')+' animate-fade-in"><span class="text-[9px] font-black uppercase text-gray-400 mb-1 px-2">'+(isC?'<i class="fas fa-headset text-indigo-600"></i> CS - ':'')+d.nama+' &bull; '+d.waktu+'</span><div class="'+(isC?'bg-indigo-600 text-white':'bg-white border-2 border-gray-100 text-gray-800')+' p-3 rounded-2xl text-sm shadow-sm max-w-[85%] font-medium leading-relaxed">'+d.pesan+'</div></div>'; } }); if(!has) box.innerHTML='<div class="text-center text-xs text-gray-400 my-4 italic">Belum ada diskusi.</div>'; box.scrollTop=box.scrollHeight; }); }
+/* =====================================================
+   LAPOR SELESAI
+   ===================================================== */
+function prosesLaporSelesai() {
+    if (!curId) return;
+    var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || '', unit = localStorage.getItem('user_unit') || '';
+    var nm = normalizeMateri(allMateriData[curId]);
+    db.ref('laporan/' + curId + '/' + nup).set({ nama: nama, nup: nup, unit: unit, materi: curJudul, waktu: firebase.database.ServerValue.TIMESTAMP, nilai: 100 });
+    toast('berhasil dikirim!', 'success');
+    var btn = document.getElementById('btn-lapor'); btn.disabled = true; btn.className = 'w-full bg-emerald-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all'; btn.innerHTML = '<i class="fas fa-check-double"></i> Sudah Dilaporkan';
+}
 
-/* ===== Tab Guru ===== */
-function switchTabGuru(t){ var tabs=['materi','hidden','nilai','absen','chat']; for(var i=0;i<tabs.length;i++){ document.getElementById('g-content-'+tabs[i]).style.display=tabs[i]===t?'':'none'; document.getElementById('tab-g-'+tabs[i]).className=tabs[i]===t?"flex-1 min-w-[100px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5":"flex-1 min-w-[100px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5"; } }
-
-/* ===== Aksi Lainnya ===== */
-function prosesLaporSelesai(){ if(!db) return; if(confirm("Lapor selesai?")){ db.ref('laporan/').push({nama:localStorage.getItem('user_nama'),nup:localStorage.getItem('user_nup'),unit:localStorage.getItem('user_unit'),pelatihan:curJudul,nilai:"-",waktu:new Date().toLocaleString()}).then(function(){toast("Terkirim!","success");backToHome();}).catch(function(){toast("Gagal","error");}); } }
-function beriNilai(id){ if(!db) return; var n=prompt("Nilai (0-100):"); if(n) db.ref('laporan/'+id).update({nilai:n}); }
-function hapusRecord(path){ if(!db) return; if(confirm("Hapus permanen?")) db.ref(path).remove(); }
-function downloadExcel(){ var t=document.getElementById('tabel-laporan'),data=[["Nama","NUP","Unit","Materi","Nilai"]]; var rows=t.querySelectorAll('tr'); for(var i=0;i<rows.length;i++){var cells=rows[i].querySelectorAll('td');if(cells.length>0)data.push([cells[0].innerText.trim(),cells[1].innerText.trim(),cells[2].innerText.trim(),cells[3].innerText.trim(),cells[4].innerText.trim()]);} var ws=XLSX.utils.aoa_to_sheet(data),wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Rekap"); XLSX.writeFile(wb,"Rekap_"+new Date().toLocaleDateString('id-ID').replace(/\//g,'-')+".xlsx"); }
-
-/* ===== FIREBASE LISTENERS ===== */
-if (db) {
-    db.ref('chat/').on('value',function(snap){
-        var l=document.getElementById('admin-chat-list'); if(!l) return; l.innerHTML="";
-        snap.forEach(function(c){ var d=c.val(); l.innerHTML+='<div class="flex justify-between items-start bg-gray-50 p-3 rounded-xl border text-xs"><div><span class="block text-[9px] font-bold text-indigo-500 uppercase mb-0.5"><i class="fas fa-folder"></i> '+(d.judulMateri||'?')+'</span><span class="font-bold text-gray-800"><b class="text-indigo-700">'+d.nama+':</b> '+d.pesan+'</span></div><button onclick="hapusRecord(\'chat/'+c.key+'\')" type="button" class="text-red-300 hover:text-red-600 p-2"><i class="fas fa-trash"></i></button></div>'; });
+/* =====================================================
+   CHAT SYSTEM
+   ===================================================== */
+function listenChat() {
+    if (!db || !curId) return;
+    db.ref('chat/' + curId).off();
+    db.ref('chat/' + curId).orderByChild('timestamp').on('value', function(snapshot) {
+        var box = document.getElementById('chat-box'); box.innerHTML = '';
+        var data = snapshot.val();
+        if (!data) { box.innerHTML = '<div class="text-center text-xs text-gray-400 my-4">Belum ada pesan.</div>'; return; }
+        var keys = Object.keys(data);
+        keys.forEach(function(k) {
+            var msg = data[k]; var isMe = msg.nup === localStorage.getItem('user_nup');
+            var div = document.createElement('div');
+            div.className = 'flex ' + (isMe ? 'justify-end' : 'justify-start') + ' animate-fade-in';
+            var timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+            div.innerHTML = '<div class="max-w-[80%] ' + (isMe ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800') + ' rounded-2xl ' + (isMe ? 'rounded-br-md' : 'rounded-bl-md') + ' px-4 py-3">'
+                + '<p class="text-[10px] font-black uppercase tracking-wider ' + (isMe ? 'text-indigo-200' : 'text-gray-400') + ' mb-1">' + (msg.nama || 'Anonim') + '</p>'
+                + '<p class="text-sm">' + (msg.pesan || '') + '</p>'
+                + '<p class="text-[9px] ' + (isMe ? 'text-indigo-300' : 'text-gray-400') + ' mt-1">' + timeStr + '</p></div>';
+            box.appendChild(div);
+        });
+        box.scrollTop = box.scrollHeight;
     });
+}
+function kirimChat() {
+    var input = document.getElementById('chat-pesan'), pesan = input.value.trim();
+    if (!pesan || !curId || !db) return;
+    var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || 'Anonim';
+    db.ref('chat/' + curId).push({ nama: nama, nup: nup, pesan: pesan, timestamp: firebase.database.ServerValue.TIMESTAMP });
+    input.value = '';
+}
 
-    db.ref('materi/').on('value',function(snap){
-        var ls=document.getElementById('list-materi-siswa'),la=document.getElementById('list-materi-admin'),lh=document.getElementById('list-materi-hidden'),eh=document.getElementById('emptyHidden'),hc=document.getElementById('hiddenCount');
-        ls.innerHTML=""; la.innerHTML=""; lh.innerHTML=""; var hiddenCount=0;
-        snap.forEach(function(c){
-            var m=c.val(),id=c.key; allMateriData[id]=m;
-            var nm = normalizeMateri(m);
-            var gambarUrl = nm.gambar || '';
-            var hasImage = gambarUrl && gambarUrl !== '';
-            var grad = getGradient(nm.judul || 'x');
-            var isH=nm.isHidden===true;
-            if(isH) hiddenCount++;
-            var totalSesi = nm.sesi ? nm.sesi.length : 0;
-            var totalKuis = 0, totalLinks = 0;
-            for (var si = 0; si < totalSesi; si++) {
-                if (nm.sesi[si].links) totalLinks += nm.sesi[si].links.length;
-                if (nm.sesi[si].kuis && nm.sesi[si].kuis !== '' && nm.sesi[si].kuis !== 'undefined') totalKuis++;
-            }
-            /* Build img tag only if URL exists */
-            var imgTag = hasImage ? '<img src="'+gambarUrl+'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.style.display=\'none\'">' : '';
+/* =====================================================
+   ADMIN: TAB SWITCHING
+   ===================================================== */
+function switchTabGuru(tab) {
+    currentGuruTab = tab;
+    var tabs = ['materi','hidden','waktu','nilai','absen','chat'];
+    tabs.forEach(function(t) {
+        var btn = document.getElementById('tab-g-' + t), content = document.getElementById('g-content-' + t);
+        if (t === tab) { btn.className = 'flex-1 min-w-[80px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5'; content.style.display = ''; }
+        else { btn.className = 'flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5'; content.style.display = 'none'; }
+    });
+    if (tab === 'waktu') { renderWaktuBelajar(); populateFilterMateri(); }
+    if (tab === 'nilai') renderNilaiAdmin();
+    if (tab === 'absen') renderAbsenAdmin();
+    if (tab === 'chat') renderChatAdmin();
+}
 
-            if(!isH){
-                var lab = totalKuis > 0
-                    ? '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-orange-600 text-white"><i class="fas fa-clipboard-check text-[9px]"></i> '+totalSesi+' Sesi · '+totalKuis+' Kuis</span>'
-                    : '<span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase shadow-md border border-white/20 bg-slate-800 text-white"><i class="fas fa-book-open text-[9px]"></i> '+totalSesi+' Sesi</span>';
-                var sesiList = '';
-                var showCount = Math.min(totalSesi, 3);
-                for (var sli = 0; sli < showCount; sli++) {
-                    var sld = nm.sesi[sli];
-                    var slComplete = isSesiComplete(id, sli, sld);
-                    var slProg = getSesiProgress(id)[sli];
-                    var slIcon = slComplete ? 'fa-check-circle text-emerald-300' : (slProg ? 'fa-clock text-amber-300' : 'fa-circle text-white/30');
-                    sesiList += '<div class="flex items-center gap-2 text-[10px] text-white/90 truncate"><i class="fas '+slIcon+'"></i> '+(sld.nama||'Sesi '+(sli+1))+'</div>';
-                }
-                if (totalSesi > 3) sesiList += '<div class="text-[9px] text-white/60 italic ml-5">+'+(totalSesi-3)+' sesi lainnya</div>';
+/* =====================================================
+   ADMIN: RENDER MATERI (WARNA BERBEDA)
+   ===================================================== */
+function renderMateriAdmin() {
+    var container = document.getElementById('list-materi-admin'); container.innerHTML = '';
+    var keys = Object.keys(allMateriData).filter(function(k) { return normalizeMateri(allMateriData[k]).isHidden !== true; });
+    if (keys.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-12"><i class="fas fa-folder-open text-3xl text-gray-200 mb-3"></i><p class="text-gray-400 text-sm">Belum ada materi.</p></div>'; return; }
+    keys.forEach(function(id) {
+        var nm = normalizeMateri(allMateriData[id]);
+        var theme = getCardTheme(nm.judul || id), grad = getGradient(nm.judul || id);
+        var totalSesi = nm.sesi ? nm.sesi.length : 0;
+        var card = document.createElement('div'); card.className = 'rounded-2xl overflow-hidden shadow-md border hover:shadow-lg transition-all animate-fade-in'; card.style.borderColor = theme.border; card.style.background = '#fff';
+        card.innerHTML = '<div class="relative h-28 overflow-hidden" style="background:' + grad + '">'
+            + '<img src="' + (nm.gambar || '') + '" class="w-full h-full object-cover" onerror="this.style.display=\'none\'">'
+            + '<div class="card-gradient absolute inset-0"></div>'
+            + '<div class="absolute bottom-0 left-0 right-0 p-3"><h4 class="text-white font-black text-sm uppercase tracking-tight leading-tight drop-shadow-md truncate">' + (nm.judul || 'Tanpa Judul') + '</h4></div></div>'
+            + '<div class="p-3 flex items-center justify-between">'
+            + '<span class="' + theme.badge + ' text-[9px] font-black px-2 py-0.5 rounded-full">' + totalSesi + ' Sesi</span>'
+            + '<div class="flex gap-1">'
+            + '<button onclick="event.stopPropagation();editMateri(\'' + id + '\')" type="button" class="text-gray-300 hover:text-indigo-500 p-1.5 rounded-lg hover:bg-indigo-50 transition-colors" title="Edit"><i class="fas fa-edit text-xs"></i></button>'
+            + '<button onclick="event.stopPropagation();hapusMateri(\'' + id + '\')" type="button" class="text-gray-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Hapus"><i class="fas fa-trash text-xs"></i></button>'
+            + '<button onclick="event.stopPropagation();toggleVisibilitas(\'' + id + '\')" type="button" class="text-gray-300 hover:text-amber-500 p-1.5 rounded-lg hover:bg-amber-50 transition-colors" title="Sembunyikan"><i class="fas fa-eye-slash text-xs"></i></button>'
+            + '</div></div>';
+        container.appendChild(card);
+    });
+}
 
-                ls.innerHTML+='<div onclick="bukaMateriSiswa(\''+id+'\')" class="group relative bg-white h-64 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border-2 border-transparent hover:border-indigo-500 overflow-hidden flex flex-col justify-end"><div class="absolute inset-0" style="background:'+grad+'"><i class="fas fa-book-open text-white/10 text-6xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>'+imgTag+'</div><div class="absolute top-4 left-4 z-20">'+lab+'</div><div class="absolute inset-0 card-gradient"></div><div class="relative z-10 p-5 text-white"><div class="flex items-center gap-2 mb-2"><i class="fas fa-layer-group text-indigo-300 text-[9px]"></i><span class="text-[9px] font-bold uppercase tracking-widest text-indigo-200 opacity-80">'+totalLinks+' Resource</span></div><h3 class="font-black text-xl uppercase italic tracking-tighter leading-tight drop-shadow-md mb-1">'+(nm.judul||'')+'</h3>'+sesiList+'</div></div>';
+function renderHiddenMateri() {
+    var container = document.getElementById('list-materi-hidden'), emptyEl = document.getElementById('emptyHidden'); container.innerHTML = '';
+    var keys = Object.keys(allMateriData).filter(function(k) { return normalizeMateri(allMateriData[k]).isHidden === true; });
+    if (keys.length === 0) { emptyEl.style.display = ''; return; } emptyEl.style.display = 'none';
+    keys.forEach(function(id) {
+        var nm = normalizeMateri(allMateriData[id]);
+        var theme = getCardTheme(nm.judul || id), grad = getGradient(nm.judul || id);
+        var card = document.createElement('div'); card.className = 'rounded-2xl overflow-hidden shadow-md border opacity-60 hover:opacity-100 transition-all animate-fade-in'; card.style.borderColor = theme.border; card.style.background = '#fff';
+        card.innerHTML = '<div class="relative h-24 overflow-hidden" style="background:' + grad + '">'
+            + '<div class="card-gradient absolute inset-0"></div>'
+            + '<div class="absolute bottom-0 left-0 right-0 p-3"><h4 class="text-white font-black text-xs uppercase tracking-tight leading-tight drop-shadow-md truncate">' + (nm.judul || 'Tanpa Judul') + '</h4></div></div>'
+            + '<div class="p-3 flex items-center justify-between">'
+            + '<span class="bg-red-100 text-red-600 text-[9px] font-black px-2 py-0.5 rounded-full">Hidden</span>'
+            + '<div class="flex gap-1">'
+            + '<button onclick="event.stopPropagation();editMateri(\'' + id + '\')" type="button" class="text-gray-300 hover:text-indigo-500 p-1.5 rounded-lg hover:bg-indigo-50 transition-colors"><i class="fas fa-edit text-xs"></i></button>'
+            + '<button onclick="event.stopPropagation();hapusMateri(\'' + id + '\')" type="button" class="text-gray-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-colors"><i class="fas fa-trash text-xs"></i></button>'
+            + '<button onclick="event.stopPropagation();toggleVisibilitas(\'' + id + '\')" type="button" class="text-gray-300 hover:text-emerald-500 p-1.5 rounded-lg hover:bg-emerald-50 transition-colors" title="Tampilkan"><i class="fas fa-eye text-xs"></i></button>'
+            + '</div></div>';
+        container.appendChild(card);
+    });
+}
+function updateHiddenCount() {
+    var count = Object.keys(allMateriData).filter(function(k) { return normalizeMateri(allMateriData[k]).isHidden === true; }).length;
+    var el = document.getElementById('hiddenCount'); if (count > 0) { el.textContent = count; el.style.display = ''; } else { el.style.display = 'none'; }
+}
 
-                /* Admin card */
-                var adminImgTag = hasImage ? '<img src="'+gambarUrl+'" class="w-full h-full object-cover" onerror="this.style.display=\'none\'">' : '';
-                la.innerHTML+='<div class="bg-white rounded-2xl border flex flex-col overflow-hidden h-full group hover:shadow-md transition-all"><div class="h-32 overflow-hidden relative" style="background:'+grad+'"><i class="fas fa-book-open text-white/10 text-4xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>'+adminImgTag+'<div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye show bg-white/90 p-2 rounded-lg shadow" title="Sembunyikan"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-700 border border-emerald-200 mb-2"><i class="fas fa-eye mr-1"></i>AKTIF</span><p class="font-black text-indigo-900 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+(nm.judul||'')+'</p><p class="text-[10px] text-gray-500"><i class="fas fa-layer-group mr-1"></i>'+totalSesi+' Sesi'+(totalKuis>0?' · '+totalKuis+' Kuis':'')+'</p></div><div class="text-[10px] text-gray-300 font-mono">'+(nm.waktu||'')+'</div></div></div>';
-            }
-
-            if(isH){
-                var hiddenImgTag = hasImage ? '<img src="'+gambarUrl+'" class="w-full h-full object-cover grayscale" onerror="this.style.display=\'none\'">' : '';
-                lh.innerHTML+='<div class="bg-white rounded-2xl border-2 border-dashed border-red-200 flex flex-col overflow-hidden h-full opacity-80 hover:opacity-100 transition-opacity"><div class="h-32 overflow-hidden relative" style="background:'+grad+'"><i class="fas fa-eye-slash text-white/10 text-4xl absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>'+hiddenImgTag+'<div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-center px-3"><i class="fas fa-eye-slash text-lg mb-1"></i><span class="text-[10px] font-black uppercase">Tersembunyi</span></div><div class="absolute top-2 right-2 flex gap-1"><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="toggle-eye hide bg-white/90 p-2 rounded-lg shadow"><i class="fas fa-eye"></i></button><button onclick="event.stopPropagation();bukaModalEditMateri(\''+id+'\')" type="button" class="bg-white/90 text-indigo-600 p-2 rounded-lg shadow"><i class="fas fa-edit"></i></button><button onclick="event.stopPropagation();hapusRecord(\'materi/'+id+'\')" type="button" class="bg-white/90 text-red-600 p-2 rounded-lg shadow"><i class="fas fa-trash-alt"></i></button></div></div><div class="p-4 flex-1 flex flex-col justify-between"><div><span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-red-100 text-red-700 border border-red-200 mb-2"><i class="fas fa-eye-slash mr-1"></i>TERSEMBUNYI</span><p class="font-black text-gray-500 uppercase italic tracking-tighter text-sm leading-tight mb-2">'+(nm.judul||'')+'</p><p class="text-[10px] text-gray-400"><i class="fas fa-layer-group mr-1"></i>'+totalSesi+' Sesi</p></div><button onclick="event.stopPropagation();toggleVisibilitas(\''+id+'\')" type="button" class="mt-3 w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 py-2 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-1.5"><i class="fas fa-eye"></i> Tampilkan ke Siswa</button><div class="text-[10px] text-gray-300 font-mono mt-2">'+(nm.waktu||'')+'</div></div></div>';
+/* =====================================================
+   ADMIN: TAMBAH / EDIT / HAPUS MATERI
+   ===================================================== */
+function bukaModalTambahMateri() { document.getElementById('input-judul').value = ''; document.getElementById('add-sessions-container').innerHTML = ''; tambahSesi('add-sessions-container'); document.getElementById('input-gambar').value = ''; document.getElementById('img-preview').style.display = 'none'; document.getElementById('add-placeholder').classList.remove('hidden'); bukaModal('modal-tambah'); }
+function simpanMateriBaru() {
+    var judul = document.getElementById('input-judul').value.trim();
+    if (!judul) { toast('Judul wajib diisi!', 'error'); return; }
+    var sesi = collectSessionsFromContainer('add-sessions-container');
+    if (sesi.length === 0) { toast('Tambahkan minimal 1 sesi!', 'error'); return; }
+    var btn = document.getElementById('btn-simpan-materi'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    var newRef = db.ref('materi').push();
+    var dataToSave = { judul: judul, sesi: sesi, gambar: '', isHidden: false };
+    var fileInput = document.getElementById('input-gambar');
+    if (fileInput.files && fileInput.files[0]) {
+        var fileName = 'cover_' + newRef.key + '_' + Date.now();
+        var uploadTask = storageRef.ref('materi_cover/' + fileName).put(fileInput.files[0]);
+        uploadTask.on('state_changed', null, function(err) { toast('Gagal upload gambar: ' + err.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; },
+        function() { uploadTask.snapshot.ref.getDownloadURL().then(function(url) { dataToSave.gambar = url; newRef.set(dataToSave).then(function(){ toast('Materi "' + judul + '" berhasil ditambahkan!', 'success'); tutupModal('modal-tambah'); btn.disabled = false; btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; }).catch(function(e){ toast('Gagal: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; }); }); });
+    } else {
+        newRef.set(dataToSave).then(function(){ toast('Materi "' + judul + '" berhasil ditambahkan!', 'success'); tutupModal('modal-tambah'); btn.disabled = false; btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; }).catch(function(e){ toast('Gagal: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; });
+    }
+}
+function editMateri(id) {
+    var nm = normalizeMateri(allMateriData[id]);
+    document.getElementById('edit-id').value = id;
+    document.getElementById('input-edit-judul').value = nm.judul || '';
+    document.getElementById('input-edit-hidden').checked = nm.isHidden === true;
+    document.getElementById('edit-sessions-container').innerHTML = '';
+    if (nm.sesi && nm.sesi.length > 0) {
+        nm.sesi.forEach(function(s) {
+            tambahSesi('edit-sessions-container');
+            var cards = document.querySelectorAll('#edit-sessions-container .session-card');
+            var lastCard = cards[cards.length - 1];
+            lastCard.querySelector('.sesi-nama').value = s.nama || '';
+            lastCard.querySelector('.sesi-kuis').value = s.kuis || '';
+            var linksContainer = lastCard.querySelector('.sesi-links'); linksContainer.innerHTML = '';
+            if (s.links && s.links.length > 0) {
+                s.links.forEach(function(link) {
+                    var div = document.createElement('div'); div.className = 'link-row flex gap-2 items-center animate-fade-in';
+                    div.innerHTML = '<input type="text" value="' + (link.label || '') + '" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" value="' + (link.url || '') + '" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
+                    linksContainer.appendChild(div);
+                });
+            } else {
+                var div = document.createElement('div'); div.className = 'link-row flex gap-2 items-center animate-fade-in';
+                div.innerHTML = '<input type="text" placeholder="Label" class="flex-1 border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-label"><input type="text" placeholder="URL" class="flex-[2] border-2 border-gray-100 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white input-url"><button onclick="this.parentElement.remove()" type="button" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>';
+                linksContainer.appendChild(div);
             }
         });
-        if(hiddenCount>0){hc.style.display='';hc.textContent=hiddenCount;}else{hc.style.display='none';}
-        eh.style.display=hiddenCount===0?'':'none';
-    });
+    }
+    document.getElementById('input-edit-gambar').value = '';
+    document.getElementById('img-preview-edit').style.display = 'none';
+    document.getElementById('edit-placeholder').classList.remove('hidden');
+    if (nm.gambar) { document.getElementById('img-preview-edit').src = nm.gambar; document.getElementById('img-preview-edit').style.display = 'block'; document.getElementById('edit-placeholder').classList.add('hidden'); }
+    bukaModal('modal-edit');
+}
+function updateMateri() {
+    var id = document.getElementById('edit-id').value, judul = document.getElementById('input-edit-judul').value.trim();
+    if (!judul) { toast('Judul wajib diisi!', 'error'); return; }
+    var sesi = collectSessionsFromContainer('edit-sessions-container');
+    var isHidden = document.getElementById('input-edit-hidden').checked;
+    var btn = document.getElementById('btn-update-materi'); btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    var dataToSave = { judul: judul, sesi: sesi, isHidden: isHidden };
+    var fileInput = document.getElementById('input-edit-gambar');
+    if (fileInput.files && fileInput.files[0]) {
+        var fileName = 'cover_' + id + '_' + Date.now();
+        var uploadTask = storageRef.ref('materi_cover/' + fileName).put(fileInput.files[0]);
+        uploadTask.on('state_changed', null, function(err) { toast('Gagal upload: ' + err.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; },
+        function() { uploadTask.snapshot.ref.getDownloadURL().then(function(url) { dataToSave.gambar = url; db.ref('materi/' + id).update(dataToSave).then(function(){ toast('Materi berhasil diupdate!', 'success'); tutupModal('modal-edit'); btn.disabled = false; btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; }).catch(function(e){ toast('Gagal: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; }); }); });
+    } else {
+        db.ref('materi/' + id).update(dataToSave).then(function(){ toast('Materi berhasil diupdate!', 'success'); tutupModal('modal-edit'); btn.disabled = false; btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; }).catch(function(e){ toast('Gagal: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; });
+    }
+}
+function hapusMateri(id) {
+    var nm = normalizeMateri(allMateriData[id]);
+    if (!confirm('Hapus materi "' + (nm.judul||'') + '" secara permanen?')) return;
+    db.ref('materi/' + id).remove().then(function(){ toast('Materi dihapus.', 'error'); }).catch(function(e){ toast('Gagal: ' + e.message, 'error'); });
+}
 
-    db.ref('laporan/').on('value',function(snap){
-        var t=document.getElementById('tabel-laporan'); if(!t) return; t.innerHTML="";
-        snap.forEach(function(c){ var d=c.val(),id=c.key; t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-indigo-900 uppercase text-[10px]">'+d.nama+'</td><td class="p-3 text-gray-500 text-[10px]">'+d.nup+'</td><td class="p-3 text-gray-700 text-[10px]">'+(d.unit||'-')+'</td><td class="p-3 text-center"><span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full text-[9px] font-black uppercase">'+(d.pelatihan||d.materi)+'</span></td><td class="p-3 text-center font-black text-indigo-700 text-[11px]">'+(d.nilai||'0')+'</td><td class="p-3 text-right"><div class="flex items-center justify-end gap-1"><button onclick="beriNilai(\''+id+'\')" type="button" class="bg-indigo-50 text-indigo-600 h-7 px-2 rounded-md font-bold text-[9px] uppercase hover:bg-indigo-600 hover:text-white"><i class="fas fa-edit"></i></button><a href="https://generatorsertifikat.netlify.app/" target="_blank" class="bg-amber-500 text-white h-7 px-2 rounded-md font-bold text-[9px] uppercase flex items-center gap-1 shadow-sm" style="text-decoration:none"><i class="fas fa-certificate"></i></a><button onclick="hapusRecord(\'laporan/'+id+'\')" type="button" class="text-red-300 hover:text-red-600 px-1"><i class="fas fa-trash-alt"></i></button></div></td></tr>'; });
+/* =====================================================
+   ADMIN: WAKTU BELAJAR
+   ===================================================== */
+function populateFilterMateri() {
+    var sel = document.getElementById('filter-waktu-materi'); sel.innerHTML = '<option value="all">Semua Materi</option>';
+    Object.keys(allMateriData).forEach(function(id) { var nm = normalizeMateri(allMateriData[id]); var opt = document.createElement('option'); opt.value = id; opt.textContent = nm.judul || id; sel.appendChild(opt); });
+}
+function filterWaktuBelajar() { renderWaktuBelajar(); }
+function renderWaktuBelajar() {
+    var container = document.getElementById('waktu-belajar-list'), emptyEl = document.getElementById('emptyWaktu'); container.innerHTML = '';
+    var filterMateri = document.getElementById('filter-waktu-materi').value;
+    var sortMode = document.getElementById('filter-waktu-sort').value;
+    var rows = [];
+    var materiToProcess = filterMateri === 'all' ? Object.keys(allStudyTimeData) : [filterMateri];
+    materiToProcess.forEach(function(materiId) {
+        var peserta = allStudyTimeData[materiId];
+        if (!peserta) return;
+        var nm = normalizeMateri(allMateriData[materiId]);
+        Object.keys(peserta).forEach(function(nup) {
+            var d = peserta[nup];
+            rows.push({ materiId: materiId, materiJudul: nm.judul || materiId, nup: nup, nama: d.nama || 'Anonim', unit: d.unit || '-', totalDetik: d.totalDetik || 0, sesiCount: d.sesiCount || 0, lastSeen: d.lastSeen || 0, sesiTerakhir: d.sesiTerakhir || 0 });
+        });
     });
-
-    db.ref('absensi/').on('value',function(snap){
-        var t=document.getElementById('tabel-absensi'); if(!t) return; t.innerHTML="";
-        snap.forEach(function(c){ var d=c.val(); t.innerHTML+='<tr class="hover:bg-gray-50 border-b"><td class="p-3 font-bold text-[11px] uppercase">'+d.nama+'</td><td class="p-3 text-[11px]">'+d.nup+'</td><td class="p-3 text-[11px]">'+d.unit+'</td><td class="p-3 text-[11px]">'+d.materi+'</td><td class="p-3 text-gray-400 text-[10px]">'+d.waktu+'</td><td class="p-3 text-right"><button onclick="hapusRecord(\'absensi/'+c.key+'\')" type="button" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>'; });
+    if (rows.length === 0) { emptyEl.style.display = ''; return; } emptyEl.style.display = 'none';
+    if (sortMode === 'terbaru') rows.sort(function(a,b){ return b.lastSeen - a.lastSeen; });
+    else if (sortMode === 'terlama') rows.sort(function(a,b){ return a.lastSeen - b.lastSeen; });
+    else if (sortMode === 'terbaru_total') rows.sort(function(a,b){ return b.totalDetik - a.totalDetik; });
+    else if (sortMode === 'terlama_total') rows.sort(function(a,b){ return a.totalDetik - b.totalDetik; });
+    rows.forEach(function(r) {
+        var minutes = r.totalDetik / 60;
+        var dotColor = minutes > 30 ? 'bg-emerald-400' : (minutes > 10 ? 'bg-amber-400' : 'bg-red-400');
+        var barPct = Math.min(100, Math.round((minutes / 60) * 100));
+        var barColor = minutes > 30 ? '#22c55e' : (minutes > 10 ? '#f59e0b' : '#ef4444');
+        var lastSeenStr = r.lastSeen ? new Date(r.lastSeen).toLocaleString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '-';
+        var theme = getCardTheme(r.materiJudul);
+        var div = document.createElement('div'); div.className = 'border rounded-xl p-4 hover:shadow-md transition-all cursor-pointer animate-fade-in'; div.style.borderColor = theme.border;
+        div.onclick = (function(row){ return function(){ showDetailWaktu(row); }; })(r);
+        div.innerHTML = '<div class="flex items-center gap-3 mb-2"><span class="w-3 h-3 rounded-full ' + dotColor + ' flex-shrink-0"></span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-800 truncate">' + r.nama + '</p><p class="text-[10px] text-gray-400">' + r.nup + ' &middot; ' + r.unit + '</p></div><div class="text-right flex-shrink-0"><p class="text-sm font-black" style="color:' + theme.accent + '">' + formatDetikLabel(r.totalDetik) + '</p><p class="text-[9px] text-gray-400">' + r.sesiCount + 'x sesi</p></div></div>'
+            + '<div class="flex items-center gap-2 mb-1"><span class="text-[9px] font-bold text-gray-400 uppercase w-16 flex-shrink-0">' + (r.materiJudul.length > 18 ? r.materiJudul.substring(0,18) + '...' : r.materiJudul) + '</span><div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden"><div class="h-full rounded-full transition-all" style="width:' + barPct + '%;background:' + barColor + '"></div></div><span class="text-[9px] text-gray-400 flex-shrink-0">' + lastSeenStr + '</span></div>';
+        container.appendChild(div);
     });
 }
+function showDetailWaktu(row) {
+    document.getElementById('detail-waktu-subtitle').textContent = row.nama + ' (' + row.nup + ') - ' + row.materiJudul;
+    var content = document.getElementById('detail-waktu-content'); content.innerHTML = '';
+    var theme = getCardTheme(row.materiJudul);
+    var items = [
+        { label: 'Total Waktu', value: formatDetikLabel(row.totalDetik), icon: 'fa-clock' },
+        { label: 'Jumlah Sesi', value: row.sesiCount + ' kali', icon: 'fa-layer-group' },
+        { label: 'Durasi Sesi Terakhir', value: formatDetikLabel(row.sesiTerakhir), icon: 'fa-stopwatch' },
+        { label: 'Terakhir Dilihat', value: row.lastSeen ? new Date(row.lastSeen).toLocaleString('id-ID') : '-', icon: 'fa-eye' },
+        { label: 'NUP', value: row.nup, icon: 'fa-id-badge' },
+        { label: 'Unit', value: row.unit, icon: 'fa-building' }
+    ];
+    items.forEach(function(item) {
+        var div = document.createElement('div'); div.className = 'flex items-center gap-3 p-3 rounded-xl ' + theme.light + ' border border-' + theme.border;
+        div.innerHTML = '<div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:' + theme.accent + '20"><i class="fas ' + item.icon + ' text-xs" style="color:' + theme.accent + '"></i></div><div class="flex-1"><p class="text-[10px] font-bold text-gray-400 uppercase">' + item.label + '</p><p class="text-sm font-black" style="color:' + theme.text + '">' + item.value + '</p></div>';
+        content.appendChild(div);
+    });
+    document.getElementById('detail-waktu-total').textContent = formatDetikLabel(row.totalDetik);
+    bukaModal('modal-detail-waktu');
+}
+
+/* =====================================================
+   ADMIN: NILAI / LAPORAN
+   ===================================================== */
+function renderNilaiAdmin() {
+    var tbody = document.getElementById('tabel-laporan'); tbody.innerHTML = '';
+    var rows = [];
+    Object.keys(allLaporanData).forEach(function(materiId) {
+        var peserta = allLaporanData[materiId]; if (!peserta) return;
+        var nm = normalizeMateri(allMateriData[materiId]);
+        Object.keys(peserta).forEach(function(nup) {
+            var d = peserta[nup]; rows.push({ materiId: materiId, materiJudul: nm.judul || materiId, nama: d.nama || '-', nup: nup || '-', unit: d.unit || '-', nilai: d.nilai || 0, waktu: d.waktu || 0 });
+        });
+    });
+    if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400 text-sm">Belum ada data laporan.</td></tr>'; return; }
+    rows.forEach(function(r) {
+        var waktuStr = r.waktu ? new Date(r.waktu).toLocaleString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '-';
+        var tr = document.createElement('tr'); tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.innerHTML = '<td class="p-3 font-bold text-sm">' + r.nama + '</td><td class="p-3 text-xs text-gray-500">' + r.nup + '</td><td class="p-3 text-xs text-gray-500">' + r.unit + '</td><td class="p-3 text-xs text-center">' + r.materiJudul + '</td><td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-700 text-xs font-black px-2.5 py-1 rounded-full">' + r.nilai + '</span></td><td class="p-3 text-right"><button onclick="hapusLaporan(\'' + r.materiId + '\',\'' + r.nup + '\')" type="button" class="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"><i class="fas fa-trash text-xs"></i></button></td>';
+        tbody.appendChild(tr);
+    });
+}
+function hapusLaporan(materiId, nup) { if (!confirm('Hapus laporan ini?')) return; db.ref('laporan/' + materiId + '/' + nup).remove().then(function(){ toast('Laporan dihapus.', 'info'); }); }
+
+/* =====================================================
+   ADMIN: ABSEN
+   ===================================================== */
+function renderAbsenAdmin() {
+    var tbody = document.getElementById('tabel-absensi'); tbody.innerHTML = '';
+    var rows = [];
+    Object.keys(allAbsenData).forEach(function(materiId) {
+        var peserta = allAbsenData[materiId]; if (!peserta) return;
+        var nm = normalizeMateri(allMateriData[materiId]);
+        Object.keys(peserta).forEach(function(key) {
+            var d = peserta[key]; rows.push({ materiId: materiId, key: key, materiJudul: nm.judul || materiId, nama: d.nama || '-', nup: d.nup || '-', unit: d.unit || '-', waktu: d.waktu || 0 });
+        });
+    });
+    if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-400 text-sm">Belum ada data absen.</td></tr>'; return; }
+    rows.sort(function(a,b){ return b.waktu - a.waktu; });
+    rows.forEach(function(r) {
+        var waktuStr = r.waktu ? new Date(r.waktu).toLocaleString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '-';
+        var tr = document.createElement('tr'); tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.innerHTML = '<td class="p-3 font-bold text-sm">' + r.nama + '</td><td class="p-3 text-xs text-gray-500">' + r.nup + '</td><td class="p-3 text-xs text-gray-500">' + r.unit + '</td><td class="p-3 text-xs">' + r.materiJudul + '</td><td class="p-3 text-xs text-gray-500">' + waktuStr + '</td><td class="p-3 text-right"><button onclick="hapusAbsen(\'' + r.materiId + '\',\'' + r.key + '\')" type="button" class="text-red-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"><i class="fas fa-trash text-xs"></i></button></td>';
+        tbody.appendChild(tr);
+    });
+}
+function hapusAbsen(materiId, key) { if (!confirm('Hapus absen ini?')) return; db.ref('absen/' + materiId + '/' + key).remove().then(function(){ toast('Absen dihapus.', 'info'); }); }
+
+/* =====================================================
+   ADMIN: CHAT
+   ===================================================== */
+function renderChatAdmin() {
+    var container = document.getElementById('admin-chat-list'); container.innerHTML = '';
+    var allChats = {};
+    Object.keys(allMateriData).forEach(function(materiId) {
+        var chatRef = db.ref('chat/' + materiId);
+        chatRef.once('value', function(snapshot) {
+            var data = snapshot.val();
+            if (!data) return;
+            var nm = normalizeMateri(allMateriData[materiId]);
+            var theme = getCardTheme(nm.judul || materiId);
+            var keys = Object.keys(data);
+            if (keys.length === 0) return;
+            var lastMsg = data[keys[keys.length - 1]];
+            var div = document.createElement('div'); div.className = 'border rounded-xl p-4 hover:shadow-md transition-all animate-fade-in cursor-pointer'; div.style.borderColor = theme.border;
+            div.onclick = (function(mid){ return function(){ switchTabGuru('materi'); }; })(materiId);
+            var timeStr = lastMsg.timestamp ? new Date(lastMsg.timestamp).toLocaleString('id-ID', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+            div.innerHTML = '<div class="flex items-center justify-between mb-1"><span class="text-xs font-black uppercase" style="color:' + theme.accent + '">' + (nm.judul || materiId) + '</span><span class="' + theme.badge + ' text-[9px] font-black px-2 py-0.5 rounded-full">' + keys.length + ' pesan</span></div><p class="text-sm text-gray-600 truncate"><span class="font-bold">' + (lastMsg.nama || 'Anonim') + ':</span> ' + (lastMsg.pesan || '') + '</p><p class="text-[9px] text-gray-400 mt-1">' + timeStr + '</p>';
+            container.appendChild(div);
+        });
+    });
+    if (Object.keys(allMateriData).length === 0) { container.innerHTML = '<p class="text-sm text-gray-400 text-center py-8">Belum ada data.</p>'; }
+}
+
+/* =====================================================
+   ADMIN: EXCEL EXPORT
+   ===================================================== */
+function downloadExcel() {
+    var rows = [];
+    Object.keys(allAbsenData).forEach(function(materiId) {
+        var peserta = allAbsenData[materiId]; if (!peserta) return;
+        var nm = normalizeMateri(allMateriData[materiId]);
+        Object.keys(peserta).forEach(function(key) {
+            var d = peserta[key]; rows.push({ Nama: d.nama || '-', NUP: d.nup || '-', Unit: d.unit || '-', Materi: nm.judul || materiId, Waktu: d.waktu ? new Date(d.waktu).toLocaleString('id-ID') : '-' });
+        });
+    });
+    if (rows.length === 0) { toast('Tidak ada data absen.', 'error'); return; }
+    var ws = XLSX.utils.json_to_sheet(rows); var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Absensi'); XLSX.writeFile(wb, 'absensi_bki_' + new Date().toISOString().slice(0,10) + '.xlsx'); toast('Excel absen berhasil didownload!', 'success');
+}
+function downloadExcelWaktu() {
+    var rows = [];
+    Object.keys(allStudyTimeData).forEach(function(materiId) {
+        var peserta = allStudyTimeData[materiId]; if (!peserta) return;
+        var nm = normalizeMateri(allMateriData[materiId]);
+        Object.keys(peserta).forEach(function(nup) {
+            var d = peserta[nup]; rows.push({ Nama: d.nama || '-', NUP: nup, Unit: d.unit || '-', Materi: nm.judul || materiId, 'Total Waktu (detik)': d.totalDetik || 0, 'Total Waktu': formatDetikLabel(d.totalDetik || 0), 'Jumlah Sesi': d.sesiCount || 0, 'Sesi Terakhir (detik)': d.sesiTerakhir || 0, 'Terakhir Dilihat': d.lastSeen ? new Date(d.lastSeen).toLocaleString('id-ID') : '-' });
+        });
+    });
+    if (rows.length === 0) { toast('Tidak ada data waktu belajar.', 'error'); return; }
+    var ws = XLSX.utils.json_to_sheet(rows); var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'WaktuBelajar'); XLSX.writeFile(wb, 'waktu_belajar_bki_' + new Date().toISOString().slice(0,10) + '.xlsx'); toast('Excel waktu berhasil didownload!', 'success');
+}
+
+/* =====================================================
+   FIREBASE LISTENERS
+   ===================================================== */
+function initFirebaseListeners() {
+    if (!db) return;
+    db.ref('materi').on('value', function(snapshot) {
+        allMateriData = snapshot.val() || {};
+        renderMateriSiswa();
+        if (isAdmin) { renderMateriAdmin(); renderHiddenMateri(); updateHiddenCount(); }
+    });
+    db.ref('studyTime').on('value', function(snapshot) {
+        allStudyTimeData = snapshot.val() || {};
+        if (isAdmin && currentGuruTab === 'waktu') renderWaktuBelajar();
+    });
+    db.ref('absen').on('value', function(snapshot) {
+        allAbsenData = snapshot.val() || {};
+        if (isAdmin && currentGuruTab === 'absen') renderAbsenAdmin();
+    });
+    db.ref('laporan').on('value', function(snapshot) {
+        allLaporanData = snapshot.val() || {};
+        if (isAdmin && currentGuruTab === 'nilai') renderNilaiAdmin();
+    });
+}
+
+/* =====================================================
+   INIT
+   ===================================================== */
+checkLoginState();
+initFirebaseListeners();
 </script>
 </body>
 </html>
