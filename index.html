@@ -22,7 +22,7 @@
         .toggle-eye:hover{transform:scale(1.15)}
         .toggle-eye.show{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
         .toggle-eye.hide{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
-        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;}
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;overflow-y:auto}
         .session-card{border:2px solid #e0e7ff;border-radius:16px;overflow:hidden;background:#fff;transition:all .2s}
         .session-card:hover{box-shadow:0 4px 12px rgba(99,102,241,.08)}
         .sesi-header{background:#eef2ff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e0e7ff}
@@ -48,6 +48,16 @@
         @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
         .timer-blink{animation:blink 1.5s ease-in-out infinite}
         .time-bar{height:8px;border-radius:99px;transition:width .8s ease}
+        .banner-sdp{background:linear-gradient(135deg,#e0f2fe 0%,#f0f9ff 100%);border:2px solid #7dd3fc;color:#0369a1}
+        .banner-umum{background:linear-gradient(135deg,#fef3c7 0%,#fffbeb 100%);border:2px solid #fcd34d;color:#92400e}
+        .badge-sdp{background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc}
+        .badge-umum{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+        .badge-trainer{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+        .badge-semua{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+        .pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #c7d2fe;transition:all .2s}
+        .pin-dot.filled{background:#4f46e5;border-color:#4f46e5;transform:scale(1.15)}
+        .pin-dot.error{background:#ef4444;border-color:#ef4444;animation:shake .4s ease-in-out}
+        .pin-input-hidden{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
     </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-900">
@@ -89,14 +99,58 @@
                 <span>Login sekali untuk mengakses semua materi pelatihan</span>
             </div>
         </div>
-        <div class="mt-4 text-center">
-            <button onclick="bypassLogin()" type="button" class="text-[10px] text-gray-300 hover:text-indigo-500 transition-colors font-medium">
-                <i class="fas fa-lock text-[8px] mr-1"></i> Akses Trainer
-            </button>
+    </div>
+</div>
+
+<!-- ==================== MODAL PIN TRAINER ==================== -->
+<div id="modal-pin-trainer" class="modal-overlay" style="z-index:300">
+    <div class="bg-white w-full max-w-sm mx-4 rounded-3xl p-8 shadow-2xl animate-fade-in my-8">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border-2 border-red-100">
+                <i class="fas fa-lock text-red-500 text-2xl"></i>
+            </div>
+            <h3 class="font-black text-xl text-gray-900 uppercase tracking-tight">Akses Terbatas</h3>
+            <p class="text-xs text-gray-400 mt-2 leading-relaxed">Menu ini khusus untuk Trainer. Masukkan PIN untuk melanjutkan.</p>
+        </div>
+        <div class="flex justify-center gap-3 mb-4" id="pin-dots">
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+            <div class="pin-dot"></div>
+        </div>
+        <div class="relative mb-4">
+            <input id="pin-input" type="password" maxlength="6" class="pin-input-hidden" autocomplete="off" oninput="onPinInput(this)" onkeydown="if(event.key==='Backspace'){setTimeout(function(){onPinInput(document.getElementById('pin-input'))},10)}">
+            <div class="flex justify-center gap-2">
+                <button onclick="pinKeypad('1')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">1</button>
+                <button onclick="pinKeypad('2')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">2</button>
+                <button onclick="pinKeypad('3')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">3</button>
+            </div>
+            <div class="flex justify-center gap-2 mt-2">
+                <button onclick="pinKeypad('4')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">4</button>
+                <button onclick="pinKeypad('5')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">5</button>
+                <button onclick="pinKeypad('6')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">6</button>
+            </div>
+            <div class="flex justify-center gap-2 mt-2">
+                <button onclick="pinKeypad('7')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">7</button>
+                <button onclick="pinKeypad('8')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">8</button>
+                <button onclick="pinKeypad('9')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">9</button>
+            </div>
+            <div class="flex justify-center gap-2 mt-2">
+                <button onclick="pinClear()" type="button" class="w-12 h-12 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 font-bold text-xs border border-red-200 hover:border-red-300 transition-all active:scale-95"><i class="fas fa-times"></i></button>
+                <button onclick="pinKeypad('0')" type="button" class="w-12 h-12 rounded-xl bg-gray-50 hover:bg-indigo-50 text-gray-700 font-bold text-lg border border-gray-200 hover:border-indigo-300 transition-all active:scale-95">0</button>
+                <button onclick="pinBackspace()" type="button" class="w-12 h-12 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600 font-bold text-xs border border-amber-200 hover:border-amber-300 transition-all active:scale-95"><i class="fas fa-backspace"></i></button>
+            </div>
+        </div>
+        <p id="pin-error" class="text-xs text-red-500 text-center font-bold h-4 transition-all"></p>
+        <div class="flex gap-2 mt-3">
+            <button onclick="tutupModalPin()" type="button" class="flex-1 py-3 font-bold text-gray-400 uppercase text-xs hover:bg-gray-50 rounded-xl transition-colors border border-gray-200">Batal</button>
         </div>
     </div>
 </div>
 
+<!-- ==================== NAVBAR ==================== -->
 <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 h-14 flex justify-between items-center">
         <div class="flex items-center gap-2.5 cursor-pointer" onclick="location.reload()">
@@ -118,7 +172,7 @@
                     <p id="nav-username" class="text-[11px] font-bold text-gray-700 leading-tight"></p>
                     <p id="nav-usernup" class="text-[9px] text-gray-400 leading-tight"></p>
                 </div>
-                <span id="nav-userrole" class="hidden md:inline-flex text-[8px] font-black uppercase px-2 py-0.5 rounded-full"></span>
+                <span id="nav-userrole" class="hidden md:inline-flex text-[8px] font-black uppercase px-2 py-0.5 rounded-full items-center gap-1"></span>
                 <button onclick="doLogout()" class="ml-1 text-gray-300 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50" title="Keluar">
                     <i class="fas fa-sign-out-alt text-sm"></i>
                 </button>
@@ -132,8 +186,7 @@
     <div id="siswa-home">
         <h1 class="text-2xl font-bold text-indigo-900 uppercase text-center tracking-widest">Daftar Materi Pelatihan</h1>
         <p class="text-gray-500 text-center text-sm mb-4">Pilih materi pelatihan yang ingin Anda pelajari.</p>
-        <!-- BANNER SDP / UMUM -->
-        <div id="role-banner-siswa" style="display:none" class="max-w-md mx-auto mb-6"></div>
+        <div id="role-banner-siswa" style="display:none" class="max-w-lg mx-auto mb-6"></div>
         <div id="list-materi-siswa" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
     <div id="siswa-belajar" style="display:none">
@@ -223,15 +276,29 @@
             <div id="list-materi-hidden" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             <div id="emptyHidden" style="display:none" class="text-center py-12"><i class="fas fa-eye text-3xl text-gray-200 mb-3"></i><p class="text-sm text-gray-400">Tidak ada materi yang disembunyikan</p></div>
         </div>
-        <div id="g-content-nilai" style="display:none" class="p-6 overflow-x-auto"><table class="w-full text-left border-collapse min-w-[800px]"><thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3">Grup</th><th class="p-3 text-center">Materi</th><th class="p-3 text-center"><i class="fas fa-award mr-1 text-amber-500"></i>Nilai</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody id="tabel-laporan" class="divide-y text-sm"></tbody></table></div>
-        <div id="g-content-absen" style="display:none" class="p-6 overflow-x-auto"><table class="w-full text-left border-collapse min-w-[700px]"><thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3">Grup</th><th class="p-3">Materi</th><th class="p-3">Waktu</th><th class="p-3 text-right">Aksi</th></tr></thead><tbody id="tabel-absensi" class="divide-y text-sm"></tbody></table></div>
+        <div id="g-content-nilai" style="display:none" class="p-6 overflow-x-auto">
+            <div class="overflow-x-auto rounded-xl border">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3">Grup</th><th class="p-3 text-center">Materi</th><th class="p-3 text-center"><i class="fas fa-award mr-1 text-amber-500"></i>Nilai</th><th class="p-3 text-right">Aksi</th></tr></thead>
+                <tbody id="tabel-laporan" class="divide-y text-sm"></tbody>
+            </table>
+            </div>
+        </div>
+        <div id="g-content-absen" style="display:none" class="p-6 overflow-x-auto">
+            <div class="overflow-x-auto rounded-xl border">
+            <table class="w-full text-left border-collapse min-w-[700px]">
+                <thead><tr class="bg-indigo-50 text-[10px] uppercase font-black text-indigo-800 border-b"><th class="p-3">Nama</th><th class="p-3">NUP</th><th class="p-3">Unit</th><th class="p-3">Grup</th><th class="p-3">Materi</th><th class="p-3">Waktu</th><th class="p-3 text-right">Aksi</th></tr></thead>
+                <tbody id="tabel-absensi" class="divide-y text-sm"></tbody>
+            </table>
+            </div>
+        </div>
         <div id="g-content-chat" style="display:none" class="p-6"><div id="admin-chat-list" class="space-y-2"></div></div>
     </div>
 </main>
 
 <!-- ==================== MODAL ABSEN ==================== -->
 <div id="modal-absen" class="modal-overlay">
-    <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-fade-in">
+    <div class="bg-white w-full max-w-md rounded-3xl p-8 shadow-2xl animate-fade-in my-8">
         <div class="text-center mb-6">
             <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-3"><i class="fas fa-id-badge text-indigo-600 text-xl"></i></div>
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Verifikasi Data</h3>
@@ -254,7 +321,7 @@
 
 <!-- ==================== MODAL DETAIL WAKTU ==================== -->
 <div id="modal-detail-waktu" class="modal-overlay">
-    <div class="bg-white w-full max-w-lg rounded-3xl p-8 shadow-2xl animate-fade-in">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-8 shadow-2xl animate-fade-in my-8">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
             <div><h3 class="font-bold text-lg text-indigo-900 uppercase tracking-tight">Detail Waktu Belajar</h3><p id="detail-waktu-subtitle" class="text-[11px] text-gray-400 mt-0.5"></p></div>
             <button onclick="tutupModal('modal-detail-waktu')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
@@ -269,7 +336,7 @@
 
 <!-- ==================== MODAL TAMBAH MATERI ==================== -->
 <div id="modal-tambah" class="modal-overlay">
-    <div class="bg-white w-full max-w-3xl rounded-3xl p-8 shadow-2xl">
+    <div class="bg-white w-full max-w-3xl rounded-3xl p-8 shadow-2xl my-8">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Tambah Materi</h3>
             <button onclick="tutupModal('modal-tambah')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
@@ -309,7 +376,7 @@
 
 <!-- ==================== MODAL EDIT MATERI ==================== -->
 <div id="modal-edit" class="modal-overlay">
-    <div class="bg-white w-full max-w-3xl rounded-3xl p-8 shadow-2xl">
+    <div class="bg-white w-full max-w-3xl rounded-3xl p-8 shadow-2xl my-8">
         <div class="flex justify-between items-center mb-6 border-b pb-4">
             <h3 class="font-bold text-xl text-indigo-900 uppercase tracking-tighter italic">Edit Materi</h3>
             <button onclick="tutupModal('modal-edit')" type="button" class="text-gray-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
@@ -352,10 +419,10 @@
 
 <script>
 /* =======================================================
-   DATABASE PEGAWAI (DENGAN GRUP SDP / UMUM)
+   DATABASE PEGAWAI LENGKAP - GRUP SDP & UMUM
    ======================================================= */
 var databasePegawai = {
-  "38491":  { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN", role: "sdp" },
+    "38491":  { nama: "SUWANDI", unit: "CABANG UTAMA KLAS BANTEN", role: "sdp" },
     "124825": { nama: "ELMY MUFIDAH", unit: "DIVISI HUMAN CAPITAL", role: "umum" },
     "51097":  { nama: "Rahmat Raviansyah", unit: "DIVISI SURVEY", role: "sdp" },
     "51098":  { nama: "Rahmat Rosid", unit: "DIVISI SURVEY", role: "sdp" },
@@ -374,26 +441,39 @@ var databasePegawai = {
     "51087":  { nama: "Bobby Marchelino", unit: "DIVISI SURVEY", role: "sdp" },
     "51088":  { nama: "Chomaeni Hanggar Ardianto", unit: "DIVISI SURVEY", role: "sdp" },
     "51096":  { nama: "Rachmat Zakaria Ilyas", unit: "DIVISI SURVEY", role: "sdp" },
-    "50780":  { nama: "Muhtar", unit: "HUMAN CAPITAL", role: "umum" }
+	"71408": { nama: "AHMAD ZAKKY", unit: "DIVISI HUMAN CAPITAL", role: "UMUM" },
+	"79810": { nama: "RIDWAN ARIFIN", unit: "DIVISI HUMAN CAPITAL", role: "UMUM"},
+    "50780":  { nama: "Muhtar", unit: "HUMAN CAPITAL", role: "SDP" }
 };
-/* ===== DAFTAR GRUP: SDP & UMUM ===== */
+
+/* Normalisasi role ke lowercase */
+Object.keys(databasePegawai).forEach(function(nup) {
+    databasePegawai[nup].role = (databasePegawai[nup].role || 'semua').toLowerCase().trim();
+});
+
+/* ===== PIN TRAINER (6 digit) ===== */
+var TRAINER_PIN = "000000";
+
+/* ===== DAFTAR GRUP ===== */
 var daftarRole = [
-    { key: 'semua', label: 'Semua Peserta', cls: 'bg-gray-100 text-gray-700', icon: 'fa-users' },
-    { key: 'sdp', label: 'SDP', cls: 'bg-sky-100 text-sky-700', icon: 'fa-building' },
-    { key: 'umum', label: 'UMUM', cls: 'bg-amber-100 text-amber-700', icon: 'fa-globe' },
-    { key: 'trainer', label: 'Trainer', cls: 'bg-red-100 text-red-700', icon: 'fa-chalkboard-teacher' }
+    { key: 'semua',  label: 'Semua Peserta', cls: 'badge-semua',   icon: 'fa-users',             color: '#374151' },
+    { key: 'sdp',    label: 'SDP',           cls: 'badge-sdp',      icon: 'fa-building',           color: '#0369a1' },
+    { key: 'umum',   label: 'UMUM',          cls: 'badge-umum',     icon: 'fa-globe',              color: '#92400e' },
+    { key: 'trainer', label: 'Trainer',       cls: 'badge-trainer',  icon: 'fa-chalkboard-teacher', color: '#991b1b' }
 ];
 function getRoleInfo(role) {
+    role = (role || '').toLowerCase().trim();
     for (var i = 0; i < daftarRole.length; i++) { if (daftarRole[i].key === role) return daftarRole[i]; }
-    return { key: role || 'unknown', label: role || 'Unknown', cls: 'bg-gray-100 text-gray-700', icon: 'fa-user' };
+    return { key: role || 'unknown', label: role || 'Unknown', cls: 'badge-semua', icon: 'fa-user', color: '#374151' };
 }
-function getUserRole() { return localStorage.getItem('user_role') || ''; }
+function getUserRole() { return (localStorage.getItem('user_role') || '').toLowerCase().trim(); }
 function canSeeMaterial(targetRole) {
     var myRole = getUserRole();
     if (!myRole || myRole === 'trainer') return true;
     if (!targetRole || targetRole === 'semua') return true;
-    return myRole === targetRole;
+    return myRole === targetRole.toLowerCase().trim();
 }
+function isTrainerMode() { return localStorage.getItem('trainer_unlocked') === 'true'; }
 
 /* ===== Firebase Init ===== */
 var db = null, storageRef = null;
@@ -420,16 +500,15 @@ var allChatData = {};
 var currentGuruTab = 'materi';
 var currentKaryawanData = null;
 var chatListenerRef = null;
+var pendingTrainerAccess = false;
 
 /* =====================================================
-   WARNA KARTU - 16 TEMA BERBEDA PER MATERI
+   WARNA KARTU
    ===================================================== */
 function getGradient(str) {
     var hash = 0;
     for (var i = 0; i < (str||'').length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
-    var g = [
-        'linear-gradient(135deg, #059669 0%, #0d9488 100%)','linear-gradient(135deg, #e11d48 0%, #f472b6 100%)','linear-gradient(135deg, #d97706 0%, #f59e0b 100%)','linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)','linear-gradient(135deg, #0891b2 0%, #3b82f6 100%)','linear-gradient(135deg, #c026d3 0%, #e879f9 100%)','linear-gradient(135deg, #65a30d 0%, #22c55e 100%)','linear-gradient(135deg, #dc2626 0%, #f97316 100%)','linear-gradient(135deg, #0284c7 0%, #6366f1 100%)','linear-gradient(135deg, #9333ea 0%, #ec4899 100%)','linear-gradient(135deg, #0f766e 0%, #06b6d4 100%)','linear-gradient(135deg, #ea580c 0%, #ef4444 100%)','linear-gradient(135deg, #4338ca 0%, #2563eb 100%)','linear-gradient(135deg, #b45309 0%, #eab308 100%)','linear-gradient(135deg, #be185d 0%, #a855f7 100%)','linear-gradient(135deg, #047857 0%, #34d399 100%)'
-    ];
+    var g = ['linear-gradient(135deg,#059669 0%,#0d9488 100%)','linear-gradient(135deg,#e11d48 0%,#f472b6 100%)','linear-gradient(135deg,#d97706 0%,#f59e0b 100%)','linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)','linear-gradient(135deg,#0891b2 0%,#3b82f6 100%)','linear-gradient(135deg,#c026d3 0%,#e879f9 100%)','linear-gradient(135deg,#65a30d 0%,#22c55e 100%)','linear-gradient(135deg,#dc2626 0%,#f97316 100%)','linear-gradient(135deg,#0284c7 0%,#6366f1 100%)','linear-gradient(135deg,#9333ea 0%,#ec4899 100%)','linear-gradient(135deg,#0f766e 0%,#06b6d4 100%)','linear-gradient(135deg,#ea580c 0%,#ef4444 100%)','linear-gradient(135deg,#4338ca 0%,#2563eb 100%)','linear-gradient(135deg,#b45309 0%,#eab308 100%)','linear-gradient(135deg,#be185d 0%,#a855f7 100%)','linear-gradient(135deg,#047857 0%,#34d399 100%)'];
     return g[Math.abs(hash) % g.length];
 }
 function getCardTheme(str) {
@@ -437,22 +516,10 @@ function getCardTheme(str) {
     for (var i = 0; i < (str||'').length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
     var idx = Math.abs(hash) % 16;
     var themes = [
-        { accent:'#059669', light:'#ecfdf5', border:'#a7f3d0', text:'#065f46', badge:'bg-emerald-100 text-emerald-700', btn:'bg-emerald-600 hover:bg-emerald-700', glow:'shadow-emerald-500/25' },
-        { accent:'#e11d48', light:'#fff1f2', border:'#fecdd3', text:'#9f1239', badge:'bg-rose-100 text-rose-700', btn:'bg-rose-600 hover:bg-rose-700', glow:'shadow-rose-500/25' },
-        { accent:'#d97706', light:'#fffbeb', border:'#fde68a', text:'#92400e', badge:'bg-amber-100 text-amber-700', btn:'bg-amber-600 hover:bg-amber-700', glow:'shadow-amber-500/25' },
-        { accent:'#4f46e5', light:'#eef2ff', border:'#c7d2fe', text:'#3730a3', badge:'bg-indigo-100 text-indigo-700', btn:'bg-indigo-600 hover:bg-indigo-700', glow:'shadow-indigo-500/25' },
-        { accent:'#0891b2', light:'#ecfeff', border:'#a5f3fc', text:'#155e75', badge:'bg-cyan-100 text-cyan-700', btn:'bg-cyan-600 hover:bg-cyan-700', glow:'shadow-cyan-500/25' },
-        { accent:'#c026d3', light:'#fdf4ff', border:'#f0abfc', text:'#86198f', badge:'bg-fuchsia-100 text-fuchsia-700', btn:'bg-fuchsia-600 hover:bg-fuchsia-700', glow:'shadow-fuchsia-500/25' },
-        { accent:'#65a30d', light:'#f7fee7', border:'#bef264', text:'#3f6212', badge:'bg-lime-100 text-lime-700', btn:'bg-lime-600 hover:bg-lime-700', glow:'shadow-lime-500/25' },
-        { accent:'#dc2626', light:'#fef2f2', border:'#fca5a5', text:'#991b1b', badge:'bg-red-100 text-red-700', btn:'bg-red-600 hover:bg-red-700', glow:'shadow-red-500/25' },
-        { accent:'#0284c7', light:'#f0f9ff', border:'#7dd3fc', text:'#075985', badge:'bg-sky-100 text-sky-700', btn:'bg-sky-600 hover:bg-sky-700', glow:'shadow-sky-500/25' },
-        { accent:'#9333ea', light:'#faf5ff', border:'#d8b4fe', text:'#6b21a8', badge:'bg-purple-100 text-purple-700', btn:'bg-purple-600 hover:bg-purple-700', glow:'shadow-purple-500/25' },
-        { accent:'#0f766e', light:'#f0fdfa', border:'#99f6e4', text:'#115e59', badge:'bg-teal-100 text-teal-700', btn:'bg-teal-600 hover:bg-teal-700', glow:'shadow-teal-500/25' },
-        { accent:'#ea580c', light:'#fff7ed', border:'#fdba74', text:'#9a3412', badge:'bg-orange-100 text-orange-700', btn:'bg-orange-600 hover:bg-orange-700', glow:'shadow-orange-500/25' },
-        { accent:'#4338ca', light:'#eef2ff', border:'#a5b4fc', text:'#3730a3', badge:'bg-indigo-100 text-indigo-800', btn:'bg-indigo-700 hover:bg-indigo-800', glow:'shadow-indigo-500/30' },
-        { accent:'#b45309', light:'#fffbeb', border:'#fcd34d', text:'#78350f', badge:'bg-yellow-100 text-yellow-800', btn:'bg-yellow-600 hover:bg-yellow-700', glow:'shadow-yellow-500/25' },
-        { accent:'#be185d', light:'#fdf2f8', border:'#f9a8d4', text:'#9d174d', badge:'bg-pink-100 text-pink-700', btn:'bg-pink-600 hover:bg-pink-700', glow:'shadow-pink-500/25' },
-        { accent:'#047857', light:'#ecfdf5', border:'#6ee7b7', text:'#065f46', badge:'bg-green-100 text-green-700', btn:'bg-green-600 hover:bg-green-700', glow:'shadow-green-500/25' }
+        { accent:'#059669', border:'#a7f3d0' },{ accent:'#e11d48', border:'#fecdd3' },{ accent:'#d97706', border:'#fde68a' },{ accent:'#4f46e5', border:'#c7d2fe' },
+        { accent:'#0891b2', border:'#a5f3fc' },{ accent:'#c026d3', border:'#f0abfc' },{ accent:'#65a30d', border:'#bef264' },{ accent:'#dc2626', border:'#fca5a5' },
+        { accent:'#0284c7', border:'#7dd3fc' },{ accent:'#9333ea', border:'#d8b4fe' },{ accent:'#0f766e', border:'#99f6e4' },{ accent:'#ea580c', border:'#fdba74' },
+        { accent:'#4338ca', border:'#a5b4fc' },{ accent:'#b45309', border:'#fcd34d' },{ accent:'#be185d', border:'#f9a8d4' },{ accent:'#047857', border:'#6ee7b7' }
     ];
     return themes[idx];
 }
@@ -471,10 +538,85 @@ document.addEventListener('visibilitychange', function() { studyTimerTabVisible 
 window.addEventListener('beforeunload', function() { if (studyTimerActive && studyTimerSeconds > 0) _doSaveStudyTime(); });
 
 /* =====================================================
+   PIN TRAINER SYSTEM
+   ===================================================== */
+function bukaModalPin() {
+    document.getElementById('modal-pin-trainer').style.display = 'flex';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-error').textContent = '';
+    updatePinDots('');
+    setTimeout(function(){ document.getElementById('pin-input').focus(); }, 200);
+}
+function tutupModalPin() {
+    document.getElementById('modal-pin-trainer').style.display = 'none';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-error').textContent = '';
+    updatePinDots('');
+    pendingTrainerAccess = false;
+}
+function pinKeypad(digit) {
+    var inp = document.getElementById('pin-input');
+    if (inp.value.length >= 6) return;
+    inp.value += digit;
+    updatePinDots(inp.value);
+    document.getElementById('pin-error').textContent = '';
+    if (inp.value.length === 6) { setTimeout(function(){ verifikasiPin(); }, 200); }
+}
+function pinBackspace() {
+    var inp = document.getElementById('pin-input');
+    inp.value = inp.value.slice(0, -1);
+    updatePinDots(inp.value);
+    document.getElementById('pin-error').textContent = '';
+}
+function pinClear() {
+    document.getElementById('pin-input').value = '';
+    updatePinDots('');
+    document.getElementById('pin-error').textContent = '';
+}
+function onPinInput(el) {
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if (el.value.length > 6) el.value = el.value.slice(0, 6);
+    updatePinDots(el.value);
+    document.getElementById('pin-error').textContent = '';
+    if (el.value.length === 6) { setTimeout(function(){ verifikasiPin(); }, 200); }
+}
+function updatePinDots(val) {
+    var dots = document.querySelectorAll('#pin-dots .pin-dot');
+    for (var i = 0; i < dots.length; i++) {
+        dots[i].className = 'pin-dot' + (i < val.length ? ' filled' : '');
+    }
+}
+function verifikasiPin() {
+    var inp = document.getElementById('pin-input');
+    var errEl = document.getElementById('pin-error');
+    if (inp.value === TRAINER_PIN) {
+        localStorage.setItem('trainer_unlocked', 'true');
+        tutupModalPin();
+        toast('Akses Trainer berhasil!', 'success');
+        if (pendingTrainerAccess) { pendingTrainerAccess = false; doSwitchToGuru(); }
+    } else {
+        errEl.textContent = 'PIN salah. Coba lagi.';
+        var dots = document.querySelectorAll('#pin-dots .pin-dot');
+        for (var i = 0; i < dots.length; i++) { dots[i].className = 'pin-dot error'; }
+        setTimeout(function(){ pinClear(); }, 600);
+    }
+}
+
+/* =====================================================
    LOGIN SYSTEM
    ===================================================== */
 function isLoggedIn() { return localStorage.getItem('bki_logged_in') === 'true'; }
-function checkLoginState() { if (isLoggedIn()) { document.getElementById('login-overlay').style.display = 'none'; showUserInfoNav(); } else { document.getElementById('login-overlay').style.display = 'flex'; document.getElementById('user-info-nav').style.display = 'none'; setTimeout(function(){ document.getElementById('login-nup').focus(); }, 400); } }
+function checkLoginState() {
+    if (isLoggedIn()) {
+        document.getElementById('login-overlay').style.display = 'none';
+        showUserInfoNav();
+        renderRoleBanner();
+    } else {
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('user-info-nav').style.display = 'none';
+        setTimeout(function(){ document.getElementById('login-nup').focus(); }, 400);
+    }
+}
 function showUserInfoNav() {
     var nama = localStorage.getItem('user_nama') || '', nup = localStorage.getItem('user_nup') || '', role = getUserRole();
     if (nama) {
@@ -484,7 +626,7 @@ function showUserInfoNav() {
         var roleEl = document.getElementById('nav-userrole');
         var ri = getRoleInfo(role);
         roleEl.className = 'hidden md:inline-flex text-[8px] font-black uppercase px-2 py-0.5 rounded-full items-center gap-1 ' + ri.cls;
-        roleEl.innerHTML = '<i class="fas ' + ri.icon + '"></i> ' + ri.label;
+        roleEl.innerHTML = '<i class="fas ' + ri.icon + '" style="font-size:7px"></i> ' + ri.label;
     }
 }
 function doLogin() {
@@ -493,807 +635,233 @@ function doLogin() {
     if (!nupInput) { errorEl.textContent = 'NUP tidak boleh kosong.'; inputEl.classList.add('shake'); inputEl.focus(); return; }
     var dataKaryawan = databasePegawai[nupInput];
     if (!dataKaryawan) { errorEl.textContent = 'NUP tidak terdaftar di database pegawai.'; inputEl.classList.add('shake'); inputEl.focus(); setTimeout(function(){ inputEl.classList.remove('shake'); }, 500); return; }
-    localStorage.setItem('bki_logged_in', 'true'); localStorage.setItem('user_nama', dataKaryawan.nama); localStorage.setItem('user_nup', nupInput); localStorage.setItem('user_unit', dataKaryawan.unit); localStorage.setItem('user_role', dataKaryawan.role || 'semua');
-    btnLogin.innerHTML = '<i class="fas fa-check"></i> Berhasil'; btnLogin.className = 'w-full bg-emerald-500 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-sm flex items-center justify-center gap-2 transition-all';
-    setTimeout(function(){ document.getElementById('login-overlay').style.display = 'none'; showUserInfoNav(); renderRoleBanner(); toast('Selamat datang, ' + dataKaryawan.nama + '!', 'success'); btnLogin.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk'; btnLogin.className = 'w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/25 uppercase text-sm flex items-center justify-center gap-2 hover:from-indigo-700 hover:to-indigo-800 transition-all active:scale-[0.98]'; document.getElementById('login-nup').value = ''; errorEl.textContent = ''; }, 600);
+    localStorage.setItem('bki_logged_in', 'true');
+    localStorage.setItem('user_nama', dataKaryawan.nama);
+    localStorage.setItem('user_nup', nupInput);
+    localStorage.setItem('user_unit', dataKaryawan.unit);
+    localStorage.setItem('user_role', dataKaryawan.role || 'semua');
+    /* Reset trainer unlock saat login ulang */
+    localStorage.removeItem('trainer_unlocked');
+    btnLogin.innerHTML = '<i class="fas fa-check"></i> Berhasil';
+    btnLogin.className = 'w-full bg-emerald-500 text-white py-4 rounded-xl font-bold shadow-lg uppercase text-sm flex items-center justify-center gap-2 transition-all';
+    setTimeout(function(){
+        document.getElementById('login-overlay').style.display = 'none';
+        showUserInfoNav();
+        renderRoleBanner();
+        toast('Selamat datang, ' + dataKaryawan.nama + '!', 'success');
+        btnLogin.innerHTML = '<i class="fas fa-sign-in-alt"></i> Masuk';
+        btnLogin.className = 'w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/25 uppercase text-sm flex items-center justify-center gap-2 hover:from-indigo-700 hover:to-indigo-800 transition-all active:scale-[0.98]';
+        document.getElementById('login-nup').value = '';
+        errorEl.textContent = '';
+    }, 600);
 }
-function doLogout() { if (!confirm('Keluar dari akun?')) return; stopStudyTimer(); if (chatListenerRef) { chatListenerRef.off(); chatListenerRef = null; } localStorage.removeItem('bki_logged_in'); localStorage.removeItem('user_nama'); localStorage.removeItem('user_nup'); localStorage.removeItem('user_unit'); localStorage.removeItem('user_role'); document.getElementById('user-info-nav').style.display = 'none'; document.getElementById('role-banner-siswa').style.display = 'none'; checkLoginState(); toast('Anda telah keluar.', 'info'); }
-function bypassLogin() { document.getElementById('login-overlay').style.display = 'none'; localStorage.setItem('user_role', 'trainer'); isAdmin = true; }
+function doLogout() {
+    if (!confirm('Keluar dari akun?')) return;
+    stopStudyTimer();
+    if (chatListenerRef) { chatListenerRef.off(); chatListenerRef = null; }
+    localStorage.removeItem('bki_logged_in'); localStorage.removeItem('user_nama'); localStorage.removeItem('user_nup'); localStorage.removeItem('user_unit'); localStorage.removeItem('user_role'); localStorage.removeItem('trainer_unlocked');
+    document.getElementById('user-info-nav').style.display = 'none';
+    document.getElementById('role-banner-siswa').style.display = 'none';
+    /* Kembali ke tab siswa */
+    document.getElementById('view-siswa').style.display = 'block';
+    document.getElementById('view-guru').style.display = 'none';
+    document.getElementById('nav-siswa').className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase';
+    document.getElementById('nav-guru').className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase';
+    checkLoginState();
+    toast('Anda telah keluar.', 'info');
+}
 
-/* ===== BANNER GRUP SDP / UMUM ===== */
+/* ===== BANNER GRUP ===== */
 function renderRoleBanner() {
     var banner = document.getElementById('role-banner-siswa');
     var role = getUserRole();
     if (!role || role === 'trainer' || role === 'semua') { banner.style.display = 'none'; return; }
-    var ri = getRoleInfo(role);
     banner.style.display = 'block';
-    banner.innerHTML = '<div class="' + ri.cls + ' px-5 py-3 rounded-2xl flex items-center gap-3 text-sm font-bold shadow-sm border">' +
-        '<i class="fas ' + ri.icon + ' text-lg"></i>' +
-        '<div><p class="text-[10px] uppercase tracking-widest opacity-70">Anda terdaftar di grup</p><p class="text-base font-black uppercase">' + ri.label + '</p></div>' +
-        '</div>';
+    if (role === 'sdp') {
+        banner.innerHTML = '<div class="banner-sdp px-5 py-4 rounded-2xl flex items-center gap-4 shadow-sm"><div class="w-12 h-12 rounded-xl bg-white/80 flex items-center justify-center shadow-sm flex-shrink-0"><i class="fas fa-building text-xl" style="color:#0369a1"></i></div><div class="min-w-0"><p class="text-[10px] uppercase tracking-[0.15em] opacity-70 font-bold">Anda terdaftar di grup</p><p class="text-xl font-black uppercase tracking-wider leading-tight">SDP</p><p class="text-[9px] opacity-60 mt-0.5">Surveyor Development Program</p></div></div>';
+    } else if (role === 'umum') {
+        banner.innerHTML = '<div class="banner-umum px-5 py-4 rounded-2xl flex items-center gap-4 shadow-sm"><div class="w-12 h-12 rounded-xl bg-white/80 flex items-center justify-center shadow-sm flex-shrink-0"><i class="fas fa-globe text-xl" style="color:#92400e"></i></div><div class="min-w-0"><p class="text-[10px] uppercase tracking-[0.15em] opacity-70 font-bold">Anda terdaftar di grup</p><p class="text-xl font-black uppercase tracking-wider leading-tight">UMUM</p><p class="text-[9px] opacity-60 mt-0.5">Peserta Umum</p></div></div>';
+    }
 }
 
 /* ===== Utility ===== */
 function bukaModal(id) { document.getElementById(id).style.display = 'flex'; if (id === 'modal-absen') resetModalAbsen(); }
 function tutupModal(id) { document.getElementById(id).style.display = 'none'; }
-function toast(msg, type) { type = type || 'info'; var box = document.getElementById('toastBox'), el = document.createElement('div'); var c = {success:'bg-emerald-50 border-emerald-200 text-emerald-700',error:'bg-red-50 border-red-200 text-red-600',info:'bg-indigo-50 border-indigo-200 text-indigo-700'}; var ic = {success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'}; el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in ' + (c[type]||c.info); el.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i>' + msg; box.appendChild(el); setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all .3s'; setTimeout(function(){ el.remove(); },300); }, 3500); }
-function normalizeMateri(m) { if (!m) return { sesi: [] }; if (m.sesi && Array.isArray(m.sesi) && m.sesi.length > 0) return m; var links = []; if (Array.isArray(m.links)) links = m.links; else if (m.links && typeof m.links === 'string') links = [{label:"Materi", url:m.links}]; var result = {}; for (var key in m) { if (key !== 'links' && key !== 'kuis') result[key] = m[key]; } result.sesi = [{ nama: "Sesi 1", links: links, kuis: m.kuis || "" }]; return result; }
+function toast(msg, type) {
+    type = type || 'info'; var box = document.getElementById('toastBox'), el = document.createElement('div');
+    var c = { success:'bg-emerald-50 border-emerald-200 text-emerald-700', error:'bg-red-50 border-red-200 text-red-600', info:'bg-indigo-50 border-indigo-200 text-indigo-700' };
+    var ic = { success:'fa-check-circle', error:'fa-times-circle', info:'fa-info-circle' };
+    el.className = 'pointer-events-auto px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 shadow-lg animate-fade-in ' + (c[type]||c.info);
+    el.innerHTML = '<i class="fas ' + (ic[type]||ic.info) + '"></i>' + msg; box.appendChild(el);
+    setTimeout(function(){ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all .3s'; setTimeout(function(){ el.remove(); },300); }, 3500);
+}
+function normalizeMateri(m) {
+    if (!m) return { sesi: [] };
+    if (m.sesi && Array.isArray(m.sesi) && m.sesi.length > 0) return m;
+    var links = []; if (Array.isArray(m.links)) links = m.links; else if (m.links && typeof m.links === 'string') links = [{label:"Materi", url:m.links}];
+    var result = {}; for (var key in m) { if (key !== 'links' && key !== 'kuis') result[key] = m[key]; }
+    result.sesi = [{ nama: "Sesi 1", links: links, kuis: m.kuis || "" }]; return result;
+}
 function getSesiProgress(materiId) { try { return JSON.parse(localStorage.getItem('progres_' + materiId) || '{}'); } catch(e) { return {}; } }
 function isSesiComplete(materiId, sesiIndex, sesiData) {
-    var prog = getSesiProgress(materiId), sp = prog[sesiIndex];
-    if (!sp) return false;
-    if (sp.done) return true;
+    var prog = getSesiProgress(materiId), sp = prog[sesiIndex]; if (!sp) return false; if (sp.done) return true;
     if (sesiData && sesiData.links && sesiData.links.length > 0) { if (!sp.linksOpened || sp.linksOpened.length < sesiData.links.length) return false; }
-    if (sesiData && sesiData.kuis && !sp.kuisDone) return false;
-    return true;
+    if (sesiData && sesiData.kuis && !sp.kuisDone) return false; return true;
 }
 function getMateriProgress(materiId, sesiList) {
-    if (!sesiList || sesiList.length === 0) return { done: 0, total: 0, pct: 0 };
-    var done = 0;
+    if (!sesiList || sesiList.length === 0) return { done: 0, total: 0, pct: 0 }; var done = 0;
     for (var i = 0; i < sesiList.length; i++) { if (isSesiComplete(materiId, i, sesiList[i])) done++; }
     return { done: done, total: sesiList.length, pct: Math.round((done / sesiList.length) * 100) };
 }
-function markLinkOpened(materiId, sesiIdx, linkIdx) {
-    var prog = getSesiProgress(materiId);
-    if (!prog[sesiIdx]) prog[sesiIdx] = {};
-    if (!prog[sesiIdx].linksOpened) prog[sesiIdx].linksOpened = [];
-    if (prog[sesiIdx].linksOpened.indexOf(linkIdx) === -1) prog[sesiIdx].linksOpened.push(linkIdx);
-    localStorage.setItem('progres_' + materiId, JSON.stringify(prog));
-    refreshSesiUI();
+function markLinkOpened(materiId, sesiIdx, linkIdx) { var prog = getSesiProgress(materiId); if (!prog[sesiIdx]) prog[sesiIdx] = {}; if (!prog[sesiIdx].linksOpened) prog[sesiIdx].linksOpened = []; if (prog[sesiIdx].linksOpened.indexOf(linkIdx) === -1) prog[sesiIdx].linksOpened.push(linkIdx); localStorage.setItem('progres_' + materiId, JSON.stringify(prog)); refreshSesiUI(); }
+function markKuisDone(materiId, sesiIdx, score) { var prog = getSesiProgress(materiId); if (!prog[sesiIdx]) prog[sesiIdx] = {}; prog[sesiIdx].kuisDone = true; prog[sesiIdx].kuisScore = score; localStorage.setItem('progres_' + materiId, JSON.stringify(prog)); refreshSesiUI(); }
+
+/* ===== MENU SWITCHING DENGAN PIN GUARD ===== */
+function pindahMenu(menu) {
+    if (menu === 'guru') {
+        if (!isTrainerMode()) {
+            pendingTrainerAccess = true;
+            bukaModalPin();
+            return;
+        }
+        doSwitchToGuru();
+    } else {
+        document.getElementById('view-siswa').style.display = 'block';
+        document.getElementById('view-guru').style.display = 'none';
+        document.getElementById('nav-siswa').className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase';
+        document.getElementById('nav-guru').className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase';
+    }
 }
-function markKuisDone(materiId, sesiIdx, score) {
-    var prog = getSesiProgress(materiId);
-    if (!prog[sesiIdx]) prog[sesiIdx] = {};
-    prog[sesiIdx].kuisDone = true;
-    prog[sesiIdx].kuisScore = score;
-    localStorage.setItem('progres_' + materiId, JSON.stringify(prog));
-    refreshSesiUI();
+function doSwitchToGuru() {
+    document.getElementById('view-siswa').style.display = 'none';
+    document.getElementById('view-guru').style.display = 'block';
+    document.getElementById('nav-guru').className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase';
+    document.getElementById('nav-siswa').className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase';
+    renderAdminPanel();
 }
 
-/* ===== MENU SWITCHING ===== */
-function pindahMenu(menu) {
-    var vs = document.getElementById('view-siswa'), vg = document.getElementById('view-guru');
-    var bs = document.getElementById('nav-siswa'), bg = document.getElementById('nav-guru');
-    if (menu === 'siswa') {
-        vs.style.display = 'block'; vg.style.display = 'none';
-        bs.className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase';
-        bg.className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase';
-    } else {
-        vs.style.display = 'none'; vg.style.display = 'block';
-        bg.className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all bg-white text-indigo-600 shadow-sm uppercase';
-        bs.className = 'px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all text-gray-400 uppercase';
-        renderAdminPanel();
-    }
+/* ===== RENDER BADGE GRUP ===== */
+function renderRoleBadge(role) {
+    var ri = getRoleInfo(role);
+    return '<span class="' + ri.cls + ' text-[9px] font-black uppercase px-2 py-0.5 rounded-full inline-flex items-center gap-1"><i class="fas ' + ri.icon + '" style="font-size:7px"></i> ' + ri.label + '</span>';
 }
 
 /* ===== RENDER MATERI SISWA ===== */
 function renderMateriSiswa() {
-    var container = document.getElementById('list-materi-siswa');
-    container.innerHTML = '';
+    var container = document.getElementById('list-materi-siswa'); container.innerHTML = '';
     var keys = Object.keys(allMateriData);
-    if (keys.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-16"><i class="fas fa-book-open text-5xl text-gray-200 mb-4"></i><p class="text-gray-400 text-sm">Belum ada materi pelatihan.</p></div>'; return; }
+    if (keys.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-16"><i class="fas fa-book-open text-5xl text-gray-200 mb-4 block"></i><p class="text-gray-400 text-sm">Belum ada materi pelatihan.</p></div>'; return; }
     var visibleCount = 0;
     keys.forEach(function(id) {
-        var raw = allMateriData[id];
-        if (!raw || raw.hidden) return;
-        var m = normalizeMateri(raw);
-        if (!canSeeMaterial(m.targetRole)) return;
+        var raw = allMateriData[id]; if (!raw || raw.hidden) return; var m = normalizeMateri(raw); if (!canSeeMaterial(m.targetRole)) return;
         visibleCount++;
-        var theme = getCardTheme(m.judul || id);
-        var prog = getMateriProgress(id, m.sesi);
-        var targetInfo = getRoleInfo(m.targetRole);
-        var card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl border-2 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group animate-fade-in';
-        card.style.borderColor = theme.border;
-        card.onclick = (function(mid, mj, mg) { return function() { openMateri(mid, mj, mg); }; })(id, m.judul, m.gambar);
-        var targetBadge = '';
-        if (m.targetRole && m.targetRole !== 'semua') {
-            targetBadge = '<span class="' + targetInfo.cls + ' text-[8px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1"><i class="fas ' + targetInfo.icon + ' text-[7px]"></i> ' + targetInfo.label + '</span>';
-        }
-        card.innerHTML =
-            '<div class="relative h-44 overflow-hidden" style="background:' + getGradient(m.judul) + '">' +
-                (m.gambar ? '<img src="' + m.gambar + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.style.display=\'none\'">' : '') +
-                '<div class="card-gradient absolute inset-0"></div>' +
-                '<div class="absolute bottom-3 left-4 right-4">' +
-                    '<h3 class="text-white font-black text-lg uppercase tracking-tight leading-tight drop-shadow-md">' + (m.judul || 'Tanpa Judul') + '</h3>' +
-                    '<div class="flex items-center gap-2 mt-2">' + targetBadge + '</div>' +
-                '</div>' +
-                (prog.pct === 100 ? '<div class="absolute top-3 right-3 bg-emerald-500 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1"><i class="fas fa-check-circle"></i> Selesai</div>' : '') +
-            '</div>' +
-            '<div class="p-4">' +
-                '<div class="flex items-center justify-between mb-2">' +
-                    '<span class="text-[10px] font-bold text-gray-400 uppercase">' + (m.sesi ? m.sesi.length : 0) + ' Sesi</span>' +
-                    '<span class="text-xs font-black" style="color:' + theme.accent + '">' + prog.pct + '%</span>' +
-                '</div>' +
-                '<div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">' +
-                    '<div class="h-full rounded-full transition-all duration-500" style="width:' + prog.pct + '%; background:' + theme.accent + '"></div>' +
-                '</div>' +
-            '</div>';
+        var theme = getCardTheme(m.judul || id), prog = getMateriProgress(id, m.sesi);
+        var card = document.createElement('div'); card.className = 'bg-white rounded-2xl border-2 overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group animate-fade-in'; card.style.borderColor = theme.border;
+        card.onclick = (function(mid, mj, mg){ return function(){ openMateri(mid, mj, mg); }; })(id, m.judul, m.gambar);
+        var targetBadge = (m.targetRole && m.targetRole !== 'semua') ? renderRoleBadge(m.targetRole) : '';
+        card.innerHTML = '<div class="relative h-44 overflow-hidden" style="background:' + getGradient(m.judul) + '">' + (m.gambar ? '<img src="' + m.gambar + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.style.display=\'none\'">' : '') + '<div class="card-gradient absolute inset-0"></div><div class="absolute bottom-3 left-4 right-4"><h3 class="text-white font-black text-lg uppercase tracking-tight leading-tight drop-shadow-md">' + (m.judul || 'Tanpa Judul') + '</h3><div class="flex items-center gap-2 mt-2">' + targetBadge + '</div></div>' + (prog.pct === 100 ? '<div class="absolute top-3 right-3 bg-emerald-500 text-white text-[9px] font-black uppercase px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1"><i class="fas fa-check-circle"></i> Selesai</div>' : '') + '</div><div class="p-4"><div class="flex items-center justify-between mb-2"><span class="text-[10px] font-bold text-gray-400 uppercase">' + (m.sesi ? m.sesi.length : 0) + ' Sesi</span><span class="text-xs font-black" style="color:' + theme.accent + '">' + prog.pct + '%</span></div><div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden"><div class="h-full rounded-full transition-all duration-500" style="width:' + prog.pct + '%; background:' + theme.accent + '"></div></div></div>';
         container.appendChild(card);
     });
-    if (visibleCount === 0) { container.innerHTML = '<div class="col-span-full text-center py-16"><i class="fas fa-lock text-5xl text-gray-200 mb-4"></i><p class="text-gray-400 text-sm">Tidak ada materi untuk grup Anda.</p></div>'; }
+    if (visibleCount === 0) { var role = getUserRole(), ri = getRoleInfo(role); container.innerHTML = '<div class="col-span-full text-center py-16"><i class="fas fa-lock text-5xl text-gray-200 mb-4 block"></i><p class="text-gray-400 text-sm mb-2">Tidak ada materi untuk grup Anda.</p>' + (role && role !== 'trainer' && role !== 'semua' ? '<p class="text-xs text-gray-300">Grup: <span class="font-bold">' + ri.label + '</span></p>' : '') + '</div>'; }
 }
 
 /* ===== OPEN MATERI ===== */
 function openMateri(id, judul, gambar) {
     curId = id; curJudul = judul;
-    document.getElementById('siswa-home').style.display = 'none';
-    document.getElementById('siswa-belajar').style.display = 'block';
+    document.getElementById('siswa-home').style.display = 'none'; document.getElementById('siswa-belajar').style.display = 'block';
     document.getElementById('judul-aktif').textContent = judul || 'Materi';
-    var imgH = document.getElementById('img-header-belajar');
-    if (gambar) { imgH.src = gambar; imgH.style.display = 'block'; } else { imgH.style.display = 'none'; }
-    var wrap = document.getElementById('header-bg-wrap');
-    wrap.style.background = getGradient(judul);
-    renderSesiCards();
-    loadChat();
-    startStudyTimer(id);
+    var imgH = document.getElementById('img-header-belajar'); if (gambar) { imgH.src = gambar; imgH.style.display = 'block'; } else { imgH.style.display = 'none'; }
+    document.getElementById('header-bg-wrap').style.background = getGradient(judul);
+    renderSesiCards(); loadChat(); startStudyTimer(id);
 }
-function backToHome() {
-    stopStudyTimer();
-    if (chatListenerRef) { chatListenerRef.off(); chatListenerRef = null; }
-    curId = ''; curJudul = '';
-    document.getElementById('siswa-home').style.display = 'block';
-    document.getElementById('siswa-belajar').style.display = 'none';
-    renderMateriSiswa();
-}
+function backToHome() { stopStudyTimer(); if (chatListenerRef) { chatListenerRef.off(); chatListenerRef = null; } curId = ''; curJudul = ''; document.getElementById('siswa-home').style.display = 'block'; document.getElementById('siswa-belajar').style.display = 'none'; renderMateriSiswa(); }
 
 /* ===== RENDER SESI CARDS ===== */
 function renderSesiCards() {
-    var container = document.getElementById('container-sesi');
-    container.innerHTML = '';
-    var raw = allMateriData[curId];
-    if (!raw) return;
-    var m = normalizeMateri(raw);
-    var sesiList = m.sesi || [];
-    var prog = getMateriProgress(curId, sesiList);
+    var container = document.getElementById('container-sesi'); container.innerHTML = '';
+    var raw = allMateriData[curId]; if (!raw) return; var m = normalizeMateri(raw), sesiList = m.sesi || [], prog = getMateriProgress(curId, sesiList);
     document.getElementById('progress-text').textContent = prog.done + '/' + prog.total + ' Sesi (' + prog.pct + '%)';
     document.getElementById('progress-bar').style.width = prog.pct + '%';
-    var allDone = prog.pct === 100;
-    var btnLapor = document.getElementById('btn-lapor');
-    var statusEl = document.getElementById('status-belajar');
-    if (allDone) {
-        btnLapor.disabled = false;
-        btnLapor.className = 'w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-500/25 mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic hover:from-emerald-600 hover:to-emerald-700 transition-all active:scale-[0.98]';
-        btnLapor.innerHTML = '<i class="fas fa-check-circle"></i> Konfirmasi Penyelesaian Materi';
-        statusEl.style.display = 'none';
-    } else {
-        btnLapor.disabled = true;
-        btnLapor.className = 'w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all';
-        btnLapor.innerHTML = '<i class="fas fa-check-circle"></i> Konfirmasi Penyelesaian Materi (Terkunci)';
-        statusEl.style.display = 'flex';
-    }
+    var allDone = prog.pct === 100, btnLapor = document.getElementById('btn-lapor'), statusEl = document.getElementById('status-belajar');
+    if (allDone) { btnLapor.disabled = false; btnLapor.className = 'w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-emerald-500/25 mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic hover:from-emerald-600 hover:to-emerald-700 transition-all active:scale-[0.98]'; btnLapor.innerHTML = '<i class="fas fa-check-circle"></i> Konfirmasi Penyelesaian Materi'; statusEl.style.display = 'none'; }
+    else { btnLapor.disabled = true; btnLapor.className = 'w-full bg-gray-400 text-white py-4 rounded-2xl font-black shadow-md mb-8 uppercase flex items-center justify-center gap-2 tracking-widest italic cursor-not-allowed transition-all'; btnLapor.innerHTML = '<i class="fas fa-check-circle"></i> Konfirmasi Penyelesaian Materi (Terkunci)'; statusEl.style.display = 'flex'; }
     sesiList.forEach(function(sesi, idx) {
-        var complete = isSesiComplete(curId, idx, sesi);
-        var hasLinks = sesi.links && sesi.links.length > 0;
-        var hasKuis = sesi.kuis && sesi.kuis.trim() !== '';
+        var complete = isSesiComplete(curId, idx, sesi), hasLinks = sesi.links && sesi.links.length > 0, hasKuis = sesi.kuis && sesi.kuis.trim() !== '';
         var statusCls = complete ? 'sesi-complete' : (getSesiProgress(curId)[idx] ? 'sesi-progress' : 'sesi-pending');
-        var card = document.createElement('div');
-        card.className = 'session-card ' + statusCls + ' animate-fade-in';
+        var card = document.createElement('div'); card.className = 'session-card ' + statusCls + ' animate-fade-in';
         var linksHtml = '';
-        if (hasLinks) {
-            sesi.links.forEach(function(lk, li) {
-                var opened = false;
-                var sp = getSesiProgress(curId)[idx];
-                if (sp && sp.linksOpened && sp.linksOpened.indexOf(li) !== -1) opened = true;
-                linksHtml += '<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">' +
-                    '<div class="flex items-center gap-3">' +
-                        '<button onclick="event.stopPropagation(); markLinkOpened(\'' + curId + '\',' + idx + ',' + li + ')" class="toggle-eye ' + (opened ? 'show' : 'hide') + '" title="' + (opened ? 'Sudah dibuka' : 'Tandai sudah dibuka') + '"><i class="fas ' + (opened ? 'fa-check' : 'fa-eye') + '"></i></button>' +
-                        '<div><p class="text-sm font-bold text-gray-800">' + (lk.label || 'Materi ' + (li+1)) + '</p></div>' +
-                    '</div>' +
-                    '<a href="' + lk.url + '" target="_blank" rel="noopener" onclick="event.stopPropagation(); markLinkOpened(\'' + curId + '\',' + idx + ',' + li + ')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-indigo-100 transition-colors"><i class="fas fa-external-link-alt text-[10px]"></i> Buka</a>' +
-                '</div>';
-            });
-        }
+        if (hasLinks) { sesi.links.forEach(function(lk, li) { var opened = false, sp = getSesiProgress(curId)[idx]; if (sp && sp.linksOpened && sp.linksOpened.indexOf(li) !== -1) opened = true; linksHtml += '<div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"><div class="flex items-center gap-3 min-w-0 flex-1"><button onclick="event.stopPropagation(); markLinkOpened(\'' + curId + '\',' + idx + ',' + li + ')" class="toggle-eye ' + (opened ? 'show' : 'hide') + ' flex-shrink-0" title="' + (opened ? 'Sudah dibuka' : 'Tandai sudah dibuka') + '"><i class="fas ' + (opened ? 'fa-check' : 'fa-eye') + '"></i></button><p class="text-sm font-bold text-gray-800 truncate">' + (lk.label || 'Materi ' + (li+1)) + '</p></div><a href="' + lk.url + '" target="_blank" rel="noopener" onclick="event.stopPropagation(); markLinkOpened(\'' + curId + '\',' + idx + ',' + li + ')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-indigo-100 transition-colors flex-shrink-0 ml-3"><i class="fas fa-external-link-alt text-[10px]"></i> Buka</a></div>'; }); }
         var kuisHtml = '';
-        if (hasKuis) {
-            var kuisDone = false, kuisScore = '';
-            var sp = getSesiProgress(curId)[idx];
-            if (sp && sp.kuisDone) { kuisDone = true; kuisScore = sp.kuisScore || ''; }
-            kuisHtml = '<div class="mt-3 pt-3 border-t border-gray-100">' +
-                '<div class="flex items-center justify-between">' +
-                    '<span class="text-xs font-bold text-gray-500 flex items-center gap-2"><i class="fas fa-question-circle text-amber-500"></i> Kuis</span>' +
-                    (kuisDone ? '<span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><i class="fas fa-check mr-1"></i>Selesai' + (kuisScore ? ' (' + kuisScore + ')' : '') + '</span>' :
-                    '<a href="' + sesi.kuis + '" target="_blank" rel="noopener" onclick="event.stopPropagation(); markKuisDone(\'' + curId + '\',' + idx + ',\'' + '\')" class="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-amber-100 transition-colors"><i class="fas fa-external-link-alt text-[10px]"></i> Buka Kuis</a>') +
-                '</div>' +
-            '</div>';
-        }
-        card.innerHTML =
-            '<div class="sesi-header">' +
-                '<div class="flex items-center gap-2">' +
-                    '<span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black">' + (idx + 1) + '</span>' +
-                    '<span class="font-bold text-sm text-gray-800">' + (sesi.nama || 'Sesi ' + (idx + 1)) + '</span>' +
-                '</div>' +
-                (complete ? '<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1"><i class="fas fa-check-circle"></i> Selesai</span>' : '<span class="text-[9px] font-bold text-gray-400">Belum selesai</span>') +
-            '</div>' +
-            '<div class="p-4">' +
-                (hasLinks ? linksHtml : '<p class="text-xs text-gray-400 text-center py-2">Tidak ada link materi</p>') +
-                kuisHtml +
-            '</div>';
+        if (hasKuis) { var kuisDone = false, kuisScore = '', sp = getSesiProgress(curId)[idx]; if (sp && sp.kuisDone) { kuisDone = true; kuisScore = sp.kuisScore || ''; } kuisHtml = '<div class="mt-3 pt-3 border-t border-gray-100"><div class="flex items-center justify-between"><span class="text-xs font-bold text-gray-500 flex items-center gap-2"><i class="fas fa-question-circle text-amber-500"></i> Kuis</span>' + (kuisDone ? '<span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><i class="fas fa-check mr-1"></i>Selesai' + (kuisScore ? ' (' + kuisScore + ')' : '') + '</span>' : '<a href="' + sesi.kuis + '" target="_blank" rel="noopener" onclick="event.stopPropagation(); markKuisDone(\'' + curId + '\',' + idx + ',\'\')" class="text-xs font-bold text-amber-600 hover:text-amber-800 bg-amber-50 px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-amber-100 transition-colors"><i class="fas fa-external-link-alt text-[10px]"></i> Buka Kuis</a>') + '</div></div>'; }
+        card.innerHTML = '<div class="sesi-header"><div class="flex items-center gap-2 min-w-0"><span class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-black flex-shrink-0">' + (idx + 1) + '</span><span class="font-bold text-sm text-gray-800 truncate">' + (sesi.nama || 'Sesi ' + (idx + 1)) + '</span></div>' + (complete ? '<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0"><i class="fas fa-check-circle"></i> Selesai</span>' : '<span class="text-[9px] font-bold text-gray-400 flex-shrink-0">Belum selesai</span>') + '</div><div class="p-4">' + (hasLinks ? linksHtml : '<p class="text-xs text-gray-400 text-center py-2">Tidak ada link materi</p>') + kuisHtml + '</div>';
         container.appendChild(card);
     });
 }
 function refreshSesiUI() { if (curId) renderSesiCards(); }
 
 /* ===== CHAT ===== */
-function loadChat() {
-    if (!db || !curId) return;
-    var chatBox = document.getElementById('chat-box');
-    chatBox.innerHTML = '<div class="text-center text-xs text-gray-400 my-4"><i class="fas fa-spinner fa-spin mr-1"></i> Memuat diskusi...</div>';
-    if (chatListenerRef) { chatListenerRef.off(); }
-    chatListenerRef = db.ref('chat/' + curId).orderByChild('timestamp').limitToLast(100);
-    chatListenerRef.on('value', function(snap) {
-        var data = snap.val();
-        chatBox.innerHTML = '';
-        if (!data) { chatBox.innerHTML = '<div class="text-center text-xs text-gray-400 my-4">Belum ada pesan.</div>'; return; }
-        var keys = Object.keys(data);
-        if (keys.length === 0) { chatBox.innerHTML = '<div class="text-center text-xs text-gray-400 my-4">Belum ada pesan.</div>'; return; }
-        keys.forEach(function(k) {
-            var msg = data[k];
-            var isMe = msg.nup === localStorage.getItem('user_nup');
-            var div = document.createElement('div');
-            div.className = 'flex ' + (isMe ? 'justify-end' : 'justify-start') + ' animate-fade-in';
-            var timeStr = msg.waktu || '';
-            div.innerHTML =
-                '<div class="max-w-[75%] ' + (isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-br-md' : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-md') + ' px-4 py-3">' +
-                    '<p class="text-[10px] font-bold ' + (isMe ? 'text-indigo-200' : 'text-indigo-600') + ' uppercase mb-1">' + (msg.nama || 'Anonim') + (msg.role ? ' <span class="opacity-60">(' + msg.role + ')</span>' : '') + '</p>' +
-                    '<p class="text-sm">' + (msg.pesan || '') + '</p>' +
-                    '<p class="text-[9px] ' + (isMe ? 'text-indigo-300' : 'text-gray-400') + ' mt-1.5 text-right">' + timeStr + '</p>' +
-                '</div>';
-            chatBox.appendChild(div);
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-    });
-}
-function kirimChat() {
-    var input = document.getElementById('chat-pesan');
-    var pesan = input.value.trim();
-    if (!pesan || !db || !curId) return;
-    var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || 'Anonim', role = getUserRole();
-    var now = new Date();
-    var waktuStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    db.ref('chat/' + curId).push({ nama: nama, nup: nup, role: role, pesan: pesan, waktu: waktuStr, timestamp: firebase.database.ServerValue.TIMESTAMP });
-    input.value = '';
-}
+function loadChat() { if (!db || !curId) return; var chatBox = document.getElementById('chat-box'); chatBox.innerHTML = '<div class="text-center text-xs text-gray-400 my-4"><i class="fas fa-spinner fa-spin mr-1"></i> Memuat diskusi...</div>'; if (chatListenerRef) { chatListenerRef.off(); } chatListenerRef = db.ref('chat/' + curId).orderByChild('timestamp').limitToLast(100); chatListenerRef.on('value', function(snap) { var data = snap.val(); chatBox.innerHTML = ''; if (!data) { chatBox.innerHTML = '<div class="text-center text-xs text-gray-400 my-4">Belum ada pesan.</div>'; return; } var keys = Object.keys(data); keys.forEach(function(k) { var msg = data[k], isMe = msg.nup === localStorage.getItem('user_nup'), div = document.createElement('div'); div.className = 'flex ' + (isMe ? 'justify-end' : 'justify-start') + ' animate-fade-in'; var roleTag = ''; if (msg.role && msg.role !== 'semua') { var ri = getRoleInfo(msg.role); roleTag = ' <span class="' + ri.cls + ' text-[7px] font-black uppercase px-1 py-0 rounded ml-1">' + ri.label + '</span>'; } div.innerHTML = '<div class="max-w-[75%] ' + (isMe ? 'bg-indigo-600 text-white rounded-2xl rounded-br-md' : 'bg-gray-100 text-gray-800 rounded-2xl rounded-bl-md') + ' px-4 py-3"><p class="text-[10px] font-bold ' + (isMe ? 'text-indigo-200' : 'text-indigo-600') + ' uppercase mb-1">' + (msg.nama || 'Anonim') + roleTag + '</p><p class="text-sm break-words">' + (msg.pesan || '') + '</p><p class="text-[9px] ' + (isMe ? 'text-indigo-300' : 'text-gray-400') + ' mt-1.5 text-right">' + (msg.waktu || '') + '</p></div>'; chatBox.appendChild(div); }); chatBox.scrollTop = chatBox.scrollHeight; }); }
+function kirimChat() { var input = document.getElementById('chat-pesan'), pesan = input.value.trim(); if (!pesan || !db || !curId) return; var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || 'Anonim', role = getUserRole(); var now = new Date(), waktuStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0'); db.ref('chat/' + curId).push({ nama:nama, nup:nup, role:role, pesan:pesan, waktu:waktuStr, timestamp:firebase.database.ServerValue.TIMESTAMP }); input.value = ''; }
 
 /* ===== LAPOR SELESAI ===== */
-function prosesLaporSelesai() {
-    if (!curId || !db) return;
-    var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || 'Anonim', unit = localStorage.getItem('user_unit') || '-', role = getUserRole();
-    if (!nup) { toast('Anda belum login.', 'error'); return; }
-    var now = new Date();
-    var waktuStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    db.ref('laporan/' + curId + '/' + nup).set({ nama: nama, nup: nup, unit: unit, role: role, nilai: 100, waktu: waktuStr, timestamp: firebase.database.ServerValue.TIMESTAMP });
-    toast('Penyelesaian materi berhasil dikonfirmasi!', 'success');
-}
+function prosesLaporSelesai() { if (!curId || !db) return; var nup = localStorage.getItem('user_nup') || '', nama = localStorage.getItem('user_nama') || 'Anonim', unit = localStorage.getItem('user_unit') || '-', role = getUserRole(); if (!nup) { toast('Anda belum login.', 'error'); return; } var now = new Date(), waktuStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0'); db.ref('laporan/' + curId + '/' + nup).set({ nama:nama, nup:nup, unit:unit, role:role, nilai:100, waktu:waktuStr, timestamp:firebase.database.ServerValue.TIMESTAMP }); toast('Penyelesaian materi berhasil dikonfirmasi!', 'success'); }
 
 /* ===== ADMIN PANEL ===== */
-function switchTabGuru(tab) {
-    currentGuruTab = tab;
-    var tabs = ['materi','hidden','waktu','nilai','absen','chat'];
-    tabs.forEach(function(t) {
-        var btn = document.getElementById('tab-g-' + t);
-        var content = document.getElementById('g-content-' + t);
-        if (!btn || !content) return;
-        if (t === tab) {
-            btn.className = 'flex-1 min-w-[80px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5';
-            content.style.display = 'block';
-        } else {
-            btn.className = 'flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5';
-            content.style.display = 'none';
-        }
-    });
-    if (tab === 'materi') renderMateriAdmin();
-    if (tab === 'hidden') renderMateriHidden();
-    if (tab === 'waktu') renderWaktuBelajar();
-    if (tab === 'nilai') renderNilai();
-    if (tab === 'absen') renderAbsen();
-    if (tab === 'chat') renderAdminChat();
-}
-function renderAdminPanel() {
-    if (currentGuruTab === 'materi') renderMateriAdmin();
-    else if (currentGuruTab === 'hidden') renderMateriHidden();
-    else if (currentGuruTab === 'waktu') renderWaktuBelajar();
-    else if (currentGuruTab === 'nilai') renderNilai();
-    else if (currentGuruTab === 'absen') renderAbsen();
-    else if (currentGuruTab === 'chat') renderAdminChat();
-    else switchTabGuru('materi');
-}
-function renderMateriAdmin() {
-    var container = document.getElementById('list-materi-admin');
-    container.innerHTML = '';
-    var keys = Object.keys(allMateriData);
-    if (keys.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-12"><i class="fas fa-folder-open text-4xl text-gray-200 mb-3"></i><p class="text-gray-400 text-sm">Belum ada materi.</p></div>'; return; }
-    keys.forEach(function(id) {
-        var raw = allMateriData[id];
-        if (!raw || raw.hidden) return;
-        var m = normalizeMateri(raw);
-        var theme = getCardTheme(m.judul || id);
-        var targetInfo = getRoleInfo(m.targetRole);
-        var card = document.createElement('div');
-        card.className = 'bg-white rounded-xl border-2 p-4 shadow-sm hover:shadow-md transition-all';
-        card.style.borderColor = theme.border;
-        var targetBadge = m.targetRole && m.targetRole !== 'semua' ? '<span class="' + targetInfo.cls + ' text-[8px] font-black uppercase px-2 py-0.5 rounded-full"><i class="fas ' + targetInfo.icon + ' mr-0.5 text-[7px]"></i>' + targetInfo.label + '</span>' : '<span class="bg-gray-100 text-gray-500 text-[8px] font-black uppercase px-2 py-0.5 rounded-full">Semua</span>';
-        card.innerHTML =
-            '<div class="flex items-start justify-between mb-3">' +
-                '<div class="flex-1 min-w-0"><h4 class="font-bold text-sm text-gray-800 uppercase truncate">' + (m.judul || 'Tanpa Judul') + '</h4><p class="text-[10px] text-gray-400 mt-1">' + (m.sesi ? m.sesi.length : 0) + ' sesi</p></div>' +
-                (m.gambar ? '<img src="' + m.gambar + '" class="w-12 h-12 rounded-lg object-cover border ml-3 flex-shrink-0" onerror="this.style.display=\'none\'">' : '') +
-            '</div>' +
-            '<div class="flex items-center justify-between">' +
-                '<div class="flex items-center gap-2">' + targetBadge + '</div>' +
-                '<div class="flex items-center gap-1">' +
-                    '<button onclick="editMateri(\'' + id + '\')" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"><i class="fas fa-edit"></i></button>' +
-                    '<button onclick="hapusMateri(\'' + id + '\')" class="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition-colors"><i class="fas fa-trash"></i></button>' +
-                '</div>' +
-            '</div>';
-        container.appendChild(card);
-    });
-}
-function renderMateriHidden() {
-    var container = document.getElementById('list-materi-hidden');
-    var emptyEl = document.getElementById('emptyHidden');
-    container.innerHTML = '';
-    var keys = Object.keys(allMateriData);
-    var hiddenCount = 0;
-    keys.forEach(function(id) {
-        var raw = allMateriData[id];
-        if (!raw || !raw.hidden) return;
-        hiddenCount++;
-        var m = normalizeMateri(raw);
-        var card = document.createElement('div');
-        card.className = 'bg-white rounded-xl border-2 border-red-200 p-4 shadow-sm';
-        card.innerHTML =
-            '<div class="flex items-start justify-between mb-3"><div class="flex-1 min-w-0"><h4 class="font-bold text-sm text-gray-800 uppercase truncate">' + (m.judul || 'Tanpa Judul') + '</h4><p class="text-[10px] text-red-400 mt-1"><i class="fas fa-eye-slash mr-1"></i>Disembunyikan</p></div></div>' +
-            '<div class="flex items-center justify-end gap-1">' +
-                '<button onclick="editMateri(\'' + id + '\')" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"><i class="fas fa-edit"></i></button>' +
-                '<button onclick="hapusMateri(\'' + id + '\')" class="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition-colors"><i class="fas fa-trash"></i></button>' +
-            '</div>';
-        container.appendChild(card);
-    });
-    var hcEl = document.getElementById('hiddenCount');
-    if (hiddenCount > 0) { hcEl.style.display = 'inline'; hcEl.textContent = hiddenCount; emptyEl.style.display = 'none'; }
-    else { hcEl.style.display = 'none'; emptyEl.style.display = 'block'; }
-}
-function editMateri(id) {
-    var raw = allMateriData[id];
-    if (!raw) return;
-    var m = normalizeMateri(raw);
-    document.getElementById('edit-id').value = id;
-    document.getElementById('input-edit-judul').value = m.judul || '';
-    document.getElementById('input-edit-target-role').value = m.targetRole || 'semua';
-    document.getElementById('input-edit-hidden').checked = !!raw.hidden;
-    var editImg = document.getElementById('img-preview-edit');
-    var editPh = document.getElementById('edit-placeholder');
-    if (m.gambar) { editImg.src = m.gambar; editImg.style.display = 'block'; editPh.classList.add('hidden'); } else { editImg.style.display = 'none'; editPh.classList.remove('hidden'); }
-    var sesiCont = document.getElementById('edit-sessions-container');
-    sesiCont.innerHTML = '';
-    if (m.sesi && m.sesi.length > 0) {
-        m.sesi.forEach(function(sesi) { tambahSesiRow('edit-sessions-container', sesi); });
-    } else { tambahSesiRow('edit-sessions-container', null); }
-    bukaModal('modal-edit');
-}
-function hapusMateri(id) {
-    if (!confirm('Hapus materi ini secara permanen?')) return;
-    if (db) { db.ref('materi/' + id).remove(); }
-    delete allMateriData[id];
-    renderAdminPanel();
-    toast('Materi dihapus.', 'info');
-}
+function switchTabGuru(tab) { currentGuruTab = tab; var tabs = ['materi','hidden','waktu','nilai','absen','chat']; tabs.forEach(function(t) { var btn = document.getElementById('tab-g-' + t), content = document.getElementById('g-content-' + t); if (!btn || !content) return; if (t === tab) { btn.className = 'flex-1 min-w-[80px] py-3 rounded-xl bg-white shadow-sm text-indigo-600 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5'; content.style.display = 'block'; } else { btn.className = 'flex-1 min-w-[80px] py-3 rounded-xl text-gray-400 font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5'; content.style.display = 'none'; } }); renderAdminPanel(); }
+function renderAdminPanel() { if (currentGuruTab === 'materi') renderMateriAdmin(); else if (currentGuruTab === 'hidden') renderMateriHidden(); else if (currentGuruTab === 'waktu') renderWaktuBelajar(); else if (currentGuruTab === 'nilai') renderNilai(); else if (currentGuruTab === 'absen') renderAbsen(); else if (currentGuruTab === 'chat') renderAdminChat(); }
+function renderMateriAdmin() { var container = document.getElementById('list-materi-admin'); container.innerHTML = ''; var keys = Object.keys(allMateriData); if (keys.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-12"><i class="fas fa-folder-open text-4xl text-gray-200 mb-3 block"></i><p class="text-gray-400 text-sm">Belum ada materi.</p></div>'; return; } keys.forEach(function(id) { var raw = allMateriData[id]; if (!raw || raw.hidden) return; var m = normalizeMateri(raw), theme = getCardTheme(m.judul || id), card = document.createElement('div'); card.className = 'bg-white rounded-xl border-2 p-4 shadow-sm hover:shadow-md transition-all'; card.style.borderColor = theme.border; var targetBadge = (m.targetRole && m.targetRole !== 'semua') ? renderRoleBadge(m.targetRole) : '<span class="badge-semua text-[8px] font-black uppercase px-2 py-0.5 rounded-full">Semua</span>'; card.innerHTML = '<div class="flex items-start justify-between mb-3"><div class="flex-1 min-w-0"><h4 class="font-bold text-sm text-gray-800 uppercase truncate">' + (m.judul || 'Tanpa Judul') + '</h4><p class="text-[10px] text-gray-400 mt-1">' + (m.sesi ? m.sesi.length : 0) + ' sesi</p></div>' + (m.gambar ? '<img src="' + m.gambar + '" class="w-12 h-12 rounded-lg object-cover border ml-3 flex-shrink-0" onerror="this.style.display=\'none\'">' : '') + '</div><div class="flex items-center justify-between"><div>' + targetBadge + '</div><div class="flex items-center gap-1"><button onclick="editMateri(\'' + id + '\')" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"><i class="fas fa-edit"></i></button><button onclick="hapusMateri(\'' + id + '\')" class="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition-colors"><i class="fas fa-trash"></i></button></div></div>'; container.appendChild(card); }); }
+function renderMateriHidden() { var container = document.getElementById('list-materi-hidden'), emptyEl = document.getElementById('emptyHidden'); container.innerHTML = ''; var keys = Object.keys(allMateriData), hiddenCount = 0; keys.forEach(function(id) { var raw = allMateriData[id]; if (!raw || !raw.hidden) return; hiddenCount++; var m = normalizeMateri(raw), card = document.createElement('div'); card.className = 'bg-white rounded-xl border-2 border-red-200 p-4 shadow-sm'; card.innerHTML = '<div class="flex items-start justify-between mb-3"><div class="flex-1 min-w-0"><h4 class="font-bold text-sm text-gray-800 uppercase truncate">' + (m.judul || 'Tanpa Judul') + '</h4><p class="text-[10px] text-red-400 mt-1"><i class="fas fa-eye-slash mr-1"></i>Disembunyikan</p></div></div><div class="flex items-center justify-end gap-1"><button onclick="editMateri(\'' + id + '\')" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"><i class="fas fa-edit"></i></button><button onclick="hapusMateri(\'' + id + '\')" class="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition-colors"><i class="fas fa-trash"></i></button></div>'; container.appendChild(card); }); var hcEl = document.getElementById('hiddenCount'); if (hiddenCount > 0) { hcEl.style.display = 'inline'; hcEl.textContent = hiddenCount; emptyEl.style.display = 'none'; } else { hcEl.style.display = 'none'; emptyEl.style.display = 'block'; } }
+function editMateri(id) { var raw = allMateriData[id]; if (!raw) return; var m = normalizeMateri(raw); document.getElementById('edit-id').value = id; document.getElementById('input-edit-judul').value = m.judul || ''; document.getElementById('input-edit-target-role').value = m.targetRole || 'semua'; document.getElementById('input-edit-hidden').checked = !!raw.hidden; var editImg = document.getElementById('img-preview-edit'), editPh = document.getElementById('edit-placeholder'); if (m.gambar) { editImg.src = m.gambar; editImg.style.display = 'block'; editPh.classList.add('hidden'); } else { editImg.style.display = 'none'; editPh.classList.remove('hidden'); } var sesiCont = document.getElementById('edit-sessions-container'); sesiCont.innerHTML = ''; if (m.sesi && m.sesi.length > 0) { m.sesi.forEach(function(sesi) { tambahSesiRow('edit-sessions-container', sesi); }); } else { tambahSesiRow('edit-sessions-container', null); } bukaModal('modal-edit'); }
+function hapusMateri(id) { if (!confirm('Hapus materi ini secara permanen?')) return; if (db) { db.ref('materi/' + id).remove(); } delete allMateriData[id]; renderAdminPanel(); toast('Materi dihapus.', 'info'); }
 
-/* ===== TAMBAH/EDIT SESI ROW ===== */
+/* ===== TAMBAH/EDIT SESI ===== */
 var sesiCounter = 0;
 function tambahSesi(containerId) { tambahSesiRow(containerId, null); }
-function tambahSesiRow(containerId, data) {
-    sesiCounter++;
-    var cid = 'sesi-row-' + sesiCounter;
-    var container = document.getElementById(containerId);
-    var div = document.createElement('div');
-    div.id = cid;
-    div.className = 'bg-gray-50 border-2 border-gray-100 rounded-xl p-4 animate-fade-in';
-    var linksHtml = '';
-    var linkData = (data && data.links) ? data.links : [];
-    if (linkData.length === 0) linkData = [{ label: '', url: '' }];
-    linkData.forEach(function(lk, li) {
-        linksHtml += '<div class="flex gap-2 mb-2 link-row">' +
-            '<input type="text" placeholder="Label link" value="' + (lk.label || '').replace(/"/g, '&quot;') + '" class="link-label flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white">' +
-            '<input type="text" placeholder="URL link" value="' + (lk.url || '').replace(/"/g, '&quot;') + '" class="link-url flex-[2] border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white">' +
-            '<button onclick="this.parentElement.remove()" type="button" class="text-red-400 hover:text-red-600 px-2 text-xs"><i class="fas fa-times"></i></button>' +
-        '</div>';
-    });
-    div.innerHTML =
-        '<div class="flex items-center justify-between mb-3">' +
-            '<input type="text" placeholder="Nama Sesi" value="' + ((data && data.nama) || '').replace(/"/g, '&quot;') + '" class="sesi-nama border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500 bg-white w-48">' +
-            '<button onclick="document.getElementById(\'' + cid + '\').remove()" type="button" class="text-red-400 hover:text-red-600 text-xs font-bold"><i class="fas fa-trash"></i> Hapus Sesi</button>' +
-        '</div>' +
-        '<div class="links-container mb-3">' + linksHtml + '</div>' +
-        '<div class="flex items-center gap-2">' +
-            '<input type="text" placeholder="URL Kuis (opsional)" value="' + ((data && data.kuis) || '').replace(/"/g, '&quot;') + '" class="kuis-url flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white">' +
-            '<button onclick="addLinkRow(this)" type="button" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-2 rounded-lg hover:bg-indigo-100 transition-colors whitespace-nowrap"><i class="fas fa-plus mr-1"></i>Link</button>' +
-        '</div>';
-    container.appendChild(div);
-}
-function addLinkRow(btn) {
-    var container = btn.closest('.bg-gray-50').querySelector('.links-container');
-    var div = document.createElement('div');
-    div.className = 'flex gap-2 mb-2 link-row animate-fade-in';
-    div.innerHTML = '<input type="text" placeholder="Label link" class="link-label flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><input type="text" placeholder="URL link" class="link-url flex-[2] border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><button onclick="this.parentElement.remove()" type="button" class="text-red-400 hover:text-red-600 px-2 text-xs"><i class="fas fa-times"></i></button>';
-    container.appendChild(div);
-}
-function collectSesiData(containerId) {
-    var container = document.getElementById(containerId);
-    var rows = container.querySelectorAll('.bg-gray-50');
-    var sesiArr = [];
-    rows.forEach(function(row) {
-        var nama = row.querySelector('.sesi-nama').value.trim() || 'Sesi';
-        var links = [];
-        row.querySelectorAll('.link-row').forEach(function(lr) {
-            var label = lr.querySelector('.link-label').value.trim();
-            var url = lr.querySelector('.link-url').value.trim();
-            if (url) links.push({ label: label || 'Materi', url: url });
-        });
-        var kuis = row.querySelector('.kuis-url').value.trim();
-        sesiArr.push({ nama: nama, links: links, kuis: kuis });
-    });
-    return sesiArr;
-}
+function tambahSesiRow(containerId, data) { sesiCounter++; var cid = 'sesi-row-' + sesiCounter, container = document.getElementById(containerId), div = document.createElement('div'); div.id = cid; div.className = 'bg-gray-50 border-2 border-gray-100 rounded-xl p-4 animate-fade-in'; var linksHtml = '', linkData = (data && data.links) ? data.links : []; if (linkData.length === 0) linkData = [{ label: '', url: '' }]; linkData.forEach(function(lk, li) { linksHtml += '<div class="flex gap-2 mb-2 link-row"><input type="text" placeholder="Label link" value="' + (lk.label || '').replace(/"/g, '&quot;') + '" class="link-label flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><input type="text" placeholder="URL link" value="' + (lk.url || '').replace(/"/g, '&quot;') + '" class="link-url flex-[2] border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><button onclick="this.parentElement.remove()" type="button" class="text-red-400 hover:text-red-600 px-2 text-xs"><i class="fas fa-times"></i></button></div>'; }); div.innerHTML = '<div class="flex items-center justify-between mb-3"><input type="text" placeholder="Nama Sesi" value="' + ((data && data.nama) || '').replace(/"/g, '&quot;') + '" class="sesi-nama border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-indigo-500 bg-white w-48"><button onclick="document.getElementById(\'' + cid + '\').remove()" type="button" class="text-red-400 hover:text-red-600 text-xs font-bold"><i class="fas fa-trash"></i> Hapus Sesi</button></div><div class="links-container mb-3">' + linksHtml + '</div><div class="flex items-center gap-2"><input type="text" placeholder="URL Kuis (opsional)" value="' + ((data && data.kuis) || '').replace(/"/g, '&quot;') + '" class="kuis-url flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><button onclick="addLinkRow(this)" type="button" class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-2 rounded-lg hover:bg-indigo-100 transition-colors whitespace-nowrap"><i class="fas fa-plus mr-1"></i>Link</button></div>'; container.appendChild(div); }
+function addLinkRow(btn) { var container = btn.closest('.bg-gray-50').querySelector('.links-container'), div = document.createElement('div'); div.className = 'flex gap-2 mb-2 link-row animate-fade-in'; div.innerHTML = '<input type="text" placeholder="Label link" class="link-label flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><input type="text" placeholder="URL link" class="link-url flex-[2] border border-gray-200 rounded-lg px-3 py-2 text-xs outline-none focus:border-indigo-500 bg-white"><button onclick="this.parentElement.remove()" type="button" class="text-red-400 hover:text-red-600 px-2 text-xs"><i class="fas fa-times"></i></button>'; container.appendChild(div); }
+function collectSesiData(containerId) { var container = document.getElementById(containerId), rows = container.querySelectorAll('.bg-gray-50'), sesiArr = []; rows.forEach(function(row) { var nama = row.querySelector('.sesi-nama').value.trim() || 'Sesi', links = []; row.querySelectorAll('.link-row').forEach(function(lr) { var label = lr.querySelector('.link-label').value.trim(), url = lr.querySelector('.link-url').value.trim(); if (url) links.push({ label: label || 'Materi', url: url }); }); var kuis = row.querySelector('.kuis-url').value.trim(); sesiArr.push({ nama: nama, links: links, kuis: kuis }); }); return sesiArr; }
 
 /* ===== SIMPAN MATERI ===== */
-function simpanMateriBaru() {
-    var judul = document.getElementById('input-judul').value.trim();
-    var targetRole = document.getElementById('input-target-role').value;
-    var sesiArr = collectSesiData('add-sessions-container');
-    if (!judul) { toast('Judul tidak boleh kosong.', 'error'); return; }
-    var btn = document.getElementById('btn-simpan-materi');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled = true;
-    var fileInput = document.getElementById('input-gambar');
-    var file = fileInput.files && fileInput.files[0];
-    if (file && storageRef) {
-        var ref = storageRef.ref('materi/' + Date.now() + '_' + file.name);
-        ref.put(file).then(function(snap) { return snap.ref.getDownloadURL(); }).then(function(url) {
-            doSaveMateri(judul, targetRole, sesiArr, url);
-        }).catch(function(err) { toast('Gagal upload gambar: ' + err.message, 'error'); btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; btn.disabled = false; });
-    } else {
-        var previewImg = document.getElementById('img-preview');
-        var imgUrl = (previewImg.style.display !== 'none' && previewImg.src) ? previewImg.src : '';
-        doSaveMateri(judul, targetRole, sesiArr, imgUrl);
-    }
-}
-function doSaveMateri(judul, targetRole, sesiArr, gambar) {
-    var btn = document.getElementById('btn-simpan-materi');
-    if (db) {
-        db.ref('materi').push({ judul: judul, targetRole: targetRole, sesi: sesiArr, gambar: gambar, hidden: false, createdAt: firebase.database.ServerValue.TIMESTAMP });
-    }
-    tutupModal('modal-tambah');
-    document.getElementById('input-judul').value = '';
-    document.getElementById('add-sessions-container').innerHTML = '';
-    document.getElementById('img-preview').style.display = 'none';
-    document.getElementById('add-placeholder').classList.remove('hidden');
-    document.getElementById('input-gambar').value = '';
-    btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; btn.disabled = false;
-    toast('Materi berhasil ditambahkan!', 'success');
-}
-function updateMateri() {
-    var id = document.getElementById('edit-id').value;
-    if (!id) return;
-    var judul = document.getElementById('input-edit-judul').value.trim();
-    var targetRole = document.getElementById('input-edit-target-role').value;
-    var hidden = document.getElementById('input-edit-hidden').checked;
-    var sesiArr = collectSesiData('edit-sessions-container');
-    if (!judul) { toast('Judul tidak boleh kosong.', 'error'); return; }
-    var btn = document.getElementById('btn-update-materi');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...'; btn.disabled = true;
-    var fileInput = document.getElementById('input-edit-gambar');
-    var file = fileInput.files && fileInput.files[0];
-    if (file && storageRef) {
-        var ref = storageRef.ref('materi/' + Date.now() + '_' + file.name);
-        ref.put(file).then(function(snap) { return snap.ref.getDownloadURL(); }).then(function(url) {
-            doUpdateMateri(id, judul, targetRole, sesiArr, url, hidden);
-        }).catch(function(err) { toast('Gagal upload: ' + err.message, 'error'); btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; btn.disabled = false; });
-    } else {
-        var previewImg = document.getElementById('img-preview-edit');
-        var raw = allMateriData[id];
-        var existingImg = (raw && raw.gambar) ? raw.gambar : '';
-        var newImg = (previewImg.style.display !== 'none' && previewImg.src && previewImg.src !== window.location.href) ? previewImg.src : existingImg;
-        doUpdateMateri(id, judul, targetRole, sesiArr, newImg, hidden);
-    }
-}
-function doUpdateMateri(id, judul, targetRole, sesiArr, gambar, hidden) {
-    var btn = document.getElementById('btn-update-materi');
-    var updateData = { judul: judul, targetRole: targetRole, sesi: sesiArr, hidden: hidden };
-    if (gambar) updateData.gambar = gambar;
-    if (db) { db.ref('materi/' + id).update(updateData); }
-    allMateriData[id] = Object.assign(allMateriData[id] || {}, updateData);
-    tutupModal('modal-edit');
-    btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; btn.disabled = false;
-    toast('Materi berhasil diupdate!', 'success');
-    renderAdminPanel();
-}
+function simpanMateriBaru() { var judul = document.getElementById('input-judul').value.trim(), targetRole = document.getElementById('input-target-role').value, sesiArr = collectSesiData('add-sessions-container'); if (!judul) { toast('Judul tidak boleh kosong.', 'error'); return; } var btn = document.getElementById('btn-simpan-materi'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...'; btn.disabled = true; var fileInput = document.getElementById('input-gambar'), file = fileInput.files && fileInput.files[0]; if (file && storageRef) { var ref = storageRef.ref('materi/' + Date.now() + '_' + file.name); ref.put(file).then(function(snap) { return snap.ref.getDownloadURL(); }).then(function(url) { doSaveMateri(judul, targetRole, sesiArr, url); }).catch(function(err) { toast('Gagal upload gambar: ' + err.message, 'error'); btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; btn.disabled = false; }); } else { var previewImg = document.getElementById('img-preview'), imgUrl = (previewImg.style.display !== 'none' && previewImg.src) ? previewImg.src : ''; doSaveMateri(judul, targetRole, sesiArr, imgUrl); } }
+function doSaveMateri(judul, targetRole, sesiArr, gambar) { var btn = document.getElementById('btn-simpan-materi'); if (db) { db.ref('materi').push({ judul:judul, targetRole:targetRole, sesi:sesiArr, gambar:gambar, hidden:false, createdAt:firebase.database.ServerValue.TIMESTAMP }); } tutupModal('modal-tambah'); document.getElementById('input-judul').value = ''; document.getElementById('add-sessions-container').innerHTML = ''; document.getElementById('img-preview').style.display = 'none'; document.getElementById('add-placeholder').classList.remove('hidden'); document.getElementById('input-gambar').value = ''; btn.innerHTML = '<span>Simpan</span><i class="fas fa-save"></i>'; btn.disabled = false; toast('Materi berhasil ditambahkan!', 'success'); }
+function updateMateri() { var id = document.getElementById('edit-id').value; if (!id) return; var judul = document.getElementById('input-edit-judul').value.trim(), targetRole = document.getElementById('input-edit-target-role').value, hidden = document.getElementById('input-edit-hidden').checked, sesiArr = collectSesiData('edit-sessions-container'); if (!judul) { toast('Judul tidak boleh kosong.', 'error'); return; } var btn = document.getElementById('btn-update-materi'); btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...'; btn.disabled = true; var fileInput = document.getElementById('input-edit-gambar'), file = fileInput.files && fileInput.files[0]; if (file && storageRef) { var ref = storageRef.ref('materi/' + Date.now() + '_' + file.name); ref.put(file).then(function(snap) { return snap.ref.getDownloadURL(); }).then(function(url) { doUpdateMateri(id, judul, targetRole, sesiArr, url, hidden); }).catch(function(err) { toast('Gagal upload: ' + err.message, 'error'); btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; btn.disabled = false; }); } else { var previewImg = document.getElementById('img-preview-edit'), raw = allMateriData[id], existingImg = (raw && raw.gambar) ? raw.gambar : '', newImg = (previewImg.style.display !== 'none' && previewImg.src && previewImg.src !== window.location.href) ? previewImg.src : existingImg; doUpdateMateri(id, judul, targetRole, sesiArr, newImg, hidden); } }
+function doUpdateMateri(id, judul, targetRole, sesiArr, gambar, hidden) { var btn = document.getElementById('btn-update-materi'), updateData = { judul:judul, targetRole:targetRole, sesi:sesiArr, hidden:hidden }; if (gambar) updateData.gambar = gambar; if (db) { db.ref('materi/' + id).update(updateData); } allMateriData[id] = Object.assign(allMateriData[id] || {}, updateData); tutupModal('modal-edit'); btn.innerHTML = '<span>Update</span><i class="fas fa-sync-alt"></i>'; btn.disabled = false; toast('Materi berhasil diupdate!', 'success'); renderAdminPanel(); }
 
 /* ===== PREVIEW IMAGE ===== */
-function previewImage(input, imgId, placeholderId) {
-    var img = document.getElementById(imgId);
-    var ph = document.getElementById(placeholderId);
-    if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function(e) { img.src = e.target.result; img.style.display = 'block'; ph.classList.add('hidden'); };
-        reader.readAsDataURL(input.files[0]);
-    } else { img.style.display = 'none'; ph.classList.remove('hidden'); }
-}
+function previewImage(input, imgId, placeholderId) { var img = document.getElementById(imgId), ph = document.getElementById(placeholderId); if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function(e) { img.src = e.target.result; img.style.display = 'block'; ph.classList.add('hidden'); }; reader.readAsDataURL(input.files[0]); } else { img.style.display = 'none'; ph.classList.remove('hidden'); } }
 
 /* ===== MODAL TAMBAH MATERI ===== */
-function bukaModalTambahMateri() {
-    document.getElementById('input-judul').value = '';
-    document.getElementById('input-target-role').value = 'semua';
-    document.getElementById('add-sessions-container').innerHTML = '';
-    tambahSesiRow('add-sessions-container', null);
-    document.getElementById('img-preview').style.display = 'none';
-    document.getElementById('add-placeholder').classList.remove('hidden');
-    document.getElementById('input-gambar').value = '';
-    bukaModal('modal-tambah');
-}
+function bukaModalTambahMateri() { document.getElementById('input-judul').value = ''; document.getElementById('input-target-role').value = 'semua'; document.getElementById('add-sessions-container').innerHTML = ''; tambahSesiRow('add-sessions-container', null); document.getElementById('img-preview').style.display = 'none'; document.getElementById('add-placeholder').classList.remove('hidden'); document.getElementById('input-gambar').value = ''; bukaModal('modal-tambah'); }
 
 /* ===== WAKTU BELAJAR ===== */
-function renderWaktuBelajar() {
-    var filterMateri = document.getElementById('filter-waktu-materi');
-    filterMateri.innerHTML = '<option value="all">Semua Materi</option>';
-    Object.keys(allMateriData).forEach(function(id) {
-        var m = allMateriData[id];
-        var opt = document.createElement('option');
-        opt.value = id; opt.textContent = m.judul || id;
-        filterMateri.appendChild(opt);
-    });
-    filterWaktuBelajar();
-}
-function filterWaktuBelajar() {
-    var filterMateri = document.getElementById('filter-waktu-materi').value;
-    var sortMode = document.getElementById('filter-waktu-sort').value;
-    var container = document.getElementById('waktu-belajar-list');
-    var emptyEl = document.getElementById('emptyWaktu');
-    container.innerHTML = '';
-    var entries = [];
-    Object.keys(allStudyTimeData).forEach(function(materiId) {
-        if (filterMateri !== 'all' && filterMateri !== materiId) return;
-        var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId;
-        Object.keys(allStudyTimeData[materiId]).forEach(function(nup) {
-            var d = allStudyTimeData[materiId][nup];
-            entries.push({ materiId: materiId, materiNama: materiNama, nup: nup, nama: d.nama || 'Anonim', unit: d.unit || '-', totalDetik: d.totalDetik || 0, sesiCount: d.sesiCount || 0, lastSeen: d.lastSeen || 0 });
-        });
-    });
-    if (sortMode === 'terbaru') entries.sort(function(a,b) { return b.lastSeen - a.lastSeen; });
-    else if (sortMode === 'terlama') entries.sort(function(a,b) { return a.lastSeen - b.lastSeen; });
-    else if (sortMode === 'terbaru_total') entries.sort(function(a,b) { return b.totalDetik - a.totalDetik; });
-    else if (sortMode === 'terlama_total') entries.sort(function(a,b) { return a.totalDetik - b.totalDetik; });
-    if (entries.length === 0) { emptyEl.style.display = 'block'; return; }
-    emptyEl.style.display = 'none';
-    entries.forEach(function(e) {
-        var mins = e.totalDetik / 60;
-        var dotColor = mins >= 30 ? 'bg-emerald-400' : (mins >= 10 ? 'bg-amber-400' : 'bg-red-400');
-        var isOnline = (Date.now() - e.lastSeen) < 120000;
-        if (isOnline) dotColor = 'bg-blue-400 animate-pulse';
-        var div = document.createElement('div');
-        div.className = 'bg-white border rounded-xl p-4 flex items-center gap-4 hover:shadow-sm transition-all animate-fade-in';
-        div.innerHTML =
-            '<span class="w-3 h-3 rounded-full ' + dotColor + ' flex-shrink-0"></span>' +
-            '<div class="flex-1 min-w-0">' +
-                '<p class="font-bold text-sm text-gray-800 truncate">' + e.nama + '</p>' +
-                '<p class="text-[10px] text-gray-400">NUP: ' + e.nup + ' | ' + e.unit + '</p>' +
-            '</div>' +
-            '<div class="text-right flex-shrink-0">' +
-                '<p class="font-black text-sm text-indigo-600">' + formatDetikLabel(e.totalDetik) + '</p>' +
-                '<p class="text-[10px] text-gray-400">' + e.materiNama + '</p>' +
-            '</div>';
-        container.appendChild(div);
-    });
-}
+function renderWaktuBelajar() { var filterMateri = document.getElementById('filter-waktu-materi'); filterMateri.innerHTML = '<option value="all">Semua Materi</option>'; Object.keys(allMateriData).forEach(function(id) { var m = allMateriData[id], opt = document.createElement('option'); opt.value = id; opt.textContent = m.judul || id; filterMateri.appendChild(opt); }); filterWaktuBelajar(); }
+function filterWaktuBelajar() { var filterMateri = document.getElementById('filter-waktu-materi').value, sortMode = document.getElementById('filter-waktu-sort').value, container = document.getElementById('waktu-belajar-list'), emptyEl = document.getElementById('emptyWaktu'); container.innerHTML = ''; var entries = []; Object.keys(allStudyTimeData).forEach(function(materiId) { if (filterMateri !== 'all' && filterMateri !== materiId) return; var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId; Object.keys(allStudyTimeData[materiId]).forEach(function(nup) { var d = allStudyTimeData[materiId][nup]; entries.push({ materiId:materiId, materiNama:materiNama, nup:nup, nama:d.nama||'Anonim', unit:d.unit||'-', totalDetik:d.totalDetik||0, sesiCount:d.sesiCount||0, lastSeen:d.lastSeen||0 }); }); }); if (sortMode === 'terbaru') entries.sort(function(a,b){return b.lastSeen-a.lastSeen;}); else if (sortMode === 'terlama') entries.sort(function(a,b){return a.lastSeen-b.lastSeen;}); else if (sortMode === 'terbaru_total') entries.sort(function(a,b){return b.totalDetik-a.totalDetik;}); else if (sortMode === 'terlama_total') entries.sort(function(a,b){return a.totalDetik-b.totalDetik;}); if (entries.length === 0) { emptyEl.style.display = 'block'; return; } emptyEl.style.display = 'none'; entries.forEach(function(e) { var mins = e.totalDetik / 60, dotColor = mins >= 30 ? 'bg-emerald-400' : (mins >= 10 ? 'bg-amber-400' : 'bg-red-400'), isOnline = (Date.now() - e.lastSeen) < 120000; if (isOnline) dotColor = 'bg-blue-400 animate-pulse'; var div = document.createElement('div'); div.className = 'bg-white border rounded-xl p-4 flex items-center gap-4 hover:shadow-sm transition-all animate-fade-in'; div.innerHTML = '<span class="w-3 h-3 rounded-full ' + dotColor + ' flex-shrink-0"></span><div class="flex-1 min-w-0"><p class="font-bold text-sm text-gray-800 truncate">' + e.nama + '</p><p class="text-[10px] text-gray-400">NUP: ' + e.nup + ' | ' + e.unit + '</p></div><div class="text-right flex-shrink-0"><p class="font-black text-sm text-indigo-600">' + formatDetikLabel(e.totalDetik) + '</p><p class="text-[10px] text-gray-400">' + e.materiNama + '</p></div>'; container.appendChild(div); }); }
 
-/* ===== NILAI (LAPORAN) ===== */
-function renderNilai() {
-    var tbody = document.getElementById('tabel-laporan');
-    tbody.innerHTML = '';
-    var rows = [];
-    Object.keys(allLaporanData).forEach(function(materiId) {
-        var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId;
-        Object.keys(allLaporanData[materiId]).forEach(function(nup) {
-            var d = allLaporanData[materiId][nup];
-            rows.push({ materiNama: materiNama, nup: nup, nama: d.nama || '-', unit: d.unit || '-', role: d.role || '-', nilai: d.nilai || 0, waktu: d.waktu || '-', materiId: materiId });
-        });
-    });
-    if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400 text-sm">Belum ada data.</td></tr>'; return; }
-    var roleColorMap = { sdp: 'bg-sky-100 text-sky-700', umum: 'bg-amber-100 text-amber-700' };
-    rows.forEach(function(r) {
-        var roleCls = roleColorMap[r.role] || 'bg-gray-100 text-gray-600';
-        var tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition-colors';
-        tr.innerHTML =
-            '<td class="p-3 font-bold text-sm">' + r.nama + '</td>' +
-            '<td class="p-3 text-xs text-gray-500">' + r.nup + '</td>' +
-            '<td class="p-3 text-xs text-gray-500">' + r.unit + '</td>' +
-            '<td class="p-3"><span class="' + roleCls + ' text-[9px] font-black uppercase px-2 py-0.5 rounded-full">' + (r.role || '-') + '</span></td>' +
-            '<td class="p-3 text-xs text-center">' + r.materiNama + '</td>' +
-            '<td class="p-3 text-center font-black text-amber-600">' + r.nilai + '</td>' +
-            '<td class="p-3 text-right"><button onclick="hapusLaporan(\'' + r.materiId + '\',\'' + r.nup + '\')" class="text-[10px] font-bold text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>';
-        tbody.appendChild(tr);
-    });
-}
-function hapusLaporan(materiId, nup) {
-    if (!confirm('Hapus laporan ini?')) return;
-    if (db) db.ref('laporan/' + materiId + '/' + nup).remove();
-    toast('Laporan dihapus.', 'info');
-}
+/* ===== NILAI ===== */
+function renderNilai() { var tbody = document.getElementById('tabel-laporan'); tbody.innerHTML = ''; var rows = []; Object.keys(allLaporanData).forEach(function(materiId) { var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId; Object.keys(allLaporanData[materiId]).forEach(function(nup) { var d = allLaporanData[materiId][nup]; rows.push({ materiNama:materiNama, nup:nup, nama:d.nama||'-', unit:d.unit||'-', role:d.role||'-', nilai:d.nilai||0, waktu:d.waktu||'-', materiId:materiId }); }); }); if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400 text-sm">Belum ada data.</td></tr>'; return; } rows.forEach(function(r) { var tr = document.createElement('tr'); tr.className = 'hover:bg-gray-50 transition-colors'; tr.innerHTML = '<td class="p-3 font-bold text-sm">' + r.nama + '</td><td class="p-3 text-xs text-gray-500">' + r.nup + '</td><td class="p-3 text-xs text-gray-500">' + r.unit + '</td><td class="p-3">' + renderRoleBadge(r.role) + '</td><td class="p-3 text-xs text-center">' + r.materiNama + '</td><td class="p-3 text-center font-black text-amber-600">' + r.nilai + '</td><td class="p-3 text-right"><button onclick="hapusLaporan(\'' + r.materiId + '\',\'' + r.nup + '\')" class="text-[10px] font-bold text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>'; tbody.appendChild(tr); }); }
+function hapusLaporan(materiId, nup) { if (!confirm('Hapus laporan ini?')) return; if (db) db.ref('laporan/' + materiId + '/' + nup).remove(); toast('Laporan dihapus.', 'info'); }
 
 /* ===== ABSEN ===== */
-function renderAbsen() {
-    var tbody = document.getElementById('tabel-absensi');
-    tbody.innerHTML = '';
-    var rows = [];
-    Object.keys(allAbsenData).forEach(function(materiId) {
-        var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId;
-        Object.keys(allAbsenData[materiId]).forEach(function(nup) {
-            var d = allAbsenData[materiId][nup];
-            rows.push({ materiNama: materiNama, nup: nup, nama: d.nama || '-', unit: d.unit || '-', role: d.role || '-', waktu: d.waktu || '-', materiId: materiId });
-        });
-    });
-    if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400 text-sm">Belum ada data absensi.</td></tr>'; return; }
-    var roleColorMap = { sdp: 'bg-sky-100 text-sky-700', umum: 'bg-amber-100 text-amber-700' };
-    rows.forEach(function(r) {
-        var roleCls = roleColorMap[r.role] || 'bg-gray-100 text-gray-600';
-        var tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition-colors';
-        tr.innerHTML =
-            '<td class="p-3 font-bold text-sm">' + r.nama + '</td>' +
-            '<td class="p-3 text-xs text-gray-500">' + r.nup + '</td>' +
-            '<td class="p-3 text-xs text-gray-500">' + r.unit + '</td>' +
-            '<td class="p-3"><span class="' + roleCls + ' text-[9px] font-black uppercase px-2 py-0.5 rounded-full">' + (r.role || '-') + '</span></td>' +
-            '<td class="p-3 text-xs">' + r.materiNama + '</td>' +
-            '<td class="p-3 text-xs text-gray-500">' + r.waktu + '</td>' +
-            '<td class="p-3 text-right"><button onclick="hapusAbsen(\'' + r.materiId + '\',\'' + r.nup + '\')" class="text-[10px] font-bold text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>';
-        tbody.appendChild(tr);
-    });
-}
-function hapusAbsen(materiId, nup) {
-    if (!confirm('Hapus data absensi ini?')) return;
-    if (db) db.ref('absensi/' + materiId + '/' + nup).remove();
-    toast('Absensi dihapus.', 'info');
-}
+function renderAbsen() { var tbody = document.getElementById('tabel-absensi'); tbody.innerHTML = ''; var rows = []; Object.keys(allAbsenData).forEach(function(materiId) { var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId; Object.keys(allAbsenData[materiId]).forEach(function(nup) { var d = allAbsenData[materiId][nup]; rows.push({ materiNama:materiNama, nup:nup, nama:d.nama||'-', unit:d.unit||'-', role:d.role||'-', waktu:d.waktu||'-', materiId:materiId }); }); }); if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-400 text-sm">Belum ada data absensi.</td></tr>'; return; } rows.forEach(function(r) { var tr = document.createElement('tr'); tr.className = 'hover:bg-gray-50 transition-colors'; tr.innerHTML = '<td class="p-3 font-bold text-sm">' + r.nama + '</td><td class="p-3 text-xs text-gray-500">' + r.nup + '</td><td class="p-3 text-xs text-gray-500">' + r.unit + '</td><td class="p-3">' + renderRoleBadge(r.role) + '</td><td class="p-3 text-xs">' + r.materiNama + '</td><td class="p-3 text-xs text-gray-500">' + r.waktu + '</td><td class="p-3 text-right"><button onclick="hapusAbsen(\'' + r.materiId + '\',\'' + r.nup + '\')" class="text-[10px] font-bold text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button></td>'; tbody.appendChild(tr); }); }
+function hapusAbsen(materiId, nup) { if (!confirm('Hapus data absensi ini?')) return; if (db) db.ref('absensi/' + materiId + '/' + nup).remove(); toast('Absensi dihapus.', 'info'); }
 
 /* ===== MODAL ABSEN ===== */
-function resetModalAbsen() {
-    document.getElementById('abs-nup').value = '';
-    document.getElementById('abs-nama').value = '';
-    document.getElementById('abs-unit').value = '';
-    document.getElementById('nup-error-msg').textContent = '';
-    var dc = document.getElementById('absen-data-container');
-    dc.classList.add('opacity-60', 'pointer-events-none');
-    var btn = document.getElementById('btn-submit-absen');
-    btn.disabled = true;
-    btn.className = 'flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed';
-    btn.textContent = 'Kirim & Buka';
-    currentKaryawanData = null;
-}
-function cekNUPDatabase() {
-    var nupVal = document.getElementById('abs-nup').value.trim();
-    var errEl = document.getElementById('nup-error-msg');
-    errEl.textContent = '';
-    if (!nupVal) return;
-    var data = databasePegawai[nupVal];
-    if (!data) { errEl.textContent = 'NUP tidak ditemukan di database.'; currentKaryawanData = null; return; }
-    currentKaryawanData = { nama: data.nama, unit: data.unit, role: data.role || '', nup: nupVal };
-    document.getElementById('abs-nama').value = data.nama;
-    document.getElementById('abs-unit').value = data.unit;
-    var dc = document.getElementById('absen-data-container');
-    dc.classList.remove('opacity-60', 'pointer-events-none');
-    var btn = document.getElementById('btn-submit-absen');
-    btn.disabled = false;
-    btn.className = 'flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/25 uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700 active:scale-[0.98]';
-    btn.textContent = 'Kirim & Buka';
-}
-function prosesAbsen() {
-    if (!currentKaryawanData || !db || !curId) return;
-    var now = new Date();
-    var waktuStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    db.ref('absensi/' + curId + '/' + currentKaryawanData.nup).set({
-        nama: currentKaryawanData.nama,
-        nup: currentKaryawanData.nup,
-        unit: currentKaryawanData.unit,
-        role: currentKaryawanData.role,
-        waktu: waktuStr,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    });
-    tutupModal('modal-absen');
-    toast('Absensi berhasil dicatat untuk ' + currentKaryawanData.nama, 'success');
-}
+function resetModalAbsen() { document.getElementById('abs-nup').value = ''; document.getElementById('abs-nama').value = ''; document.getElementById('abs-unit').value = ''; document.getElementById('nup-error-msg').textContent = ''; var dc = document.getElementById('absen-data-container'); dc.classList.add('opacity-60', 'pointer-events-none'); var btn = document.getElementById('btn-submit-absen'); btn.disabled = true; btn.className = 'flex-[2] bg-gray-300 text-gray-500 py-4 rounded-xl font-bold shadow-lg uppercase text-xs transition-all flex items-center justify-center gap-2 cursor-not-allowed'; btn.textContent = 'Kirim & Buka'; currentKaryawanData = null; }
+function cekNUPDatabase() { var nupVal = document.getElementById('abs-nup').value.trim(), errEl = document.getElementById('nup-error-msg'); errEl.textContent = ''; if (!nupVal) return; var data = databasePegawai[nupVal]; if (!data) { errEl.textContent = 'NUP tidak ditemukan di database.'; currentKaryawanData = null; return; } currentKaryawanData = { nama:data.nama, unit:data.unit, role:data.role||'', nup:nupVal }; document.getElementById('abs-nama').value = data.nama; document.getElementById('abs-unit').value = data.unit; var dc = document.getElementById('absen-data-container'); dc.classList.remove('opacity-60', 'pointer-events-none'); var btn = document.getElementById('btn-submit-absen'); btn.disabled = false; btn.className = 'flex-[2] bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-500/25 uppercase text-xs transition-all flex items-center justify-center gap-2 hover:bg-indigo-700 active:scale-[0.98]'; btn.textContent = 'Kirim & Buka'; }
+function prosesAbsen() { if (!currentKaryawanData || !db || !curId) return; var now = new Date(), waktuStr = now.getDate() + '/' + (now.getMonth()+1) + '/' + now.getFullYear() + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0'); db.ref('absensi/' + curId + '/' + currentKaryawanData.nup).set({ nama:currentKaryawanData.nama, nup:currentKaryawanData.nup, unit:currentKaryawanData.unit, role:currentKaryawanData.role, waktu:waktuStr, timestamp:firebase.database.ServerValue.TIMESTAMP }); tutupModal('modal-absen'); toast('Absensi berhasil dicatat untuk ' + currentKaryawanData.nama, 'success'); }
 
 /* ===== ADMIN CHAT ===== */
-function renderAdminChat() {
-    var container = document.getElementById('admin-chat-list');
-    container.innerHTML = '';
-    var materiKeys = Object.keys(allChatData);
-    if (materiKeys.length === 0) { container.innerHTML = '<div class="text-center py-12 text-gray-400 text-sm">Belum ada chat.</div>'; return; }
-    materiKeys.forEach(function(materiId) {
-        var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId;
-        var msgs = allChatData[materiId];
-        var msgKeys = Object.keys(msgs);
-        if (msgKeys.length === 0) return;
-        var div = document.createElement('div');
-        div.className = 'border rounded-xl overflow-hidden mb-4';
-        var lastMsg = msgs[msgKeys[msgKeys.length - 1]];
-        div.innerHTML =
-            '<div class="bg-indigo-50 px-4 py-3 flex items-center justify-between border-b">' +
-                '<h4 class="font-bold text-sm text-indigo-800 uppercase">' + materiNama + '</h4>' +
-                '<span class="text-[10px] text-gray-400">' + msgKeys.length + ' pesan</span>' +
-            '</div>' +
-            '<div class="p-4 max-h-48 overflow-y-auto custom-scroll space-y-2">';
-        msgKeys.forEach(function(mk) {
-            var m = msgs[mk];
-            div.innerHTML += '<div class="bg-gray-50 rounded-lg px-3 py-2"><p class="text-[10px] font-bold text-indigo-600">' + (m.nama || 'Anonim') + ' <span class="text-gray-400 font-normal">' + (m.waktu || '') + '</span></p><p class="text-xs text-gray-700 mt-0.5">' + (m.pesan || '') + '</p></div>';
-        });
-        div.innerHTML += '</div>';
-        container.appendChild(div);
-    });
-}
+function renderAdminChat() { var container = document.getElementById('admin-chat-list'); container.innerHTML = ''; var materiKeys = Object.keys(allChatData); if (materiKeys.length === 0) { container.innerHTML = '<div class="text-center py-12 text-gray-400 text-sm">Belum ada chat.</div>'; return; } materiKeys.forEach(function(materiId) { var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId, msgs = allChatData[materiId], msgKeys = Object.keys(msgs); if (msgKeys.length === 0) return; var div = document.createElement('div'); div.className = 'border rounded-xl overflow-hidden mb-4'; var lastMsg = msgs[msgKeys[msgKeys.length - 1]]; div.innerHTML = '<div class="bg-indigo-50 px-4 py-3 flex items-center justify-between border-b"><h4 class="font-bold text-sm text-indigo-800 uppercase">' + materiNama + '</h4><span class="text-[10px] text-gray-400">' + msgKeys.length + ' pesan</span></div><div class="p-4 max-h-48 overflow-y-auto custom-scroll space-y-2">'; msgKeys.forEach(function(mk) { var m = msgs[mk]; div.innerHTML += '<div class="bg-gray-50 rounded-lg px-3 py-2"><p class="text-[10px] font-bold text-indigo-600">' + (m.nama || 'Anonim') + ' <span class="text-gray-400 font-normal">' + (m.waktu || '') + '</span></p><p class="text-xs text-gray-700 mt-0.5">' + (m.pesan || '') + '</p></div>'; }); div.innerHTML += '</div>'; container.appendChild(div); }); }
 
-/* ===== EXCEL DOWNLOAD ===== */
-function downloadExcel() {
-    var rows = [];
-    Object.keys(allAbsenData).forEach(function(materiId) {
-        var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId;
-        Object.keys(allAbsenData[materiId]).forEach(function(nup) {
-            var d = allAbsenData[materiId][nup];
-            rows.push({ Nama: d.nama || '-', NUP: nup, Unit: d.unit || '-', Grup: (d.role || '-').toUpperCase(), Materi: materiNama, Waktu: d.waktu || '-' });
-        });
-    });
-    if (rows.length === 0) { toast('Tidak ada data absensi.', 'error'); return; }
-    var ws = XLSX.utils.json_to_sheet(rows);
-    var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Absensi');
-    XLSX.writeFile(wb, 'absensi_bki_classroom.xlsx');
-    toast('Excel absensi berhasil diunduh.', 'success');
-}
-function downloadExcelWaktu() {
-    var rows = [];
-    Object.keys(allStudyTimeData).forEach(function(materiId) {
-        var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId;
-        Object.keys(allStudyTimeData[materiId]).forEach(function(nup) {
-            var d = allStudyTimeData[materiId][nup];
-            rows.push({ Nama: d.nama || '-', NUP: nup, Unit: d.unit || '-', Materi: materiNama, 'Total Detik': d.totalDetik || 0, 'Total Menit': Math.round((d.totalDetik || 0) / 60), 'Jumlah Sesi': d.sesiCount || 0 });
-        });
-    });
-    if (rows.length === 0) { toast('Tidak ada data waktu belajar.', 'error'); return; }
-    var ws = XLSX.utils.json_to_sheet(rows);
-    var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'WaktuBelajar');
-    XLSX.writeFile(wb, 'waktu_belajar_bki_classroom.xlsx');
-    toast('Excel waktu belajar berhasil diunduh.', 'success');
-}
+/* ===== EXCEL ===== */
+function downloadExcel() { var rows = []; Object.keys(allAbsenData).forEach(function(materiId) { var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId; Object.keys(allAbsenData[materiId]).forEach(function(nup) { var d = allAbsenData[materiId][nup]; rows.push({ Nama:d.nama||'-', NUP:nup, Unit:d.unit||'-', Grup:(d.role||'-').toUpperCase(), Materi:materiNama, Waktu:d.waktu||'-' }); }); }); if (rows.length === 0) { toast('Tidak ada data absensi.', 'error'); return; } var ws = XLSX.utils.json_to_sheet(rows), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Absensi'); XLSX.writeFile(wb, 'absensi_bki_classroom.xlsx'); toast('Excel absensi berhasil diunduh.', 'success'); }
+function downloadExcelWaktu() { var rows = []; Object.keys(allStudyTimeData).forEach(function(materiId) { var materiNama = (allMateriData[materiId] && allMateriData[materiId].judul) || materiId; Object.keys(allStudyTimeData[materiId]).forEach(function(nup) { var d = allStudyTimeData[materiId][nup]; rows.push({ Nama:d.nama||'-', NUP:nup, Unit:d.unit||'-', Materi:materiNama, 'Total Detik':d.totalDetik||0, 'Total Menit':Math.round((d.totalDetik||0)/60), 'Jumlah Sesi':d.sesiCount||0 }); }); }); if (rows.length === 0) { toast('Tidak ada data waktu belajar.', 'error'); return; } var ws = XLSX.utils.json_to_sheet(rows), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'WaktuBelajar'); XLSX.writeFile(wb, 'waktu_belajar_bki_classroom.xlsx'); toast('Excel waktu belajar berhasil diunduh.', 'success'); }
 
 /* ===== FIREBASE LISTENERS ===== */
-function initFirebaseListeners() {
-    if (!db) return;
-    db.ref('materi').on('value', function(snap) {
-        allMateriData = snap.val() || {};
-        renderMateriSiswa();
-        if (document.getElementById('view-guru').style.display !== 'none') renderAdminPanel();
-    });
-    db.ref('studyTime').on('value', function(snap) {
-        allStudyTimeData = snap.val() || {};
-        if (currentGuruTab === 'waktu' && document.getElementById('view-guru').style.display !== 'none') filterWaktuBelajar();
-    });
-    db.ref('absensi').on('value', function(snap) {
-        allAbsenData = snap.val() || {};
-        if (currentGuruTab === 'absen' && document.getElementById('view-guru').style.display !== 'none') renderAbsen();
-    });
-    db.ref('laporan').on('value', function(snap) {
-        allLaporanData = snap.val() || {};
-        if (currentGuruTab === 'nilai' && document.getElementById('view-guru').style.display !== 'none') renderNilai();
-    });
-    db.ref('chat').on('value', function(snap) {
-        allChatData = snap.val() || {};
-        if (currentGuruTab === 'chat' && document.getElementById('view-guru').style.display !== 'none') renderAdminChat();
-    });
-}
+function initFirebaseListeners() { if (!db) return; db.ref('materi').on('value', function(snap) { allMateriData = snap.val() || {}; renderMateriSiswa(); if (document.getElementById('view-guru').style.display !== 'none') renderAdminPanel(); }); db.ref('studyTime').on('value', function(snap) { allStudyTimeData = snap.val() || {}; if (currentGuruTab === 'waktu' && document.getElementById('view-guru').style.display !== 'none') filterWaktuBelajar(); }); db.ref('absensi').on('value', function(snap) { allAbsenData = snap.val() || {}; if (currentGuruTab === 'absen' && document.getElementById('view-guru').style.display !== 'none') renderAbsen(); }); db.ref('laporan').on('value', function(snap) { allLaporanData = snap.val() || {}; if (currentGuruTab === 'nilai' && document.getElementById('view-guru').style.display !== 'none') renderNilai(); }); db.ref('chat').on('value', function(snap) { allChatData = snap.val() || {}; if (currentGuruTab === 'chat' && document.getElementById('view-guru').style.display !== 'none') renderAdminChat(); }); }
 
 /* ===== INIT ===== */
 checkLoginState();
-renderRoleBanner();
 initFirebaseListeners();
 </script>
 </body>
